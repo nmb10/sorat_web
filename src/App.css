@@ -36,3 +36,53 @@
     transform: rotate(360deg);
   }
 }
+
+
+.reply-letter {
+    font-size: 45px;
+    float: left;
+    margin: 5px;
+    width: 65px;
+    height: 65px;
+    border: 2px solid gray;
+    float: left;
+    padding:0;
+    text-align:center
+}
+
+.reply-letter a {
+    float: right;
+    margin-top: -10px;
+    font-size: 30px;
+}
+
+.user-total-score {
+    font-size:30px;
+}
+
+#reply-buttons .button-small {
+    font-size:1em;
+    margin:0;
+    padding:0.1em;
+    height:2em;
+    width:2em;
+}
+#reply-buttons table td{
+    margin:0;
+    padding:0;
+    /*display: inline-block;*/
+    word-wrap: break-word;
+    border-bottom: 0;
+}
+
+#reply-buttons td span {
+    font-size:40px;
+    margin:0;
+    padding:0.1em;
+    height:4em;
+    width:4em;
+}
+
+select {
+    color: white;
+}
