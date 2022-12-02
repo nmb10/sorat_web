@@ -1,4 +1,6 @@
 import logo from './logo.svg';
+import spinner from './spinner1.png';
+
 import React from 'react';
 import './App.css';
 import update from 'react-addons-update';
@@ -955,7 +957,7 @@ class Main extends React.Component {
         } else if (this.state.mode == 'contest_enqueued') {
             trainBlock = (
                 <button onClick={self.leave} title='Leave game'>
-                    Leave <img src="/static/media/spinner1.png" alt="Spinner" /> <span>Looking for competitor</span>
+                    Leave <img src={spinner} alt="Spinner" /> <span>Looking for competitor</span>
                 </button>
             );
         } else {
