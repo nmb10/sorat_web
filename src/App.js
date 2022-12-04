@@ -92,15 +92,22 @@ function formatFloat(number) {
 }
 
 
-function userScoreToRow(score) {
-    const totalPossible = 5 * score.all.length;
-    const scorePercent = formatFloat((score.total / totalPossible) * 100);
+function userScoreToRow(isCurrent, score) {
+    let scorePercent = ''
+    if (score.all.length > 0) {
+        const totalPossible = 5 * score.all.length;
+        scorePercent = '(' + formatFloat((score.total / totalPossible) * 100) + '%)';
+    }
+    let currentUserStyle = {};
+    if (isCurrent) {
+        currentUserStyle.color = "green"
+    }
 
     const allScores = score.all.slice(-3).map((score1) => <td>{score1}</td>);
     return (
         <tr>
-            <td>{score.name}</td>
-            <td><span className="user-total-score">{score.total}({scorePercent}%)</span></td>
+            <td><span style={currentUserStyle}>{score.name}</span></td>
+            <td><span className="user-total-score" style={currentUserStyle}>{score.total}{scorePercent}</span></td>
             <td>...</td>
             {allScores}
         </tr>
@@ -115,18 +122,28 @@ function FinishedRoundsTable(props) {
      */
 
     let scores = {};
-
-    for (let i = 0; i < props.finishedRounds.length; ++i) {
-        for (const userId in props.finishedRounds[i].solutions) {
-            if (userId in scores) {
-                scores[userId]['total'] += props.finishedRounds[i].solutions[userId].score;
-                scores[userId]['all'].push(props.finishedRounds[i].solutions[userId].score);
-            } else {
-                scores[userId] = {
-                    name: props.finishedRounds[i].solutions[userId].name,
-                    total: props.finishedRounds[i].solutions[userId].score,
-                    all: [props.finishedRounds[i].solutions[userId].score]
-                };
+    if (props.finishedRounds.length == 0) {
+        // Show zeros for all players.
+        for (const userId in props.players) {
+            scores[userId] = {
+                name: props.players[userId].name,
+                total: 0,
+                all: []
+            };
+        }
+    } else {
+        for (let i = 0; i < props.finishedRounds.length; ++i) {
+            for (const userId in props.finishedRounds[i].solutions) {
+                if (userId in scores) {
+                    scores[userId]['total'] += props.finishedRounds[i].solutions[userId].score;
+                    scores[userId]['all'].push(props.finishedRounds[i].solutions[userId].score);
+                } else {
+                    scores[userId] = {
+                        name: props.finishedRounds[i].solutions[userId].name,
+                        total: props.finishedRounds[i].solutions[userId].score,
+                        all: [props.finishedRounds[i].solutions[userId].score]
+                    };
+                }
             }
         }
     }
@@ -135,8 +152,9 @@ function FinishedRoundsTable(props) {
     let wordRowElems = [];
     let pointsRowsElems = [];
 
+    let isCurrent = null;
     for (const userId in scores) {
-        pointsRowsElems.push(userScoreToRow(scores[userId]));
+        pointsRowsElems.push(userScoreToRow(userId == props.user.id, scores[userId]));
     }
 
     if (props.finishedRounds.length > 0) {
@@ -214,7 +232,7 @@ function QuestionLetter(props) {
                 {detail: { letter: props.letter, wordIndex: props.wordIndex, letterIndex: props.letterIndex}}))
     };
 
-    const style = {fontSize:"40px", float:"left", marginLeft:"3px", width:"75px", height:"75px"};
+    const style = {fontSize:"35px", float:"left", marginLeft:"3px", width:"75px", height:"75px"};
     // FIXME: Move to css.
 
     if (props.isChosen || props.letter == " ") {
@@ -300,6 +318,7 @@ class Main extends React.Component {
         this.startWebsocket = this.startWebsocket.bind(this);
         this.stopWebsocket = this.stopWebsocket.bind(this);
         this.sendMessageByTimeout = this.sendMessageByTimeout.bind(this);
+
     }
 
     sendMessageByTimeout(message) {
@@ -934,8 +953,7 @@ class Main extends React.Component {
 
         //console.log(this.state);
         var trainBlock = null;
-        var contestButton = null;
-
+        var contestBlock = null;
         var challengeBlock = null;
 
         if (this.state.challenge) {
@@ -948,21 +966,30 @@ class Main extends React.Component {
             );
         }
 
-        if (this.state.mode == 'contest' || this.state.mode == 'train') {
+        if (this.state.mode == 'contest') {
+            trainBlock = <button disabled onClick={this.onTrainClick}>Train</button>;
+            contestBlock = (
+                <button onClick={self.leave} title='Leave game'>
+                    Leave
+                </button>
+            );
+        } else if (this.state.mode == 'train') {
             trainBlock = (
                 <button onClick={self.leave} title='Leave game'>
                     Leave
                 </button>
             );
+            contestBlock = <button disabled onClick={this.onContestClick}>Contest</button>;
         } else if (this.state.mode == 'contest_enqueued') {
-            trainBlock = (
+            trainBlock = <button disabled onClick={this.onTrainClick}>Train</button>;
+            contestBlock = (
                 <button onClick={self.leave} title='Leave game'>
-                    Leave <img src={spinner} alt="Spinner" /> <span>Looking for competitor</span>
+                    Leave <img src={spinner} alt="Spinner" />
                 </button>
             );
         } else {
             trainBlock = <button onClick={this.onTrainClick}>Train</button>;
-            contestButton = <button onClick={this.onContestClick}>Contest</button>;
+            contestBlock = <button onClick={this.onContestClick}>Contest</button>;
         }
 
         var helpButton = null;
@@ -988,10 +1015,6 @@ class Main extends React.Component {
             localLanguageName = localLanguage[0].local_name;
         }
 
-        var languageBlock = (
-            <span>{localLanguageName}&nbsp;|&nbsp;</span>
-        );
-
         // FIXME: Optimize or cache somehow.
         var localTopic = this.state.topics.filter(
             x => x.code == this.state.user.topic);
@@ -999,25 +1022,12 @@ class Main extends React.Component {
         if (localTopic.length > 0) {
             localTopicName = localTopic[0].local_name;
         }
-        var topicBlock = (
-            <span>{localTopicName}&nbsp;</span>
-        );
 
-        if (this.state.mode == null) {
-            languageBlock = (
-                <select value={this.state.user.language} onChange={this.handleLanguageChange}>
-                    <option value="">---</option>
-                    {languageOptionItems}
-                </select>
-            );
-
-            topicBlock = (
-                <select value={this.state.user.topic} onChange={this.handleTopicChange}>
-                    <option value="">---</option>
-                    {topicOptionItems}
-                </select>
-            );
+        var disabled = "";
+        if (this.state.mode != null) {
+            disabled = "disabled";
         }
+
 
         var currentRoundTimeoutBlock = (<h3 style={{fontSize: "45px"}}>{currentRound.timeout}&nbsp;|&nbsp;{pointsBlock}</h3>);
         if (currentRound.timeout <= 10 && !isSolved) {
@@ -1038,21 +1048,27 @@ class Main extends React.Component {
                         </div>
                     </div>
                     <div className="column">
-                        {languageBlock}
+                        <select disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
+                            <option value="">---</option>
+                            {languageOptionItems}
+                        </select>
                     </div>
                     <div className="column">
-                        {topicBlock}
+                        <select disabled={disabled} value={this.state.user.topic} onChange={this.handleTopicChange}>
+                            <option value="">---</option>
+                            {topicOptionItems}
+                        </select>
                     </div>
                     <div className="column">
                         {trainBlock}
                     </div>
                     <div className="column">
-                        {contestButton}
+                        {contestBlock}
                     </div>
                 </div>
                 <div className="row">
 
-                    <FinishedRoundsTable finishedRounds={finishedRounds} rounds={this.state.rounds} />
+                    <FinishedRoundsTable players={this.state.players} user={this.state.user} finishedRounds={finishedRounds} rounds={this.state.rounds} />
                 </div>
                 <div className="row">
                     <div className="column">
