@@ -100,7 +100,7 @@ function userScoreToRow(isCurrent, score) {
     }
     let currentUserStyle = {};
     if (isCurrent) {
-        currentUserStyle.color = "green"
+        currentUserStyle.color = "green";
     }
 
     const allScores = score.all.slice(-3).map((score1) => <td>{score1}</td>);
@@ -570,17 +570,22 @@ class Main extends React.Component {
         });
 
         document.getElementById('root').addEventListener('tick-challenge', function(event) {
-            const newState = update(self.state, {});
-            const currentTimeout = newState.challenge.timeout;
-
-            if (currentTimeout == 1) {
-                newState.challenge = null;
+            if (self.state.challenge == null) {
+                ;
             } else {
-                newState.challenge.timeout -= 1;
-                setTimeout(self.sendChallengeTickEvent, 1000);
-            }
+                const newState = update(self.state, {});
+                const currentTimeout = newState.challenge.timeout;
 
-            self.setState(newState);
+                if (currentTimeout == 1) {
+                    newState.challenge = null;
+                } else {
+                    newState.challenge.timeout -= 1;
+                    setTimeout(self.sendChallengeTickEvent, 1000);
+                }
+
+                self.setState(newState);
+
+            }
         });
 
         document.getElementById('root').addEventListener('state.update', function(event) {
@@ -712,6 +717,9 @@ class Main extends React.Component {
         document.getElementById('root').addEventListener('challenge-accepted', function(event) {
             var newState = update(self.state, {});
             newState.challenge = null;
+            newState.currentRound = -1;
+            newState.replyLetters = [];
+            newState.replyMap = {};
             self.setState(newState);
             self.sendMessage({
                 command: 'challenge-accept',
@@ -932,6 +940,16 @@ class Main extends React.Component {
             replyLetterItems = replyLettersToRow(this.state.replyLetters[0], isSolved);
         }
 
+        var contextBlock = null;
+        if (currentRound.context != null) {
+            contextBlock = <span style={{fontSize:"34px"}}>({currentRound.context_value || currentRound.context})</span>;
+        }
+
+        var pointerBlock = null;
+        if (currentRound.pointer != null) {
+            pointerBlock = <span style={{fontSize:"34px"}}>#{currentRound.pointer}</span>;
+        }
+
         var pointsBlock = null;
         var points = 0;
         if (isSolved) {
@@ -1074,7 +1092,7 @@ class Main extends React.Component {
                     <div className="column">
                         <img id="word-image"
                              src={currentRound.img}
-                             style={{maxWidth: "400px", width: "100%", height: "auto", display: "inline-block", padding: "0px"}} />
+                             style={{maxWidth: "500px", width: "100%", height: "auto", display: "inline-block", padding: "0px"}} />
                         <div>
                             {helpButton}
                             {currentRoundTimeoutBlock}
@@ -1083,6 +1101,9 @@ class Main extends React.Component {
                 </div>
                 <div className="row">
                     {challengeBlock}
+                </div>
+                <div className="row">
+                    {contextBlock}&nbsp;{pointerBlock}
                 </div>
                 <div className="row">
                     {replyLetterItems}
