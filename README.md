@@ -1,4 +1,5 @@
-# Web UI for sorat API (learn by image app)
+# Web UI for sorat (learn by image app) API
+Provides UI to guess word by image and word letters.
 
 # Getting Started with Create React App
 
