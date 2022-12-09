@@ -5,32 +5,32 @@ import './App.css'
 import update from 'react-addons-update'
 import PropTypes from 'prop-types'
 
+const tableSizeMap = {
+  1: [1, 1],
+  2: [1, 2],
+  3: [1, 3],
+  4: [2, 2],
+  5: [2, 3],
+  6: [2, 3],
+  7: [3, 3],
+  8: [3, 3],
+  9: [3, 3],
+  10: [3, 4],
+  11: [3, 4],
+  12: [3, 4],
+  13: [4, 4],
+  14: [4, 4],
+  15: [4, 4],
+  16: [4, 4],
+  17: [4, 5],
+  18: [4, 5],
+  19: [4, 5],
+  20: [4, 5]
+} // :)
+
 function questionLettersToTable (questionLetters, chosenQueryIndexes) {
-  const tableSizeMap = {
-    1: [1, 1],
-    2: [1, 2],
-    3: [1, 3],
-    4: [2, 2],
-    5: [2, 3],
-    6: [2, 3],
-    7: [3, 3],
-    8: [3, 3],
-    9: [3, 3],
-    10: [3, 4],
-    11: [3, 4],
-    12: [3, 4],
-    13: [1, 2],
-    14: [3, 5],
-    15: [4, 4],
-    16: [4, 4],
-    17: [4, 5],
-    18: [4, 5],
-    19: [4, 5],
-    20: [4, 5]
-  } // :)
   const [tableRowsCount, tableColumnsCount] = tableSizeMap[questionLetters.length]
   let letterIndex, letter
-
   const tableRows = []
 
   for (let i = 0; i < tableRowsCount; ++i) {
@@ -107,8 +107,8 @@ FinishedRoundsTable.propTypes = {
 
 function FinishedRoundsTable (props) {
   /* example of finishedRounds
-     * FIXME: Add example.
-     */
+  * FIXME: Add example.
+  */
 
   const scores = {}
   if (props.finishedRounds.length === 0) {
@@ -281,7 +281,6 @@ class Main extends React.Component {
     this.startWebsocket = this.startWebsocket.bind(this)
     this.stopWebsocket = this.stopWebsocket.bind(this)
     this.sendMessageByTimeout = this.sendMessageByTimeout.bind(this)
-
   }
 
   sendMessageByTimeout (message) {
@@ -605,6 +604,10 @@ class Main extends React.Component {
           newState.user.language = data.user.language
           newState.user.name = data.user.name
           newState.user.topic = data.topics[0].code
+          newState.rounds = data.rounds || []
+          newState.mode = data.mode
+          newState.players = data.players
+          newState.currentRound = data.currentRound
           self.setState(newState)
         })
 
@@ -889,7 +892,7 @@ class Main extends React.Component {
     }
 
     let contextBlock = null
-    if (currentRound.context != null) {
+    if (currentRound.context != null && currentRound.context !== '') {
       contextBlock = <span style={{ fontSize: '34px' }}>({currentRound.context_value || currentRound.context})</span>
     }
 
