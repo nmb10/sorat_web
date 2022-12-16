@@ -936,7 +936,7 @@ class Main extends React.Component {
     }
 
     if (this.state.mode === 'contest') {
-      trainBlock = <button disabled onClick={this.onTrainClick}>Train</button>
+      trainBlock = <button id='train' disabled onClick={this.onTrainClick}>Train</button>
       contestBlock = (
                 <button onClick={self.leave} title='Leave game'>
                     Leave
@@ -948,22 +948,27 @@ class Main extends React.Component {
                     Leave
                 </button>
       )
-      contestBlock = <button disabled onClick={this.onContestClick}>Contest</button>
+      contestBlock = <button disabled id='contest' onClick={this.onContestClick}>Contest</button>
     } else if (this.state.mode === 'contest_enqueued') {
-      trainBlock = <button disabled onClick={this.onTrainClick}>Train</button>
+      trainBlock = <button id='train' disabled onClick={this.onTrainClick}>Train</button>
       contestBlock = (
                 <button onClick={self.leave} title='Leave game'>
                     Leave <img src={spinner} alt="Spinner" />
                 </button>
       )
     } else {
-      trainBlock = <button onClick={this.onTrainClick}>Train</button>
-      contestBlock = <button onClick={this.onContestClick}>Contest</button>
+      trainBlock = <button id='train' onClick={this.onTrainClick}>Train</button>
+      contestBlock = <button id='contest' onClick={this.onContestClick}>Contest</button>
     }
 
     let helpButton = null
+    let roundDetails = null
     if (this.state.mode != null &&
                 Object.keys(currentRound).length > 0) {
+      roundDetails = (
+        <span id='round-details' style={{ fontSize: '24px', marginTop: '10px', float: 'left' }}>
+          Round #{this.state.currentRound} of {this.state.rounds.length}
+        </span>)
       if (currentRound.solutions[this.state.user.id].hints.length < 3 && !isSolved) {
         helpButton = (
                     <button onClick={self.getHelp}
@@ -972,14 +977,23 @@ class Main extends React.Component {
                         Help ({3 - currentRound.solutions[this.state.user.id].hints.length})
                     </button>
         )
+      } else {
+        helpButton = (
+                    <button onClick={self.getHelp}
+                            disabled='disabled'
+                            title='(-1 to current game score)'
+                            style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
+                        Help (0)
+                    </button>
+        )
       }
     }
 
     const disabled = this.state.mode != null ? 'disabled' : ''
 
-    let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px' }}>{currentRound.timeout}&nbsp;|&nbsp;{pointsBlock}</h3>)
+    let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}&nbsp;|&nbsp;{pointsBlock}</h3>)
     if (currentRound.timeout <= 10 && !isSolved) {
-      currentRoundTimeoutBlock = <h3 style={{ color: 'red', fontSize: '45px' }}>{currentRound.timeout}</h3>
+      currentRoundTimeoutBlock = <h3 style={{ color: 'red', fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}</h3>
     }
 
     return (
@@ -1024,7 +1038,8 @@ class Main extends React.Component {
                              src={currentRound.img}
                              style={{ maxWidth: '500px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
                         <div>
-                            {helpButton}
+                            {helpButton}&nbsp;
+                            {roundDetails}&nbsp;&nbsp;&nbsp;
                             {currentRoundTimeoutBlock}
                         </div>
                     </div>
