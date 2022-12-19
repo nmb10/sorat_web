@@ -289,10 +289,11 @@ class Main extends React.Component {
       if (self.websocket.readyState === self.websocket.OPEN) {
         self.websocket.send(JSON.stringify(message))
       } else {
-        console.log('Websocket is not connected.')
+        ;
+        // console.log('Websocket is not connected.')
       }
     } else {
-      console.log('Not opened. Still waiting...')
+      // console.log('Not opened. Still waiting...')
       setTimeout(self.sendMessageByTimeout, 500, message)
     }
   }
@@ -303,7 +304,8 @@ class Main extends React.Component {
       if (self.websocket.readyState === self.websocket.OPEN) {
         self.websocket.send(JSON.stringify(message))
       } else {
-        console.log('Websocket is not connected.')
+        ;
+        // console.log('Websocket is not connected.')
       }
     } else {
       self.startWebsocket()
@@ -312,7 +314,7 @@ class Main extends React.Component {
   }
 
   startWebsocket () {
-    console.log('Initializing WS now...')
+    // console.log('Initializing WS now...')
     const self = this
     // var wsHost = 'ws://127.0.0.1:8080/game.ws';
     // var wsHost = 'ws://' + window.location.host + '/game.ws';
@@ -352,11 +354,11 @@ class Main extends React.Component {
 
     const sendPing = function () {
       if (self.websocket.readyState === WebSocket.OPEN) {
-        console.log('Sending ping.')
+        // console.log('Sending ping.')
         self.websocket.send(JSON.stringify({ command: 'ping', payload: '' }))
         // Send ping.
       } else {
-        console.log('WS closed. Clear interval.')
+        // console.log('WS closed. Clear interval.')
         clearInterval(intervalID)
       }
     }
@@ -370,13 +372,13 @@ class Main extends React.Component {
 
     self.websocket.onclose = function (evt) {
       // event.detail.state.rounds
-      console.log('onclose! evt: ', evt)
+      // console.log('onclose! evt: ', evt)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.closed'))
       // console.log('Closed');
     }
 
     self.websocket.onerror = function (evt) {
-      console.log('onerror! evt: ', evt)
+      // console.log('onerror! evt: ', evt)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.error'))
     }
     self.websocket.onmessage = onMessage
@@ -384,7 +386,7 @@ class Main extends React.Component {
 
   stopWebsocket () {
     const self = this
-    console.log('Closing websocket now.')
+    // console.log('Closing websocket now.')
     if (self.websocket != null) {
       self.websocket.close()
     }
@@ -450,7 +452,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('ws.error', function (event) {
       const newState = update(self.state, {})
       newState.connection = 'error'
-      console.log('Error')
+      // console.log('Error')
       // newState.language = event.detail.state.language;
       // newState.mode = event.detail.state.mode;
       // FIXME:Add-other-fields.
@@ -460,7 +462,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('ws.closed', function (event) {
       const newState = update(self.state, {})
       newState.connection = 'closed'
-      console.log('Closed')
+      // console.log('Closed')
       // newState.language = event.detail.state.language;
       // newState.mode = event.detail.state.mode;
       // FIXME:Add-other-fields.
@@ -813,7 +815,7 @@ class Main extends React.Component {
 
   render () {
     const self = this
-    console.log('Before render.', self.state)
+    // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
                 <div className="container">
@@ -920,7 +922,6 @@ class Main extends React.Component {
     const topicOptionItems = this.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
 
-    // console.log(this.state);
     let trainBlock = null
     let contestBlock = null
     let challengeBlock = null
@@ -1029,7 +1030,6 @@ class Main extends React.Component {
                     </div>
                 </div>
                 <div className="row">
-
                     <FinishedRoundsTable players={this.state.players} user={this.state.user} finishedRounds={finishedRounds} rounds={this.state.rounds} />
                 </div>
                 <div className="row">
