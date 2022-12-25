@@ -996,9 +996,9 @@ class Main extends React.Component {
             </a>
           </div>
           <div className="row">
-              <div className="column">
-                  <div style={{ fontSize: '45px' }}>Connection closed. Please refresh the page.</div>
-              </div>
+            <div className="column">
+              <div style={{ fontSize: '45px' }}>Connection closed. Please refresh the page.</div>
+            </div>
           </div>
         </div>
       )
