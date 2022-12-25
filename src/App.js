@@ -28,6 +28,55 @@ const tableSizeMap = {
   20: [4, 5]
 } // :)
 
+const translations = {
+  en: {
+    beginner: 'Beginner',
+    intermediate: 'Intermediate',
+    advanced: 'Advanced',
+    report_an_issue: 'Report an issue',
+    leave: 'Leave',
+    contest: 'Contest',
+    train: 'Train'
+  },
+  ru: {
+    beginner: 'Начальный',
+    intermediate: 'Средний',
+    advanced: 'Продвинутый',
+    report_an_issue: 'Сообщить о проблеме',
+    leave: 'Выйти',
+    contest: 'Состязание',
+    train: 'Тренировка'
+  },
+  os: { // FIXME:
+    beginner: 'Beginner',
+    intermediate: 'Intermediate',
+    advanced: 'Advanced',
+    report_an_issue: 'Report an issue',
+    leave: 'Leave',
+    contest: 'Состязание',
+    train: 'Тренировка'
+  },
+  dig: { // FIXME:
+    beginner: 'Beginner',
+    intermediate: 'Intermediate',
+    advanced: 'Advanced',
+    report_an_issue: 'Report an issue',
+    leave: 'Leave',
+    contest: 'Contest',
+    train: 'Train'
+  }
+}
+
+const levels = [
+  'beginner',
+  'intermediate',
+  'advanced'
+]
+
+function t (userLanguage) {
+  return translations[userLanguage]
+}
+
 function questionLettersToTable (questionLetters, chosenQueryIndexes) {
   const [tableRowsCount, tableColumnsCount] = tableSizeMap[questionLetters.length]
   let letterIndex, letter
@@ -148,7 +197,7 @@ function FinishedRoundsTable (props) {
   if (props.finishedRounds.length > 0) {
     for (const round of props.finishedRounds.slice(-3)) {
       imageRowElems.push(
-                <td><img src={round.img} style={{ width: '30%', height: 'auto' }} /></td>)
+                <td><img src={round.img1} style={{ width: '30%', height: 'auto' }} /></td>)
       wordRowElems.push(
                 <td>{round.local_term}</td>)
     }
@@ -172,6 +221,87 @@ function FinishedRoundsTable (props) {
                 {pointsRowsElems}
             </tbody>
         </table>
+  )
+};
+
+IntermediateGameWidget.propTypes = {
+  currentRound: PropTypes.node.isRequired
+}
+
+function IntermediateGameWidget (props) {
+  return (
+    <img id="word-image"
+         src={props.currentRound.img1}
+         style={{ maxWidth: '500px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+  )
+}
+
+BeginnerGameWidget.propTypes = {
+  currentRound: PropTypes.node.isRequired
+}
+
+function BeginnerGameWidget (props) {
+  const localTerm = props.currentRound.local_term || ''
+  const localTermLetters = []
+  for (let j = 0; j < localTerm.length; ++j) {
+    localTermLetters.push(
+      <ReplyLetter isSolved={true} letter={localTerm[j]} wordIndex={0} letterIndex={j} />)
+  }
+
+  const onImage1Click = function (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('beginner.reply', { detail: { userChoice: 1 } }))
+  }
+
+  const onImage2Click = function (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('beginner.reply', { detail: { userChoice: 2 } }))
+  }
+  const onImage3Click = function (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('beginner.reply', { detail: { userChoice: 3 } }))
+  }
+  const onImage4Click = function (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('beginner.reply', { detail: { userChoice: 4 } }))
+  }
+
+  return (
+    <div>
+      <div className="row">
+        <div className="column">
+          <img className="word-image"
+               src={props.currentRound.img1}
+               onClick={onImage1Click}
+               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+        </div>
+        <div className="column">
+          <img className="word-image"
+               src={props.currentRound.img2}
+               onClick={onImage2Click}
+               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+        </div>
+      </div>
+      <div className="row">
+        <div className="column">
+          {localTermLetters}
+        </div>
+      </div>
+      <div className="row">
+        <div className="column">
+          <img className="word-image"
+               src={props.currentRound.img3}
+               onClick={onImage3Click}
+               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+        </div>
+        <div className="column">
+          <img className="word-image"
+               src={props.currentRound.img4}
+               onClick={onImage4Click}
+               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+        </div>
+      </div>
+    </div>
   )
 };
 
@@ -265,6 +395,7 @@ class Main extends React.Component {
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
+      level: 'intermediate', // beginner, intermediate, advanced
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
@@ -514,6 +645,15 @@ class Main extends React.Component {
       self.setState(newState)
     })
 
+    document.getElementById('root').addEventListener('beginner.reply', function (event) {
+      console.log('userChoice: ', event.detail.userChoice)
+      self.sendMessage({
+        command: 'reply',
+        level: 'beginner',
+        payload: { userChoice: event.detail.userChoice }
+      })
+    })
+
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
       const newState = update(self.state, {})
       newState.mode = 'contest_enqueued'
@@ -590,6 +730,29 @@ class Main extends React.Component {
         }
       }
       self.setState(newState)
+    })
+
+    document.getElementById('root').addEventListener('level-changed', function (event) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: { level: event.detail.level, language: self.state.user.language } })
+      }
+      fetch('/api/v1/state', requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          const newState = update(self.state, {})
+          newState.topics = data.topics
+          newState.user.language = data.user.language
+          newState.user.name = data.user.name
+          newState.level = data.user.level
+          newState.user.topic = data.topics[0].code
+          newState.rounds = data.rounds || []
+          newState.mode = data.mode
+          newState.players = data.players
+          newState.currentRound = data.currentRound
+          self.setState(newState)
+        })
     })
 
     document.getElementById('root').addEventListener('language-changed', function (event) {
@@ -700,7 +863,8 @@ class Main extends React.Component {
         body: JSON.stringify({
           user: {
             topic: event.detail.topic,
-            language: self.state.user.language
+            language: self.state.user.language,
+            level: self.state.user.level
           }
         })
       }
@@ -768,6 +932,11 @@ class Main extends React.Component {
     // clearInterval(this.timerID);
   }
 
+  handleLevelChange (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('level-changed', { detail: { level: event.target.value } }))
+  }
+
   handleLanguageChange (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('language-changed', { detail: { language: event.target.value } }))
@@ -816,28 +985,40 @@ class Main extends React.Component {
   render () {
     const self = this
     // console.log('Before render.', self.state)
+    const userLanguage = self.state.user.language || 'en'
     if (self.state.connection === 'closed') {
       return (
-                <div className="container">
-                    <br />
-                    <div className="row">
-                        <div className="column">
-                            <div style={{ fontSize: '45px' }}>Connection closed. Please refresh the page.</div>
-                        </div>
-                    </div>
-                </div>
+        <div className="container">
+          <br />
+          <div style={{ float: 'left' }}>
+            <a href="https://github.com/nmb10/sorat_web/issues">
+              {t(userLanguage).report_an_issue}
+            </a>
+          </div>
+          <div className="row">
+              <div className="column">
+                  <div style={{ fontSize: '45px' }}>Connection closed. Please refresh the page.</div>
+              </div>
+          </div>
+        </div>
       )
     } else if (this.state.connection === 'error') {
       return (
-                <div className="container">
-                    <br />
-                    <div className="row">
-                        <div className="column">
-                            <div style={{ fontSize: '45px' }}>Connection error. Please refresh the page.</div>
-                        </div>
-                    </div>
-                </div>
-      )
+        <div className="container">
+          <br />
+          <div style={{ float: 'left' }}>
+            <a href="https://github.com/nmb10/sorat_web/issues">
+              {t(userLanguage).report_an_issue}
+            </a>
+          </div>
+          <div className="row">
+            <div className="column">
+              <div style={{ fontSize: '45px' }}>
+                Connection error. Please refresh the page.
+              </div>
+            </div>
+          </div>
+        </div>)
     }
 
     const finishedRounds = this.state.rounds.filter((round) => round.timeout === 0)
@@ -919,6 +1100,9 @@ class Main extends React.Component {
     const languageOptionItems = this.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
 
+    const levelOptionItems = levels
+      .map((level) => <option key={level} value={level}>{t(userLanguage)[level]}</option>)
+
     const topicOptionItems = this.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
 
@@ -937,29 +1121,42 @@ class Main extends React.Component {
     }
 
     if (this.state.mode === 'contest') {
-      trainBlock = <button id='train' disabled onClick={this.onTrainClick}>Train</button>
+      trainBlock = (
+        <button id='train' disabled onClick={this.onTrainClick}>
+          {t(userLanguage).train}
+        </button>)
       contestBlock = (
-                <button onClick={self.leave} title='Leave game'>
-                    Leave
-                </button>
-      )
+        <button onClick={self.leave} title='Leave game'>
+          {t(userLanguage).leave}
+        </button>)
     } else if (this.state.mode === 'train') {
       trainBlock = (
-                <button onClick={self.leave} title='Leave game'>
-                    Leave
-                </button>
-      )
-      contestBlock = <button disabled id='contest' onClick={this.onContestClick}>Contest</button>
-    } else if (this.state.mode === 'contest_enqueued') {
-      trainBlock = <button id='train' disabled onClick={this.onTrainClick}>Train</button>
+        <button onClick={self.leave} title='Leave game'>
+          {t(userLanguage).leave}
+        </button>)
       contestBlock = (
-                <button onClick={self.leave} title='Leave game'>
-                    Leave <img src={spinner} alt="Spinner" />
-                </button>
-      )
+        <button disabled id='contest' onClick={this.onContestClick}>
+          {t(userLanguage).contest}
+        </button>)
+    } else if (this.state.mode === 'contest_enqueued') {
+      trainBlock = (
+        <button id='train' disabled onClick={this.onTrainClick}>
+          {t(userLanguage).train}
+        </button>)
+
+      contestBlock = (
+        <button onClick={self.leave} title='Leave game'>
+          {t(userLanguage).leave}<img src={spinner} alt="Spinner" />
+        </button>)
     } else {
-      trainBlock = <button id='train' onClick={this.onTrainClick}>Train</button>
-      contestBlock = <button id='contest' onClick={this.onContestClick}>Contest</button>
+      trainBlock = (
+        <button id='train' onClick={this.onTrainClick}>
+          {t(userLanguage).train}
+        </button>)
+      contestBlock = (
+        <button id='contest' onClick={this.onContestClick}>
+          {t(userLanguage).contest}
+        </button>)
     }
 
     let helpButton = null
@@ -997,9 +1194,24 @@ class Main extends React.Component {
       currentRoundTimeoutBlock = <h3 style={{ color: 'red', fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}</h3>
     }
 
+    let gameWidgetElems = null
+    if (this.state.level === 'beginner') {
+      gameWidgetElems = <BeginnerGameWidget currentRound={currentRound} />
+      helpButton = null // FIXME: Find better solution.
+      replyLetterItems = null
+      splittedLettersItems = null
+    } else if (this.state.level === 'intermediate') {
+      gameWidgetElems = <IntermediateGameWidget currentRound={currentRound} />
+    }
+
     return (
             <div className="container">
                 <br />
+                <div style={{ float: 'left' }}>
+                  <a href="https://github.com/nmb10/sorat_web/issues">
+                    {t(userLanguage).report_an_issue}
+                  </a>
+                </div>
                 <div className="row">
                     <div className="column">
                         <div>
@@ -1014,6 +1226,11 @@ class Main extends React.Component {
                         <select disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
                             <option value="">---</option>
                             {languageOptionItems}
+                        </select>
+                    </div>
+                    <div className="column">
+                        <select disabled={disabled} value={this.state.level} onChange={this.handleLevelChange}>
+                            {levelOptionItems}
                         </select>
                     </div>
                     <div className="column">
@@ -1034,9 +1251,7 @@ class Main extends React.Component {
                 </div>
                 <div className="row">
                     <div className="column">
-                        <img id="word-image"
-                             src={currentRound.img}
-                             style={{ maxWidth: '500px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+                        {gameWidgetElems}
                         <div>
                             {helpButton}&nbsp;
                             {roundDetails}&nbsp;&nbsp;&nbsp;
