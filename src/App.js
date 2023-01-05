@@ -82,12 +82,12 @@ function t (userLanguage) {
   return translations[userLanguage]
 }
 
-function preloadImage (roundIndex, imageIndex, src) {
+function preloadImage (roundIndex, imageIndex, imageMap) {
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
         'image.load',
-        { detail: { roundIndex: roundIndex, imageIndex: imageIndex, img: img1 } }))
+        { detail: { roundIndex: roundIndex, imageIndex: imageIndex, img: img1, imageMap: imageMap } }))
   }
   const reject = function (img1) {
     console.log('Image rejected: ', img1)
@@ -104,9 +104,9 @@ function preloadImage (roundIndex, imageIndex, src) {
     }
   }
   img.onerror = img.onabort = function () {
-    reject(src)
+    reject(imageMap.src)
   }
-  img.src = src
+  img.src = imageMap.src
 }
 
 function questionLettersToTable (questionLetters, chosenQueryIndexes) {
@@ -261,12 +261,14 @@ WordImageColumn.propTypes = {
   imageChoice: PropTypes.node.isRequired,
   userChoices: PropTypes.node.isRequired,
   isCorrectChoice: PropTypes.bool,
+  choicePointer: PropTypes.number,
   isSolved: PropTypes.bool,
   score: PropTypes.number
 }
 
 function WordImageColumn (props) {
   let onImageClick, imagePointsBlock
+  const choicePointer = props.choicePointer ? '#' + props.choicePointer : null
   const imageStyle = {
     maxWidth: '300px',
     width: '100%',
@@ -295,11 +297,14 @@ function WordImageColumn (props) {
 
   return (
     <div className="column" style={{ position: 'relative' }}>
+      <div style={{ fontSize: '24px' }}>
+        {choicePointer}
+      </div>
       {imagePointsBlock}
       <img className="word-image"
-          src={props.imageSrc}
-          onClick={onImageClick}
-          style={imageStyle} />
+           src={props.imageSrc}
+           onClick={onImageClick}
+           style={imageStyle} />
     </div>
   )
 }
@@ -311,7 +316,7 @@ IntermediateGameWidget.propTypes = {
 function IntermediateGameWidget (props) {
   return (
     <img id="word-image"
-         src={props.currentRound.img1}
+         src={props.currentRound.img1.src}
          style={{ maxWidth: '500px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
   )
 }
@@ -343,16 +348,22 @@ function BeginnerGameWidget (props) {
   // <img src={spinner} alt="Spinner" />
   //
   let src0, src1, src2, src3
+  let pointer0, pointer1, pointer2, pointer3
   if (props.preloadedImages[currentRoundIndex] === undefined) {
     src0 = spinner
     src1 = spinner
     src2 = spinner
     src3 = spinner
   } else {
-    src0 = props.preloadedImages[currentRoundIndex][0] === undefined ? spinner : props.preloadedImages[currentRoundIndex][0].src
-    src1 = props.preloadedImages[currentRoundIndex][1] === undefined ? spinner : props.preloadedImages[currentRoundIndex][1].src
-    src2 = props.preloadedImages[currentRoundIndex][2] === undefined ? spinner : props.preloadedImages[currentRoundIndex][2].src
-    src3 = props.preloadedImages[currentRoundIndex][3] === undefined ? spinner : props.preloadedImages[currentRoundIndex][3].src
+    src0 = props.preloadedImages[currentRoundIndex][0] === undefined ? spinner : props.preloadedImages[currentRoundIndex][0].img.src
+    src1 = props.preloadedImages[currentRoundIndex][1] === undefined ? spinner : props.preloadedImages[currentRoundIndex][1].img.src
+    src2 = props.preloadedImages[currentRoundIndex][2] === undefined ? spinner : props.preloadedImages[currentRoundIndex][2].img.src
+    src3 = props.preloadedImages[currentRoundIndex][3] === undefined ? spinner : props.preloadedImages[currentRoundIndex][3].img.src
+
+    pointer0 = props.preloadedImages[currentRoundIndex][0] === undefined ? null : props.preloadedImages[currentRoundIndex][0].pointer
+    pointer1 = props.preloadedImages[currentRoundIndex][1] === undefined ? null : props.preloadedImages[currentRoundIndex][1].pointer
+    pointer2 = props.preloadedImages[currentRoundIndex][2] === undefined ? null : props.preloadedImages[currentRoundIndex][2].pointer
+    pointer3 = props.preloadedImages[currentRoundIndex][3] === undefined ? null : props.preloadedImages[currentRoundIndex][3].pointer
   }
 
   const score0 = props.correctChoice === 1 ? props.score : null
@@ -363,8 +374,8 @@ function BeginnerGameWidget (props) {
   return (
     <div>
       <div className="row">
-        <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved}/>
-        <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved}/>
+        <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} choicePointer={pointer0}/>
+        <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} choicePointer={pointer1}/>
       </div>
       <div className="row">
         <div className="column">
@@ -372,8 +383,8 @@ function BeginnerGameWidget (props) {
         </div>
       </div>
       <div className="row">
-        <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved}/>
-        <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved}/>
+        <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} choicePointer={pointer2}/>
+        <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} choicePointer={pointer3}/>
       </div>
     </div>
   )
@@ -736,7 +747,10 @@ class Main extends React.Component {
       if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
         newState.preloadedImages[event.detail.roundIndex] = {}
       }
-      newState.preloadedImages[event.detail.roundIndex][event.detail.imageIndex] = event.detail.img
+      newState.preloadedImages[event.detail.roundIndex][event.detail.imageIndex] = {
+        img: event.detail.img,
+        pointer: event.detail.imageMap.pointer
+      }
       self.setState(newState)
     })
 
@@ -1210,12 +1224,12 @@ class Main extends React.Component {
 
     let pointerBlock = null
     if (currentRound.pointer != null) {
-      pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.pointer}</span>
+      pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
     let pointsBlock = null
     let points = 0
-    if (isSolved) {
+    if (isSolved && self.state.level === 'intermediate') {
       if (currentRound.solutions[this.state.user.id].hints.length === 3) {
         points = 0
       } else {
@@ -1330,7 +1344,7 @@ class Main extends React.Component {
       if (isSolved) {
         // TODO: Should be taken from server response, but API doesn't compute score for
         // current round yet.
-        score = currentRound.solutions[this.state.user.id].attempts.length >= 3 ? 0 : 5 - currentRound.solutions[this.state.user.id].attempts.length + 1
+        score = currentRound.solutions[this.state.user.id].attempts.length > 3 ? 0 : 5 - currentRound.solutions[this.state.user.id].attempts.length + 1
         correctChoice = currentRound.correct_choice
       }
       gameWidgetElems = <BeginnerGameWidget
@@ -1340,7 +1354,7 @@ class Main extends React.Component {
         currentRoundIndex={this.state.currentRound - 1}
         correctChoice={correctChoice}
         isSolved={isSolved}
-        score={score}/>
+        score={score} />
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
