@@ -128,11 +128,11 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes) {
   }
 
   return (
-        <table>
-            <tbody>
-                {tableRows}
-            </tbody>
-        </table>
+    <table>
+      <tbody>
+        {tableRows}
+      </tbody>
+    </table>
   )
 };
 
@@ -144,13 +144,13 @@ function replyLettersToRow (words, isSolved) {
   const replyLetters = []
   for (let j = 0; j < words.length; ++j) {
     replyLetters.push(
-            <ReplyLetter isSolved={isSolved} letter={words[j]} wordIndex={0} letterIndex={j} />)
+      <ReplyLetter isSolved={isSolved} letter={words[j]} wordIndex={0} letterIndex={j} />)
   }
 
   return (
-        <div style={{ whiteSpace: 'nowrap' }}>
-            {replyLetters}
-        </div>
+    <div style={{ whiteSpace: 'nowrap' }}>
+      {replyLetters}
+    </div>
   )
 };
 
@@ -171,12 +171,12 @@ function userScoreToRow (isCurrent, score) {
 
   const allScores = score.all.slice(-3).map((score1, index) => <td key={index}>{score1}</td>)
   return (
-        <tr>
-            <td><span style={currentUserStyle}>{score.name}</span></td>
-            <td><span className="user-total-score" style={currentUserStyle}>{score.total}{scorePercent}</span></td>
-            <td>...</td>
-            {allScores}
-        </tr>
+    <tr>
+      <td><span style={currentUserStyle}>{score.name}</span></td>
+      <td><span className="user-total-score" style={currentUserStyle}>{score.total}{scorePercent}</span></td>
+      <td>...</td>
+      {allScores}
+    </tr>
   )
 };
 
@@ -229,30 +229,29 @@ function FinishedRoundsTable (props) {
   if (props.finishedRounds.length > 0) {
     for (const round of props.finishedRounds.slice(-3)) {
       imageRowElems.push(
-                <td><img src={round.img1} style={{ width: '30%', height: 'auto' }} /></td>)
-      wordRowElems.push(
-                <td>{round.local_term}</td>)
+        <td><img src={round.img1.src} style={{ width: '30%', height: 'auto' }} /></td>)
+      wordRowElems.push(<td>{round.local_term}</td>)
     }
   }
 
   return (
-        <table>
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td>...</td>
-                    {imageRowElems}
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td>...</td>
-                    {wordRowElems}
-                </tr>
-                {pointsRowsElems}
-            </tbody>
-        </table>
+    <table>
+      <tbody>
+        <tr>
+          <td></td>
+          <td></td>
+          <td>...</td>
+          {imageRowElems}
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td>...</td>
+          {wordRowElems}
+        </tr>
+        {pointsRowsElems}
+      </tbody>
+    </table>
   )
 };
 
@@ -831,7 +830,7 @@ class Main extends React.Component {
           preloadImage(newState.currentRound, 3, nextRound.img4)
         }
         const word = currentRound.question[0] // FIXME: Use string instead of list of strings
-        const replyLetters = word.split('').map(function (elem) { return elem === ' ' ? ' ' : '?' })
+        const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
         newState.replyMap = {}
         newState.replyLetters = [replyLetters.join('')]
       } else {
@@ -844,7 +843,7 @@ class Main extends React.Component {
           newState.replyMap = {}
           if (newStateUserHints.length > 0) {
             // show hint.
-            const replyLetters = word.split('').map(function (elem) { return elem === ' ' ? ' ' : '?' })
+            const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
 
             const lastHintArray = newStateUserHints[newStateUserHints.length - 1]
 
@@ -1127,7 +1126,7 @@ class Main extends React.Component {
 
   render () {
     const self = this
-    // console.log('Before render.', self.state)
+    console.log('Before render.', self.state)
     const userLanguage = self.state.user.language || 'en'
     if (self.state.connection === 'closed') {
       return (
@@ -1205,11 +1204,11 @@ class Main extends React.Component {
         .map((divGroup, index) => <td key={index} style={{ verticalAlign: 'top', display: 'inline-block', borderBottom: 0 }}>{divGroup}</td>)
 
       splittedLettersItems = (
-                <table>
-                    <tr>
-                        {letterItems1}
-                    </tr>
-                </table>
+        <table>
+          <tr>
+            {letterItems1}
+          </tr>
+        </table>
       )
     };
 
@@ -1255,11 +1254,11 @@ class Main extends React.Component {
 
     if (this.state.challenge) {
       challengeBlock = (
-                <div>
-                    {this.state.challenge.user.name} is challenging you!
-                    <button onClick={this.onAcceptClick}>Accept</button>
-                    (ignore to decline) ({this.state.challenge.timeout})
-                </div>
+        <div>
+          {this.state.challenge.user.name} is challenging you!
+          <button onClick={this.onAcceptClick}>Accept</button>
+          (ignore to decline) ({this.state.challenge.timeout})
+        </div>
       )
     }
 
@@ -1312,20 +1311,20 @@ class Main extends React.Component {
         </span>)
       if (currentRound.solutions[this.state.user.id].hints.length < 3 && !isSolved) {
         helpButton = (
-                    <button onClick={self.getHelp}
-                            title='(-1 to current game score)'
-                            style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
+          <button onClick={self.getHelp}
+                  title='(-1 to current game score)'
+                  style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
                         Help ({3 - currentRound.solutions[this.state.user.id].hints.length})
-                    </button>
+          </button>
         )
       } else {
         helpButton = (
-                    <button onClick={self.getHelp}
-                            disabled='disabled'
-                            title='(-1 to current game score)'
-                            style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
-                        Help (0)
-                    </button>
+          <button onClick={self.getHelp}
+                  disabled='disabled'
+                  title='(-1 to current game score)'
+                  style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
+            Help (0)
+          </button>
         )
       }
     }
@@ -1363,86 +1362,86 @@ class Main extends React.Component {
     }
 
     return (
-            <div className="container">
-                <br />
-                <div style={{ float: 'left' }}>
-                  <a href="https://github.com/nmb10/sorat_web/issues">
-                    {t(userLanguage).report_an_issue}
-                  </a>
-                </div>
-                <div className="row">
-                    <div className="column">
-                        <div>
-                            <input type="text" placeholder="Username"
-                                   value={this.state.user.name}
-                                   onChange={this.handleNameChange}
-                                   style={{ color: 'white' }}>
-                            </input>
-                        </div>
-                    </div>
-                    <div className="column">
-                        <select disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
-                            <option value="">---</option>
-                            {languageOptionItems}
-                        </select>
-                    </div>
-                    <div className="column">
-                        <select disabled={disabled} value={this.state.level} onChange={this.handleLevelChange}>
-                            {levelOptionItems}
-                        </select>
-                    </div>
-                    <div className="column">
-                        <select disabled={disabled} value={this.state.user.topic} onChange={this.handleTopicChange}>
-                            <option value="">---</option>
-                            {topicOptionItems}
-                        </select>
-                    </div>
-                    <div className="column">
-                        {trainBlock}
-                    </div>
-                    <div className="column">
-                        {contestBlock}
-                    </div>
-                </div>
-                <div className="row">
-                    <FinishedRoundsTable players={this.state.players} user={this.state.user} finishedRounds={finishedRounds} rounds={this.state.rounds} />
-                </div>
-                <div className="row">
-                    <div className="column">
-                        {gameWidgetElems}
-                        <div>
-                            {helpButton}&nbsp;
-                            {roundDetails}&nbsp;&nbsp;&nbsp;
-                            {currentRoundTimeoutBlock}
-                        </div>
-                    </div>
-                </div>
-                <div className="row">
-                    {challengeBlock}
-                </div>
-                <div className="row">
-                    {contextBlock}&nbsp;{pointerBlock}
-                </div>
-                <div className="row">
-                    {replyLetterItems}
-                </div>
-                <div className="row">
-                    <div id="letters">
-                        {splittedLettersItems}
-                    </div>
-                </div>
+      <div className="container">
+        <br />
+        <div style={{ float: 'left' }}>
+          <a href="https://github.com/nmb10/sorat_web/issues">
+            {t(userLanguage).report_an_issue}
+          </a>
+        </div>
+        <div className="row">
+          <div className="column">
+            <div>
+              <input type="text" placeholder="Username"
+                     value={this.state.user.name}
+                     onChange={this.handleNameChange}
+                     style={{ color: 'white' }}>
+              </input>
             </div>
+          </div>
+          <div className="column">
+            <select disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
+              <option value="">---</option>
+              {languageOptionItems}
+            </select>
+          </div>
+          <div className="column">
+            <select disabled={disabled} value={this.state.level} onChange={this.handleLevelChange}>
+              {levelOptionItems}
+            </select>
+          </div>
+          <div className="column">
+            <select disabled={disabled} value={this.state.user.topic} onChange={this.handleTopicChange}>
+              <option value="">---</option>
+              {topicOptionItems}
+            </select>
+          </div>
+          <div className="column">
+            {trainBlock}
+          </div>
+          <div className="column">
+            {contestBlock}
+          </div>
+        </div>
+        <div className="row">
+          <FinishedRoundsTable players={this.state.players} user={this.state.user} finishedRounds={finishedRounds} rounds={this.state.rounds} />
+        </div>
+        <div className="row">
+          <div className="column">
+            {gameWidgetElems}
+            <div>
+              {helpButton}&nbsp;
+              {roundDetails}&nbsp;&nbsp;&nbsp;
+              {currentRoundTimeoutBlock}
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          {challengeBlock}
+        </div>
+        <div className="row">
+          {contextBlock}&nbsp;{pointerBlock}
+        </div>
+        <div className="row">
+          {replyLetterItems}
+        </div>
+        <div className="row">
+          <div id="letters">
+            {splittedLettersItems}
+          </div>
+        </div>
+      </div>
     )
   }
 };
 
 function App () {
   return (
-        <div className="App">
-            <header className="App-header">
-                <Main />
-            </header>
-        </div>
+    <div className="App">
+      <header className="App-header">
+        <Main />
+      </header>
+    </div>
   )
 }
 
