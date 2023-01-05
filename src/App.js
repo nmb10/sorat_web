@@ -5,6 +5,11 @@ import './App.css'
 import update from 'react-addons-update'
 import PropTypes from 'prop-types'
 
+// Slow network emulation. Set to 0 to disable. Note: this timeout works for first round. Other rounds use preloaded images.
+// How many ms to wait before images display.
+// const imageLoadTimeout = 5000
+const imageLoadTimeout = 0
+
 const tableSizeMap = {
   1: [1, 1],
   2: [1, 2],
@@ -69,12 +74,39 @@ const translations = {
 
 const levels = [
   'beginner',
-  'intermediate',
-  'advanced'
+  'intermediate'
+  // FIXME: Implement 'advanced'
 ]
 
 function t (userLanguage) {
   return translations[userLanguage]
+}
+
+function preloadImage (roundIndex, imageIndex, src) {
+  const resolve = function (img1) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent(
+        'image.load',
+        { detail: { roundIndex: roundIndex, imageIndex: imageIndex, img: img1 } }))
+  }
+  const reject = function (img1) {
+    console.log('Image rejected: ', img1)
+  }
+
+  const img = new Image()
+  img.onload = function () {
+    if (imageLoadTimeout === 0) {
+      resolve(img)
+    } else {
+      // FIXME: Find better way to get choice of 1, 2, 3, 4
+      const random1 = (Math.round(Math.random()) + 2000) + (Math.round(Math.random()) * 1000)
+      setTimeout(resolve, imageLoadTimeout + random1, img)
+    }
+  }
+  img.onerror = img.onabort = function () {
+    reject(src)
+  }
+  img.src = src
 }
 
 function questionLettersToTable (questionLetters, chosenQueryIndexes) {
@@ -224,6 +256,54 @@ function FinishedRoundsTable (props) {
   )
 };
 
+WordImageColumn.propTypes = {
+  imageSrc: PropTypes.node.isRequired,
+  imageChoice: PropTypes.node.isRequired,
+  userChoices: PropTypes.node.isRequired,
+  isCorrectChoice: PropTypes.bool,
+  isSolved: PropTypes.bool,
+  score: PropTypes.number
+}
+
+function WordImageColumn (props) {
+  let onImageClick, imagePointsBlock
+  const imageStyle = {
+    maxWidth: '300px',
+    width: '100%',
+    height: 'auto',
+    display: 'inline-block',
+    padding: '0px',
+    float: 'left'
+  }
+  if (props.isCorrectChoice) {
+    imagePointsBlock = (
+      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
+        +{props.score}
+      </div>)
+  } else if (props.userChoices.includes(props.imageChoice)) {
+    imagePointsBlock = (
+      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'red', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
+        -1
+      </div>)
+  } else if (!props.isSolved) {
+    imageStyle.cursor = 'pointer'
+    onImageClick = function (event) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('beginner.reply', { detail: { userChoice: props.imageChoice } }))
+    }
+  }
+
+  return (
+    <div className="column" style={{ position: 'relative' }}>
+      {imagePointsBlock}
+      <img className="word-image"
+          src={props.imageSrc}
+          onClick={onImageClick}
+          style={imageStyle} />
+    </div>
+  )
+}
+
 IntermediateGameWidget.propTypes = {
   currentRound: PropTypes.node.isRequired
 }
@@ -237,50 +317,54 @@ function IntermediateGameWidget (props) {
 }
 
 BeginnerGameWidget.propTypes = {
-  currentRound: PropTypes.node.isRequired
+  currentRound: PropTypes.node.isRequired,
+  preloadedImages: PropTypes.node.isRequired,
+  currentRoundIndex: PropTypes.node.isRequired,
+  user: PropTypes.node.isRequired,
+  correctChoice: PropTypes.number,
+  isSolved: PropTypes.bool,
+  score: PropTypes.number
 }
 
 function BeginnerGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
+  const currentRoundIndex = props.currentRoundIndex
   const localTermLetters = []
   for (let j = 0; j < localTerm.length; ++j) {
     localTermLetters.push(
       <ReplyLetter isSolved={true} letter={localTerm[j]} wordIndex={0} letterIndex={j} />)
   }
+  // function fetchChoice (attemptMap) {
+  // return attemptMap.reply.userChoice
+  // }
+  const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
+    (attemptMap) => attemptMap.reply.userChoice)
 
-  const onImage1Click = function (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('beginner.reply', { detail: { userChoice: 1 } }))
+  // <img src={spinner} alt="Spinner" />
+  //
+  let src0, src1, src2, src3
+  if (props.preloadedImages[currentRoundIndex] === undefined) {
+    src0 = spinner
+    src1 = spinner
+    src2 = spinner
+    src3 = spinner
+  } else {
+    src0 = props.preloadedImages[currentRoundIndex][0] === undefined ? spinner : props.preloadedImages[currentRoundIndex][0].src
+    src1 = props.preloadedImages[currentRoundIndex][1] === undefined ? spinner : props.preloadedImages[currentRoundIndex][1].src
+    src2 = props.preloadedImages[currentRoundIndex][2] === undefined ? spinner : props.preloadedImages[currentRoundIndex][2].src
+    src3 = props.preloadedImages[currentRoundIndex][3] === undefined ? spinner : props.preloadedImages[currentRoundIndex][3].src
   }
 
-  const onImage2Click = function (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('beginner.reply', { detail: { userChoice: 2 } }))
-  }
-  const onImage3Click = function (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('beginner.reply', { detail: { userChoice: 3 } }))
-  }
-  const onImage4Click = function (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('beginner.reply', { detail: { userChoice: 4 } }))
-  }
+  const score0 = props.correctChoice === 1 ? props.score : null
+  const score1 = props.correctChoice === 2 ? props.score : null
+  const score2 = props.correctChoice === 3 ? props.score : null
+  const score3 = props.correctChoice === 4 ? props.score : null
 
   return (
     <div>
       <div className="row">
-        <div className="column">
-          <img className="word-image"
-               src={props.currentRound.img1}
-               onClick={onImage1Click}
-               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
-        </div>
-        <div className="column">
-          <img className="word-image"
-               src={props.currentRound.img2}
-               onClick={onImage2Click}
-               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
-        </div>
+        <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved}/>
+        <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved}/>
       </div>
       <div className="row">
         <div className="column">
@@ -288,18 +372,8 @@ function BeginnerGameWidget (props) {
         </div>
       </div>
       <div className="row">
-        <div className="column">
-          <img className="word-image"
-               src={props.currentRound.img3}
-               onClick={onImage3Click}
-               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
-        </div>
-        <div className="column">
-          <img className="word-image"
-               src={props.currentRound.img4}
-               onClick={onImage4Click}
-               style={{ cursor: 'pointer', maxWidth: '300px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
-        </div>
+        <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved}/>
+        <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved}/>
       </div>
     </div>
   )
@@ -395,12 +469,13 @@ class Main extends React.Component {
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
-      level: 'intermediate', // beginner, intermediate, advanced
+      level: 'beginner', // beginner, intermediate
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
       currentRound: null,
-      players: {} // current round players.
+      players: {}, // current round players.
+      preloadedImages: {}
     }
 
     this.nameUpdateTimeout = null
@@ -622,6 +697,7 @@ class Main extends React.Component {
       newState.rounds = []
       newState.currentRound = -1
       newState.replyLetters = []
+      newState.preloadedImages = {}
       self.setState(newState)
       self.sendMessage({
         command: 'leave',
@@ -646,12 +722,22 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('beginner.reply', function (event) {
-      console.log('userChoice: ', event.detail.userChoice)
+      // console.log('userChoice: ', event.detail.userChoice)
       self.sendMessage({
         command: 'reply',
         level: 'beginner',
         payload: { userChoice: event.detail.userChoice }
       })
+    })
+
+    document.getElementById('root').addEventListener('image.load', function (event) {
+      const newState = update(self.state, {})
+      // console.log('!!!!!', event.detail.img.src, event.detail.roundIndex)
+      if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
+        newState.preloadedImages[event.detail.roundIndex] = {}
+      }
+      newState.preloadedImages[event.detail.roundIndex][event.detail.imageIndex] = event.detail.img
+      self.setState(newState)
     })
 
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
@@ -688,9 +774,48 @@ class Main extends React.Component {
       if (newState.currentRound === -1) {
         newState.replyLetters = []
         newState.replyMap = {}
+        newState.preloadedImages = {}
       } else if (self.state.currentRound !== newState.currentRound) {
         // Round changed. Show ? for every letter of the question.
         const currentRound = newState.rounds[newState.currentRound - 1]
+        // console.log('!!!!preloadedImages: ', newState.preloadedImages[newState.currentRound - 1])
+        if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
+          // console.log(
+          //   'No images exist for #' + (newState.currentRound - 1) + ' round. Loading now...')
+          preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+          preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+          preloadImage(newState.currentRound - 1, 2, currentRound.img3)
+          preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+        } else {
+          if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
+            // console.log('Round is missing image 0. Loading...')
+            preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+          }
+          if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
+            // console.log('Round is missing image 1. Loading...')
+            preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+          }
+          if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
+            // console.log('Round is missing image 2. Loading...')
+            preloadImage(newState.currentRound - 1, 2, currentRound.img3)
+          }
+          if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
+            // console.log('Round is missing image 3. Loading...')
+            preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+          }
+        }
+
+        const nextRound = newState.rounds[newState.currentRound]
+        if (nextRound === undefined) {
+          // console.log('No new round!!!', nextRound)
+          ;
+        } else {
+          // preload next round images.
+          preloadImage(newState.currentRound, 0, nextRound.img1)
+          preloadImage(newState.currentRound, 1, nextRound.img2)
+          preloadImage(newState.currentRound, 2, nextRound.img3)
+          preloadImage(newState.currentRound, 3, nextRound.img4)
+        }
         const word = currentRound.question[0] // FIXME: Use string instead of list of strings
         const replyLetters = word.split('').map(function (elem) { return elem === ' ' ? ' ' : '?' })
         newState.replyMap = {}
@@ -813,7 +938,8 @@ class Main extends React.Component {
         payload: {
           name: self.state.user.name,
           language: self.state.user.language,
-          topic: self.state.user.topic
+          topic: self.state.user.topic,
+          level: self.state.level
         }
       })
     })
@@ -827,7 +953,8 @@ class Main extends React.Component {
         payload: {
           name: self.state.user.name,
           language: self.state.user.language,
-          topic: self.state.user.topic
+          topic: self.state.user.topic,
+          level: self.state.level
         }
       })
     })
@@ -839,12 +966,14 @@ class Main extends React.Component {
       newState.currentRound = -1
       newState.replyLetters = []
       newState.replyMap = {}
+      newState.preloadedImages = {}
       self.setState(newState)
       self.sendMessage({
         command: 'challenge-accept',
         payload: {
           language: self.state.user.language,
-          topic: self.state.user.topic
+          topic: self.state.user.topic,
+          level: self.state.level
         }
       })
     })
@@ -1021,7 +1150,7 @@ class Main extends React.Component {
         </div>)
     }
 
-    const finishedRounds = this.state.rounds.filter((round) => round.timeout === 0)
+    const finishedRounds = this.state.rounds.filter((round) => round.timeout <= 1)
     let splittedLettersItems = null
 
     let isSolved = false
@@ -1195,12 +1324,27 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (this.state.level === 'beginner') {
-      gameWidgetElems = <BeginnerGameWidget currentRound={currentRound} />
+    if (this.state.level === 'beginner' && Object.keys(currentRound).length > 0) {
+      let score
+      let correctChoice
+      if (isSolved) {
+        // TODO: Should be taken from server response, but API doesn't compute score for
+        // current round yet.
+        score = currentRound.solutions[this.state.user.id].attempts.length >= 3 ? 0 : 5 - currentRound.solutions[this.state.user.id].attempts.length + 1
+        correctChoice = currentRound.correct_choice
+      }
+      gameWidgetElems = <BeginnerGameWidget
+        currentRound={currentRound}
+        user={this.state.user}
+        preloadedImages={this.state.preloadedImages}
+        currentRoundIndex={this.state.currentRound - 1}
+        correctChoice={correctChoice}
+        isSolved={isSolved}
+        score={score}/>
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
-    } else if (this.state.level === 'intermediate') {
+    } else if (this.state.level === 'intermediate' && Object.keys(currentRound).length > 0) {
       gameWidgetElems = <IntermediateGameWidget currentRound={currentRound} />
     }
 
