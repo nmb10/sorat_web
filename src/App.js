@@ -468,6 +468,8 @@ class Main extends React.Component {
 
     // Initial state
     this.state = {
+      api_version: '',
+      web_version: '',
       user: {
         name: null,
         id: null,
@@ -650,6 +652,8 @@ class Main extends React.Component {
         newState.topics = json.topics
         newState.user = json.user
         newState.mode = json.mode
+        newState.api_version = json.api_version
+        newState.web_version = json.web_version
 
         if (newState.mode == null) {
           self.stopWebsocket()
@@ -1126,14 +1130,15 @@ class Main extends React.Component {
 
   render () {
     const self = this
-    console.log('Before render.', self.state)
     const userLanguage = self.state.user.language || 'en'
+    const versions = 'Api: ' + self.state.api_version + ', Web: ' + self.state.web_version
+    console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
           <br />
           <div style={{ float: 'left' }}>
-            <a href="https://github.com/nmb10/sorat_web/issues">
+            <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
               {t(userLanguage).report_an_issue}
             </a>
           </div>
@@ -1149,7 +1154,7 @@ class Main extends React.Component {
         <div className="container">
           <br />
           <div style={{ float: 'left' }}>
-            <a href="https://github.com/nmb10/sorat_web/issues">
+            <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
               {t(userLanguage).report_an_issue}
             </a>
           </div>
@@ -1365,7 +1370,7 @@ class Main extends React.Component {
       <div className="container">
         <br />
         <div style={{ float: 'left' }}>
-          <a href="https://github.com/nmb10/sorat_web/issues">
+          <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
             {t(userLanguage).report_an_issue}
           </a>
         </div>

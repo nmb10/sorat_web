@@ -1,6 +1,7 @@
 {
   "name": "sorat_web",
-  "version": "0.1.0",
+  "version_note": "actual version is in manifest.json. Change there if you changed it here.",
+  "version": "0.1.1",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
