@@ -797,30 +797,46 @@ class Main extends React.Component {
       } else if (self.state.currentRound !== newState.currentRound) {
         // Round changed. Show ? for every letter of the question.
         const currentRound = newState.rounds[newState.currentRound - 1]
-        // console.log('!!!!preloadedImages: ', newState.preloadedImages[newState.currentRound - 1])
         if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
           // console.log(
           //   'No images exist for #' + (newState.currentRound - 1) + ' round. Loading now...')
-          preloadImage(newState.currentRound - 1, 0, currentRound.img1)
-          preloadImage(newState.currentRound - 1, 1, currentRound.img2)
-          preloadImage(newState.currentRound - 1, 2, currentRound.img3)
-          preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+          if (currentRound.img1 !== null) {
+            preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+          }
+          if (currentRound.img2 !== null) {
+            preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+          }
+          if (currentRound.img3 !== null) {
+            preloadImage(newState.currentRound - 1, 2, currentRound.img3)
+          }
+          if (currentRound.img4 !== null) {
+            preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+          }
         } else {
           if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
             // console.log('Round is missing image 0. Loading...')
-            preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+            // TODO: Clean that hell.
+            if (currentRound.img1 !== null) {
+              preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+            }
           }
           if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
             // console.log('Round is missing image 1. Loading...')
-            preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+            if (currentRound.img2 !== null) {
+              preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+            }
           }
           if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
             // console.log('Round is missing image 2. Loading...')
-            preloadImage(newState.currentRound - 1, 2, currentRound.img3)
+            if (currentRound.img3 !== null) {
+              preloadImage(newState.currentRound - 1, 2, currentRound.img3)
+            }
           }
           if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
             // console.log('Round is missing image 3. Loading...')
-            preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+            if (currentRound.img4 !== null) {
+              preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+            }
           }
         }
 
@@ -830,10 +846,18 @@ class Main extends React.Component {
           ;
         } else {
           // preload next round images.
-          preloadImage(newState.currentRound, 0, nextRound.img1)
-          preloadImage(newState.currentRound, 1, nextRound.img2)
-          preloadImage(newState.currentRound, 2, nextRound.img3)
-          preloadImage(newState.currentRound, 3, nextRound.img4)
+          if (nextRound.img1 !== null) {
+            preloadImage(newState.currentRound, 0, nextRound.img1)
+          }
+          if (nextRound.img2 !== null) {
+            preloadImage(newState.currentRound, 1, nextRound.img2)
+          }
+          if (nextRound.img3 !== null) {
+            preloadImage(newState.currentRound, 2, nextRound.img3)
+          }
+          if (nextRound.img4 !== null) {
+            preloadImage(newState.currentRound, 3, nextRound.img4)
+          }
         }
         const word = currentRound.question[0] // FIXME: Use string instead of list of strings
         const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
