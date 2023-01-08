@@ -468,7 +468,8 @@ class Main extends React.Component {
 
     // Initial state
     this.state = {
-      api_version: '',
+      app_version: '',
+      release_version: '',
       web_version: '',
       user: {
         name: null,
@@ -652,7 +653,8 @@ class Main extends React.Component {
         newState.topics = json.topics
         newState.user = json.user
         newState.mode = json.mode
-        newState.api_version = json.api_version
+        newState.app_version = json.app_version
+        newState.release_version = json.release_version
         newState.web_version = json.web_version
 
         if (newState.mode == null) {
@@ -1131,8 +1133,10 @@ class Main extends React.Component {
   render () {
     const self = this
     const userLanguage = self.state.user.language || 'en'
-    const versions = 'Api: ' + self.state.api_version + ', Web: ' + self.state.web_version
-    console.log('Before render.', self.state)
+    const versions = 'App: ' + self.state.app_version +
+      ', Release: ' + self.state.release_version +
+      ', Web: ' + self.state.web_version
+    // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
@@ -1168,7 +1172,12 @@ class Main extends React.Component {
         </div>)
     }
 
-    const finishedRounds = this.state.rounds.filter((round) => round.timeout <= 1)
+    let finishedRounds
+    if (this.state.currentRound === -1) {
+      finishedRounds = this.state.rounds || []
+    } else {
+      finishedRounds = this.state.rounds.slice(0, this.state.currentRound - 1)
+    }
     let splittedLettersItems = null
 
     let isSolved = false
