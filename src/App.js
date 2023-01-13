@@ -228,8 +228,10 @@ function FinishedRoundsTable (props) {
 
   if (props.finishedRounds.length > 0) {
     for (const round of props.finishedRounds.slice(-3)) {
+      const correctChoice = round.correct_choice || 1
+      const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
       imageRowElems.push(
-        <td><img src={round.img1.src} style={{ width: '30%', height: 'auto' }} /></td>)
+        <td><img src={correctImage.src} style={{ width: '30%', height: 'auto' }} /></td>)
       wordRowElems.push(<td>{round.local_term}</td>)
     }
   }
