@@ -476,9 +476,11 @@ class Main extends React.Component {
 
     // Initial state
     this.state = {
-      app_version: '',
-      release_version: '',
-      web_version: '',
+      versions: {
+        app: '',
+        release: '',
+        web: ''
+      }
       user: {
         name: null,
         id: null,
@@ -661,9 +663,7 @@ class Main extends React.Component {
         newState.topics = json.topics
         newState.user = json.user
         newState.mode = json.mode
-        newState.app_version = json.app_version
-        newState.release_version = json.release_version
-        newState.web_version = json.web_version
+        newState.versions = json.versions
 
         if (newState.mode == null) {
           self.stopWebsocket()
@@ -1165,9 +1165,9 @@ class Main extends React.Component {
   render () {
     const self = this
     const userLanguage = self.state.user.language || 'en'
-    const versions = 'App: ' + self.state.app_version +
-      ', Release: ' + self.state.release_version +
-      ', Web: ' + self.state.web_version
+    const versions = 'App: ' + self.state.versions.app +
+      ', Release: ' + self.state.versions.release +
+      ', Web: ' + self.state.versions.web
     // console.log('Version upgrade check! Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
