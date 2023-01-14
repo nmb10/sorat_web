@@ -411,7 +411,8 @@ function QuestionLetter (props) {
     float: 'left',
     marginLeft: '3px',
     width: '75px',
-    height: '75px' }
+    height: '75px'
+  }
   // FIXME: Move to css.
 
   if (props.isChosen || props.letter === ' ') {
