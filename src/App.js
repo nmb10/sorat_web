@@ -1168,7 +1168,7 @@ class Main extends React.Component {
     const versions = 'App: ' + self.state.app_version +
       ', Release: ' + self.state.release_version +
       ', Web: ' + self.state.web_version
-    console.log('Version upgrade check! Before render.', self.state)
+    // console.log('Version upgrade check! Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
