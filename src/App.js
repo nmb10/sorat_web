@@ -480,7 +480,7 @@ class Main extends React.Component {
         app: '',
         release: '',
         web: ''
-      }
+      },
       user: {
         name: null,
         id: null,
