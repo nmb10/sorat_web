@@ -406,7 +406,12 @@ function QuestionLetter (props) {
         { detail: { letter: props.letter, wordIndex: props.wordIndex, letterIndex: props.letterIndex } }))
   };
 
-  const style = { fontSize: '35px', float: 'left', marginLeft: '3px', width: '75px', height: '75px' }
+  const style = {
+    fontSize: '35px',
+    float: 'left',
+    marginLeft: '3px',
+    width: '75px',
+    height: '75px' }
   // FIXME: Move to css.
 
   if (props.isChosen || props.letter === ' ') {
