@@ -132,8 +132,7 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes) {
       <tbody>
         {tableRows}
       </tbody>
-    </table>
-  )
+    </table>)
 };
 
 function pair (wordIndex, letterIndex) {
@@ -176,8 +175,7 @@ function userScoreToRow (isCurrent, score) {
       <td><span className="user-total-score" style={currentUserStyle}>{score.total}{scorePercent}</span></td>
       <td>...</td>
       {allScores}
-    </tr>
-  )
+    </tr>)
 };
 
 FinishedRoundsTable.propTypes = {
@@ -417,15 +415,15 @@ function QuestionLetter (props) {
 
   if (props.isChosen || props.letter === ' ') {
     return (
-            <button disabled style={style}>
-                {props.letter}
-            </button>
+      <button disabled style={style}>
+        {props.letter}
+      </button>
     )
   } else {
     return (
-            <button onClick={onClick} style={style}>
-                {props.letter}
-            </button>
+      <button onClick={onClick} style={style}>
+        {props.letter}
+      </button>
     )
   }
 };
@@ -498,7 +496,8 @@ class Main extends React.Component {
       replyLetters: [], // Letters user clicked while replying
       currentRound: null,
       players: {}, // current round players.
-      preloadedImages: {}
+      preloadedImages: {},
+      game_error: null
     }
 
     this.nameUpdateTimeout = null
@@ -555,7 +554,7 @@ class Main extends React.Component {
 
     const onMessage = function (event) {
       const message = JSON.parse(event.data)
-      // console.log('New message:', message);
+      // console.log('New message:', message)
       if (message.type === 'game') {
         // event.detail.state.rounds
         document.getElementById('root').dispatchEvent(
@@ -577,6 +576,9 @@ class Main extends React.Component {
       } else if (message.type === 'contest_enqueued') {
         document.getElementById('root').dispatchEvent(
           new CustomEvent('contest_enqueued', { detail: {} }))
+      } else if (message.type === 'game_error') {
+        document.getElementById('root').dispatchEvent(
+          new CustomEvent('game_error', { detail: message.payload }))
       }
     }
     let intervalID = null
@@ -715,6 +717,13 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('error.close', function (event) {
+      const newState = update(self.state, {})
+      newState.game_error = null
+      newState.mode = null
+      self.setState(newState)
+    })
+
     document.getElementById('root').addEventListener('game.leave', function (event) {
       const newState = update(self.state, {})
       newState.mode = null
@@ -770,6 +779,12 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
       const newState = update(self.state, {})
       newState.mode = 'contest_enqueued'
+      self.setState(newState)
+    })
+
+    document.getElementById('root').addEventListener('game_error', function (event) {
+      const newState = update(self.state, {})
+      newState.game_error = event.detail
       self.setState(newState)
     })
 
@@ -1162,13 +1177,18 @@ class Main extends React.Component {
       new CustomEvent('game.leave', { detail: {} }))
   }
 
+  onErrorClose (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('error.close', { detail: {} }))
+  }
+
   render () {
     const self = this
     const userLanguage = self.state.user.language || 'en'
     const versions = 'App: ' + self.state.versions.app +
       ', Release: ' + self.state.versions.release +
       ', Web: ' + self.state.versions.web
-    // console.log('Version upgrade check! Before render.', self.state)
+    // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
@@ -1267,6 +1287,29 @@ class Main extends React.Component {
       contextBlock = <span style={{ fontSize: '34px' }}>({currentRound.context_value || currentRound.context})</span>
     }
 
+    let gameErrorBlock = null
+    if (this.state.game_error != null) {
+      const errorBlockStyle = {
+        backgroundColor: 'rgb(248, 215, 218)',
+        borderColor: 'rgb(114, 28, 36)',
+        color: 'rgb(114, 28, 36)',
+        fontSize: '18px',
+        position: 'fixed',
+        padding: '4px 15px 4px 4px',
+        top: 0
+      }
+
+      gameErrorBlock = (
+        <div style={errorBlockStyle}>
+          <div style={{ height: '10px' }}>
+            <a style={{ top: 0, position: 'absolute', right: 0 }} href="#" onClick={self.onErrorClose}>x</a>
+          </div>
+          <div>
+            {this.state.game_error.message}. ({this.state.game_error.error_id})
+          </div>
+        </div>)
+    }
+
     let pointerBlock = null
     if (currentRound.pointer != null) {
       pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
@@ -1304,8 +1347,7 @@ class Main extends React.Component {
           {this.state.challenge.user.name} is challenging you!
           <button onClick={this.onAcceptClick}>Accept</button>
           (ignore to decline) ({this.state.challenge.timeout})
-        </div>
-      )
+        </div>)
     }
 
     if (this.state.mode === 'contest') {
@@ -1417,6 +1459,7 @@ class Main extends React.Component {
         </div>
         <div className="row">
           <div className="column">
+            {gameErrorBlock}
             <div>
               <input type="text" placeholder="Username"
                      value={this.state.user.name}
