@@ -475,7 +475,6 @@ class Main extends React.Component {
     // Initial state
     this.state = {
       versions: {
-        app: '',
         release: '',
         web: ''
       },
@@ -1185,9 +1184,8 @@ class Main extends React.Component {
   render () {
     const self = this
     const userLanguage = self.state.user.language || 'en'
-    const versions = 'App: ' + self.state.versions.app +
-      ', Release: ' + self.state.versions.release +
-      ', Web: ' + self.state.versions.web
+    const versions = 'Backend: ' + self.state.versions.release +
+      ', Frontend: ' + self.state.versions.web
     // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
