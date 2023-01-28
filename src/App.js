@@ -82,6 +82,11 @@ function t (userLanguage) {
   return translations[userLanguage]
 }
 
+function getSecondsDiff (dt1, dt2) {
+  const diffMs = dt1.getTime() - dt2.getTime()
+  return diffMs / 1000
+}
+
 function preloadImage (roundIndex, imageIndex, imageMap) {
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
@@ -496,7 +501,11 @@ class Main extends React.Component {
       currentRound: null,
       players: {}, // current round players.
       preloadedImages: {},
-      game_error: null
+      gameError: null,
+      gameWarning: null,
+      gameLastMessageTime: null, // how many seconds passed from previous game message. Large value means slow connection.
+      slowMessageCount: 0, // how many messages were delayed
+      slowConnection: false
     }
 
     this.nameUpdateTimeout = null
@@ -508,6 +517,9 @@ class Main extends React.Component {
     this.startWebsocket = this.startWebsocket.bind(this)
     this.stopWebsocket = this.stopWebsocket.bind(this)
     this.sendMessageByTimeout = this.sendMessageByTimeout.bind(this)
+    this.checkSlowConnection = this.checkSlowConnection.bind(this)
+    this.startSlowConnectionMonitor = this.startSlowConnectionMonitor.bind(this)
+    this.stopSlowConnectionMonitor = this.stopSlowConnectionMonitor.bind(this)
   }
 
   sendMessageByTimeout (message) {
@@ -556,6 +568,7 @@ class Main extends React.Component {
       // console.log('New message:', message)
       if (message.type === 'game') {
         // event.detail.state.rounds
+        const messageTime = new Date()
         document.getElementById('root').dispatchEvent(
           new CustomEvent(
             'state.update',
@@ -565,7 +578,8 @@ class Main extends React.Component {
                   mode: message.payload.mode,
                   players: message.payload.players,
                   rounds: message.payload.rounds,
-                  currentRound: message.payload.current_round
+                  currentRound: message.payload.current_round,
+                  gameLastMessageTime: messageTime
                 }
               }
             }))
@@ -597,18 +611,13 @@ class Main extends React.Component {
       sendPing()
       intervalID = setInterval(sendPing, 1000 * 30)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.opened'))
-      // console.log('Opened');
     }
 
     self.websocket.onclose = function (evt) {
-      // event.detail.state.rounds
-      // console.log('onclose! evt: ', evt)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.closed'))
-      // console.log('Closed');
     }
 
     self.websocket.onerror = function (evt) {
-      // console.log('onerror! evt: ', evt)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.error'))
     }
     self.websocket.onmessage = onMessage
@@ -652,6 +661,26 @@ class Main extends React.Component {
       })
   }
 
+  checkSlowConnection () {
+    const self = this
+    const now = new Date()
+    if (self.state.gameLastMessageTime !== null && getSecondsDiff(now, self.state.gameLastMessageTime) > 4) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('connection.slow-message', { detail: {} }))
+    }
+  }
+
+  startSlowConnectionMonitor () {
+    const self = this
+    self.slowConnectionMonitorIntervalID = setInterval(self.checkSlowConnection, 1000)
+  }
+
+  stopSlowConnectionMonitor () {
+    const self = this
+    clearInterval(self.slowConnectionMonitorIntervalID)
+    console.log('Slow network monitor stopped.')
+  }
+
   componentDidMount () {
     const self = this
 
@@ -680,6 +709,20 @@ class Main extends React.Component {
 
     // Events listeners.
     //
+
+    document.getElementById('root').addEventListener('connection.slow-message', function (event) {
+      const newState = update(self.state, {})
+      if (self.state.slowMessageCount > 3) {
+        newState.gameWarning = {
+          message: 'Your connection is too slow or site has problems. Please try later.'
+        }
+        newState.slowConnection = true
+      } else {
+        newState.slowMessageCount = self.state.slowMessageCount + 1
+      }
+      self.setState(newState)
+    })
+
     document.getElementById('root').addEventListener('ws.error', function (event) {
       const newState = update(self.state, {})
       newState.connection = 'error'
@@ -718,7 +761,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('error.close', function (event) {
       const newState = update(self.state, {})
-      newState.game_error = null
+      newState.gameError = null
       newState.mode = null
       self.setState(newState)
     })
@@ -783,7 +826,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('game_error', function (event) {
       const newState = update(self.state, {})
-      newState.game_error = event.detail
+      newState.gameError = event.detail
       self.setState(newState)
     })
 
@@ -811,13 +854,19 @@ class Main extends React.Component {
       newState.rounds = event.detail.state.rounds
       newState.currentRound = event.detail.state.currentRound
       newState.mode = event.detail.state.mode
+      newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
 
       if (newState.currentRound === -1) {
         newState.replyLetters = []
         newState.replyMap = {}
         newState.preloadedImages = {}
+        newState.gameLastMessageTime = null
+        self.stopSlowConnectionMonitor()
       } else if (self.state.currentRound !== newState.currentRound) {
         // Round changed. Show ? for every letter of the question.
+        if (newState.currentRound === 1) {
+          self.startSlowConnectionMonitor()
+        }
         const currentRound = newState.rounds[newState.currentRound - 1]
         if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
           // console.log(
@@ -867,18 +916,23 @@ class Main extends React.Component {
           // console.log('No new round!!!', nextRound)
           ;
         } else {
-          // preload next round images.
-          if (nextRound.img1 !== null) {
-            preloadImage(newState.currentRound, 0, nextRound.img1)
-          }
-          if (nextRound.img2 !== null) {
-            preloadImage(newState.currentRound, 1, nextRound.img2)
-          }
-          if (nextRound.img3 !== null) {
-            preloadImage(newState.currentRound, 2, nextRound.img3)
-          }
-          if (nextRound.img4 !== null) {
-            preloadImage(newState.currentRound, 3, nextRound.img4)
+          if (self.state.slowConnection) {
+            //console.log('Next round images preload skipped because of slow connection.')
+            ;
+          } else {
+            // preload next round images.
+            if (nextRound.img1 !== null) {
+              preloadImage(newState.currentRound, 0, nextRound.img1)
+            }
+            if (nextRound.img2 !== null) {
+              preloadImage(newState.currentRound, 1, nextRound.img2)
+            }
+            if (nextRound.img3 !== null) {
+              preloadImage(newState.currentRound, 2, nextRound.img3)
+            }
+            if (nextRound.img4 !== null) {
+              preloadImage(newState.currentRound, 3, nextRound.img4)
+            }
           }
         }
         const word = currentRound.question[0] // FIXME: Use string instead of list of strings
@@ -1285,8 +1339,28 @@ class Main extends React.Component {
       contextBlock = <span style={{ fontSize: '34px' }}>({currentRound.context_value || currentRound.context})</span>
     }
 
+    let gameWarningBlock = null
+    if (this.state.gameWarning != null) {
+      const warningBlockStyle = {
+        backgroundColor: 'rgb(248, 215, 218)',
+        borderColor: 'rgb(114, 28, 36)',
+        color: 'rgb(114, 28, 36)',
+        fontSize: '18px',
+        position: 'fixed',
+        padding: '4px 15px 4px 4px',
+        top: 0
+      }
+
+      gameWarningBlock = (
+        <div style={warningBlockStyle}>
+          <div>
+            {this.state.gameWarning.message}
+          </div>
+        </div>)
+    }
+
     let gameErrorBlock = null
-    if (this.state.game_error != null) {
+    if (this.state.gameError != null) {
       const errorBlockStyle = {
         backgroundColor: 'rgb(248, 215, 218)',
         borderColor: 'rgb(114, 28, 36)',
@@ -1303,7 +1377,7 @@ class Main extends React.Component {
             <a style={{ top: 0, position: 'absolute', right: 0 }} href="#" onClick={self.onErrorClose}>x</a>
           </div>
           <div>
-            {this.state.game_error.message}. ({this.state.game_error.error_id})
+            {this.state.gameError.message}. ({this.state.gameError.error_id})
           </div>
         </div>)
     }
@@ -1458,6 +1532,7 @@ class Main extends React.Component {
         <div className="row">
           <div className="column">
             {gameErrorBlock}
+            {gameWarningBlock}
             <div>
               <input type="text" placeholder="Username"
                      value={this.state.user.name}
