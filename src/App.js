@@ -88,6 +88,7 @@ function getSecondsDiff (dt1, dt2) {
 }
 
 function preloadImage (roundIndex, imageIndex, imageMap) {
+  console.log('Preloading image...', roundIndex, imageMap)
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
@@ -868,44 +869,49 @@ class Main extends React.Component {
           self.startSlowConnectionMonitor()
         }
         const currentRound = newState.rounds[newState.currentRound - 1]
+        // console.log('Round changed. Loading images...')
         if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
           // console.log(
           //   'No images exist for #' + (newState.currentRound - 1) + ' round. Loading now...')
           if (currentRound.img1 !== null) {
+            // console.log('No preloaded for current round. Loading img1...')
             preloadImage(newState.currentRound - 1, 0, currentRound.img1)
           }
           if (currentRound.img2 !== null) {
+            // console.log('No preloaded for current round. Loading img2...')
             preloadImage(newState.currentRound - 1, 1, currentRound.img2)
           }
           if (currentRound.img3 !== null) {
+            // console.log('No preloaded for current round. Loading img3...')
             preloadImage(newState.currentRound - 1, 2, currentRound.img3)
           }
           if (currentRound.img4 !== null) {
+            // console.log('No preloaded for current round. Loading img4...')
             preloadImage(newState.currentRound - 1, 3, currentRound.img4)
           }
         } else {
           if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
-            // console.log('Round is missing image 0. Loading...')
             // TODO: Clean that hell.
             if (currentRound.img1 !== null) {
+              // console.log('Round is missing image 0. Loading...')
               preloadImage(newState.currentRound - 1, 0, currentRound.img1)
             }
           }
           if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
-            // console.log('Round is missing image 1. Loading...')
             if (currentRound.img2 !== null) {
+              // console.log('Round is missing image 1. Loading...')
               preloadImage(newState.currentRound - 1, 1, currentRound.img2)
             }
           }
           if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
-            // console.log('Round is missing image 2. Loading...')
             if (currentRound.img3 !== null) {
+              // console.log('Round is missing image 2. Loading...')
               preloadImage(newState.currentRound - 1, 2, currentRound.img3)
             }
           }
           if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
-            // console.log('Round is missing image 3. Loading...')
             if (currentRound.img4 !== null) {
+              // console.log('Round is missing image 3. Loading...')
               preloadImage(newState.currentRound - 1, 3, currentRound.img4)
             }
           }
@@ -916,23 +922,18 @@ class Main extends React.Component {
           // console.log('No new round!!!', nextRound)
           ;
         } else {
-          if (self.state.slowConnection) {
-            //console.log('Next round images preload skipped because of slow connection.')
-            ;
-          } else {
-            // preload next round images.
-            if (nextRound.img1 !== null) {
-              preloadImage(newState.currentRound, 0, nextRound.img1)
-            }
-            if (nextRound.img2 !== null) {
-              preloadImage(newState.currentRound, 1, nextRound.img2)
-            }
-            if (nextRound.img3 !== null) {
-              preloadImage(newState.currentRound, 2, nextRound.img3)
-            }
-            if (nextRound.img4 !== null) {
-              preloadImage(newState.currentRound, 3, nextRound.img4)
-            }
+          // preload next round images.
+          if (nextRound.img1 !== null) {
+            preloadImage(newState.currentRound, 0, nextRound.img1)
+          }
+          if (nextRound.img2 !== null) {
+            preloadImage(newState.currentRound, 1, nextRound.img2)
+          }
+          if (nextRound.img3 !== null) {
+            preloadImage(newState.currentRound, 2, nextRound.img3)
+          }
+          if (nextRound.img4 !== null) {
+            preloadImage(newState.currentRound, 3, nextRound.img4)
           }
         }
         const word = currentRound.question[0] // FIXME: Use string instead of list of strings
