@@ -1,5 +1,5 @@
-# Web UI for sorat (learn by image app) API
-Provides UI to guess word by image and word letters with train and contest modes.
+# Web UI for [http://sorat.io:8080](http://sorat.io) (learn by image app) API
+Provides UI to guess word by image and word letters with train and contest (multiplayer) modes.
 
 # Getting Started with Create React App
 
