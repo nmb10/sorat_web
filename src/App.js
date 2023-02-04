@@ -713,9 +713,9 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('connection.slow-message', function (event) {
       const newState = update(self.state, {})
-      if (self.state.slowMessageCount > 3) {
+      if (self.state.slowMessageCount > 5) {
         newState.gameWarning = {
-          message: 'Your connection is too slow or site has problems. Please try later.'
+          message: 'Your connection is too slow or site has problems. Please refresh page.'
         }
         newState.slowConnection = true
       } else {
