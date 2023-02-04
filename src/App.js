@@ -88,7 +88,7 @@ function getSecondsDiff (dt1, dt2) {
 }
 
 function preloadImage (roundIndex, imageIndex, imageMap) {
-  console.log('Preloading image...', roundIndex, imageMap)
+  // console.log('Preloading image...', roundIndex, imageMap)
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
@@ -488,6 +488,7 @@ class Main extends React.Component {
         name: null,
         id: null,
         language: null, // selected language
+        level: 'beginner', // beginner, intermediate
         topic: null // selected topic.
       },
       challenge: null,
@@ -495,7 +496,6 @@ class Main extends React.Component {
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
-      level: 'beginner', // beginner, intermediate
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
@@ -990,7 +990,7 @@ class Main extends React.Component {
           newState.topics = data.topics
           newState.user.language = data.user.language
           newState.user.name = data.user.name
-          newState.level = data.user.level
+          newState.user.level = data.user.level
           newState.user.topic = data.topics[0].code
           newState.rounds = data.rounds || []
           newState.mode = data.mode
@@ -1059,7 +1059,7 @@ class Main extends React.Component {
           name: self.state.user.name,
           language: self.state.user.language,
           topic: self.state.user.topic,
-          level: self.state.level
+          level: self.state.user.level
         }
       })
     })
@@ -1074,7 +1074,7 @@ class Main extends React.Component {
           name: self.state.user.name,
           language: self.state.user.language,
           topic: self.state.user.topic,
-          level: self.state.level
+          level: self.state.user.level
         }
       })
     })
@@ -1093,7 +1093,7 @@ class Main extends React.Component {
         payload: {
           language: self.state.user.language,
           topic: self.state.user.topic,
-          level: self.state.level
+          level: self.state.user.level
         }
       })
     })
@@ -1390,7 +1390,7 @@ class Main extends React.Component {
 
     let pointsBlock = null
     let points = 0
-    if (isSolved && self.state.level === 'intermediate') {
+    if (isSolved && self.state.user.level === 'intermediate') {
       if (currentRound.solutions[this.state.user.id].hints.length === 3) {
         points = 0
       } else {
@@ -1498,7 +1498,7 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (this.state.level === 'beginner' && Object.keys(currentRound).length > 0) {
+    if (this.state.user.level === 'beginner' && Object.keys(currentRound).length > 0) {
       let score
       let correctChoice
       if (isSolved) {
@@ -1518,7 +1518,7 @@ class Main extends React.Component {
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
-    } else if (this.state.level === 'intermediate' && Object.keys(currentRound).length > 0) {
+    } else if (this.state.user.level === 'intermediate' && Object.keys(currentRound).length > 0) {
       gameWidgetElems = <IntermediateGameWidget currentRound={currentRound} />
     }
 
@@ -1549,7 +1549,7 @@ class Main extends React.Component {
             </select>
           </div>
           <div className="column">
-            <select disabled={disabled} value={this.state.level} onChange={this.handleLevelChange}>
+            <select disabled={disabled} value={this.state.user.level} onChange={this.handleLevelChange}>
               {levelOptionItems}
             </select>
           </div>
