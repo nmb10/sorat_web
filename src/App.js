@@ -53,21 +53,21 @@ const translations = {
     train: 'Тренировка'
   },
   os: { // FIXME:
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
+    beginner: 'Райдайæн',
+    intermediate: 'Астæуыккаг',
     advanced: 'Advanced',
     report_an_issue: 'Report an issue',
-    leave: 'Leave',
-    contest: 'Состязание',
-    train: 'Тренировка'
+    leave: 'Ацæуын',
+    contest: 'Ерыс',
+    train: 'Train'
   },
   dig: { // FIXME:
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
+    beginner: 'Райдайæн',
+    intermediate: 'Астæуккаг',
     advanced: 'Advanced',
     report_an_issue: 'Report an issue',
-    leave: 'Leave',
-    contest: 'Contest',
+    leave: 'Рандæ ун',
+    contest: 'Ерис',
     train: 'Train'
   }
 }
