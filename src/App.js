@@ -1384,7 +1384,7 @@ class Main extends React.Component {
     }
 
     let pointerBlock = null
-    if (currentRound.pointer != null) {
+    if (self.state.user.level === 'intermediate' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
       pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
