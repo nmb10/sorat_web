@@ -1564,18 +1564,18 @@ class Main extends React.Component {
             </div>
           </div>
           <div className="column">
-            <select disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
               <option value="">---</option>
               {languageOptionItems}
             </select>
           </div>
           <div className="column">
-            <select disabled={disabled} value={this.state.user.level} onChange={this.handleLevelChange}>
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={this.state.user.level} onChange={this.handleLevelChange}>
               {levelOptionItems}
             </select>
           </div>
           <div className="column">
-            <select disabled={disabled} value={this.state.user.topic} onChange={this.handleTopicChange}>
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={this.state.user.topic} onChange={this.handleTopicChange}>
               <option value="">---</option>
               {topicOptionItems}
             </select>
