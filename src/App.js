@@ -681,7 +681,7 @@ class Main extends React.Component {
   stopSlowConnectionMonitor () {
     const self = this
     clearInterval(self.slowConnectionMonitorIntervalID)
-    console.log('Slow network monitor stopped.')
+    // console.log('Slow network monitor stopped.')
   }
 
   componentDidMount () {
@@ -856,6 +856,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('state.update', function (event) {
       const newState = update(self.state, {})
+      // const newState = { ...self.state }
       newState.players = event.detail.state.players
       newState.rounds = event.detail.state.rounds
       newState.currentRound = event.detail.state.currentRound
@@ -1250,7 +1251,7 @@ class Main extends React.Component {
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend
-    console.log('Before render.', self.state)
+    // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
@@ -1358,7 +1359,20 @@ class Main extends React.Component {
     }
 
     let gameWarningBlock = null
-    if (this.state.gameWarning != null) {
+
+    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox')
+    let gameWarning = this.state.gameWarning
+    if (!isFirefox) {
+      if (gameWarning !== null) {
+        gameWarning.message = 'The app was optimized for Firefox, please open it in Firefox. ' + gameWarning.message
+      } else {
+        gameWarning = { message: 'The app was optimized for Firefox, please open it in Firefox. ' }
+      }
+    } else {
+      gameWarning = this.state.gameWarning
+    }
+
+    if (gameWarning !== null) {
       const warningBlockStyle = {
         backgroundColor: 'rgb(248, 215, 218)',
         borderColor: 'rgb(114, 28, 36)',
@@ -1372,7 +1386,7 @@ class Main extends React.Component {
       gameWarningBlock = (
         <div style={warningBlockStyle}>
           <div>
-            {this.state.gameWarning.message}
+            {gameWarning.message}
           </div>
         </div>)
     }
