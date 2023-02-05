@@ -488,13 +488,14 @@ class Main extends React.Component {
         name: null,
         id: null,
         language: null, // selected language
-        level: 'beginner', // beginner, intermediate
+        level: 'beginner', // user choice [beginner or intermediate]
         topic: null // selected topic.
       },
       challenge: null,
       connection: '',
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
+      level: null, // current game level, server choice. May not match to user.level
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
@@ -576,6 +577,7 @@ class Main extends React.Component {
             {
               detail: {
                 state: {
+                  level: message.payload.level,
                   mode: message.payload.mode,
                   players: message.payload.players,
                   rounds: message.payload.rounds,
@@ -694,6 +696,7 @@ class Main extends React.Component {
         newState.topics = json.topics
         newState.user = json.user
         newState.mode = json.mode
+        newState.level = json.level
         newState.versions = json.versions
 
         if (newState.mode == null) {
@@ -764,12 +767,14 @@ class Main extends React.Component {
       const newState = update(self.state, {})
       newState.gameError = null
       newState.mode = null
+      newState.level = null
       self.setState(newState)
     })
 
     document.getElementById('root').addEventListener('game.leave', function (event) {
       const newState = update(self.state, {})
       newState.mode = null
+      newState.level = null
       newState.rounds = []
       newState.currentRound = -1
       newState.replyLetters = []
@@ -855,6 +860,7 @@ class Main extends React.Component {
       newState.rounds = event.detail.state.rounds
       newState.currentRound = event.detail.state.currentRound
       newState.mode = event.detail.state.mode
+      newState.level = event.detail.state.level
       newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
 
       if (newState.currentRound === -1) {
@@ -994,6 +1000,7 @@ class Main extends React.Component {
           newState.user.topic = data.topics[0].code
           newState.rounds = data.rounds || []
           newState.mode = data.mode
+          newState.level = data.level
           newState.players = data.players
           newState.currentRound = data.currentRound
           self.setState(newState)
@@ -1013,9 +1020,11 @@ class Main extends React.Component {
           newState.topics = data.topics
           newState.user.language = data.user.language
           newState.user.name = data.user.name
+          newState.user.level = data.user.level
           newState.user.topic = data.topics[0].code
           newState.rounds = data.rounds || []
           newState.mode = data.mode
+          newState.level = data.level
           newState.players = data.players
           newState.currentRound = data.currentRound
           self.setState(newState)
@@ -1250,6 +1259,10 @@ class Main extends React.Component {
             <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
               {t(userLanguage).report_an_issue}
             </a>
+            &nbsp;|&nbsp;
+            <a href="https://github.com/nmb10/sorat_translations">
+              Contribute
+            </a>
           </div>
           <div className="row">
             <div className="column">
@@ -1265,6 +1278,10 @@ class Main extends React.Component {
           <div style={{ float: 'left' }}>
             <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
               {t(userLanguage).report_an_issue}
+            </a>
+            &nbsp;|&nbsp;
+            <a href="https://github.com/nmb10/sorat_translations">
+              Contribute
             </a>
           </div>
           <div className="row">
@@ -1384,13 +1401,13 @@ class Main extends React.Component {
     }
 
     let pointerBlock = null
-    if (self.state.user.level === 'intermediate' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
+    if (self.state.level === 'intermediate' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
       pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
     let pointsBlock = null
     let points = 0
-    if (isSolved && self.state.user.level === 'intermediate') {
+    if (isSolved && self.state.level === 'intermediate') {
       if (currentRound.solutions[this.state.user.id].hints.length === 3) {
         points = 0
       } else {
@@ -1498,7 +1515,7 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (this.state.user.level === 'beginner' && Object.keys(currentRound).length > 0) {
+    if (Object.keys(currentRound).length > 0 && this.state.level === 'beginner') {
       let score
       let correctChoice
       if (isSolved) {
@@ -1518,7 +1535,7 @@ class Main extends React.Component {
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
-    } else if (this.state.user.level === 'intermediate' && Object.keys(currentRound).length > 0) {
+    } else if (Object.keys(currentRound).length > 0 && this.state.level === 'intermediate') {
       gameWidgetElems = <IntermediateGameWidget currentRound={currentRound} />
     }
 
@@ -1528,6 +1545,10 @@ class Main extends React.Component {
         <div style={{ float: 'left' }}>
           <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
             {t(userLanguage).report_an_issue}
+          </a>
+          &nbsp;|&nbsp;
+          <a href="https://github.com/nmb10/sorat_translations">
+            Contribute
           </a>
         </div>
         <div className="row">
