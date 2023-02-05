@@ -1250,7 +1250,7 @@ class Main extends React.Component {
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend
-    // console.log('Before render.', self.state)
+    console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
