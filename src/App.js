@@ -2,7 +2,6 @@ import spinner from './spinner1.png'
 
 import React from 'react'
 import './App.css'
-import update from 'react-addons-update'
 import PropTypes from 'prop-types'
 
 // Slow network emulation. Set to 0 to disable. Note: this timeout works for first round. Other rounds use preloaded images.
@@ -274,14 +273,7 @@ WordImageColumn.propTypes = {
 function WordImageColumn (props) {
   let onImageClick, imagePointsBlock
   const choicePointer = props.choicePointer ? '#' + props.choicePointer : null
-  const imageStyle = {
-    maxWidth: '300px',
-    width: '100%',
-    height: 'auto',
-    display: 'inline-block',
-    padding: '0px',
-    float: 'left'
-  }
+  const imageStyle = {}
   if (props.isCorrectChoice) {
     imagePointsBlock = (
       <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
@@ -301,7 +293,8 @@ function WordImageColumn (props) {
   }
 
   return (
-    <div className="column" style={{ position: 'relative' }}>
+    // <div className="column" style={{ position: 'relative' }}>
+    <div>
       <div style={{ fontSize: '24px' }}>
         {choicePointer}
       </div>
@@ -320,9 +313,7 @@ IntermediateGameWidget.propTypes = {
 
 function IntermediateGameWidget (props) {
   return (
-    <img id="word-image"
-         src={props.currentRound.img1.src}
-         style={{ maxWidth: '500px', width: '100%', height: 'auto', display: 'inline-block', padding: '0px' }} />
+    <img className="word-image" src={props.currentRound.img1.src} />
   )
 }
 
@@ -379,8 +370,10 @@ function BeginnerGameWidget (props) {
   return (
     <div>
       <div className="row">
-        <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} choicePointer={pointer0}/>
-        <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} choicePointer={pointer1}/>
+        <div className="column">
+          <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} choicePointer={pointer0}/>
+          <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} choicePointer={pointer1}/>
+        </div>
       </div>
       <div className="row">
         <div className="column">
@@ -388,8 +381,10 @@ function BeginnerGameWidget (props) {
         </div>
       </div>
       <div className="row">
-        <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} choicePointer={pointer2}/>
-        <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} choicePointer={pointer3}/>
+        <div className="column">
+          <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} choicePointer={pointer2}/>
+          <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} choicePointer={pointer3}/>
+        </div>
       </div>
     </div>
   )
@@ -653,7 +648,7 @@ class Main extends React.Component {
       .then(data => {
         /* looks like state update is not needed here */
         /*
-              const newState = update(self.state, {});
+              const newState = { ...self.state }
               newState.user.language = data.user.language;
               newState.user.name = data.user.name;
               newState.user.topic = data.user.topic;
@@ -691,7 +686,7 @@ class Main extends React.Component {
     fetch('/api/v1/state')
       .then(response => response.json())
       .then(json => {
-        const newState = update(self.state, {})
+        const newState = { ...self.state }
         newState.languages = json.languages
         newState.topics = json.topics
         newState.user = json.user
@@ -715,7 +710,7 @@ class Main extends React.Component {
     //
 
     document.getElementById('root').addEventListener('connection.slow-message', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       if (self.state.slowMessageCount > 5) {
         newState.gameWarning = {
           message: 'Your connection is too slow or site has problems. Please refresh page.'
@@ -728,7 +723,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('ws.error', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.connection = 'error'
       // console.log('Error')
       // newState.language = event.detail.state.language;
@@ -738,7 +733,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('ws.closed', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.connection = 'closed'
       // console.log('Closed')
       // newState.language = event.detail.state.language;
@@ -748,7 +743,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('ws.opened', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.connection = 'Opened'
       // newState.language = event.detail.state.language;
       // newState.mode = event.detail.state.mode;
@@ -764,7 +759,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('error.close', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.gameError = null
       newState.mode = null
       newState.level = null
@@ -772,7 +767,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('game.leave', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.mode = null
       newState.level = null
       newState.rounds = []
@@ -790,7 +785,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('challenge', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
 
       newState.challenge = {
         user: event.detail.user,
@@ -812,7 +807,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('image.load', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       // console.log('!!!!!', event.detail.img.src, event.detail.roundIndex)
       if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
         newState.preloadedImages[event.detail.roundIndex] = {}
@@ -825,13 +820,13 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.mode = 'contest_enqueued'
       self.setState(newState)
     })
 
     document.getElementById('root').addEventListener('game_error', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.gameError = event.detail
       self.setState(newState)
     })
@@ -840,7 +835,7 @@ class Main extends React.Component {
       if (self.state.challenge == null) {
         ;
       } else {
-        const newState = update(self.state, {})
+        const newState = { ...self.state }
         const currentTimeout = newState.challenge.timeout
 
         if (currentTimeout === 1) {
@@ -855,8 +850,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('state.update', function (event) {
-      const newState = update(self.state, {})
-      // const newState = { ...self.state }
+      const newState = { ...self.state }
       newState.players = event.detail.state.players
       newState.rounds = event.detail.state.rounds
       newState.currentRound = event.detail.state.currentRound
@@ -981,6 +975,13 @@ class Main extends React.Component {
           }
         }
       }
+      // For some reason in firefox it doesn't upgrade the state. The problem is not clear yet,
+      // to overcome that create new object from state.
+      // Assume problem in immutable update helper
+      // FIXME: Should be fixed ASAP. stringify/parse if very heavy here.
+      // const newState1 = JSON.parse(JSON.stringify(newState))
+      // newState1.gameLastMessageTime = newState.gameLastMessageTime
+      // console.log('newState: ', newState1)
       self.setState(newState)
     })
 
@@ -993,7 +994,7 @@ class Main extends React.Component {
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
         .then(data => {
-          const newState = update(self.state, {})
+          const newState = { ...self.state }
           newState.topics = data.topics
           newState.user.language = data.user.language
           newState.user.name = data.user.name
@@ -1017,7 +1018,7 @@ class Main extends React.Component {
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
         .then(data => {
-          const newState = update(self.state, {})
+          const newState = { ...self.state }
           newState.topics = data.topics
           newState.user.language = data.user.language
           newState.user.name = data.user.name
@@ -1035,7 +1036,7 @@ class Main extends React.Component {
             fetch('/api/v1/state')
               .then(response => response.json())
               .then(json => {
-                const newState = update(self.state, {});
+                const newState = { ...self.state }
                 newState.languages = json.languages;
                 newState.topics = json.topics;
                 newState.user = json.user;
@@ -1049,7 +1050,7 @@ class Main extends React.Component {
       // Updates username
 
       // Update state and send to server side.
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.user.name = event.detail.name
       self.setState(newState)
 
@@ -1059,7 +1060,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('contest-clicked', function (event) {
       // FIXME:
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.mode = 'contest_requested'
       self.setState(newState)
 
@@ -1075,7 +1076,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('train-clicked', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.mode = 'train_requested'
       self.setState(newState)
       self.sendMessage({
@@ -1091,7 +1092,7 @@ class Main extends React.Component {
 
     // new CustomEvent('challenge-accepted', {detail: {}}));
     document.getElementById('root').addEventListener('challenge-accepted', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       newState.challenge = null
       newState.currentRound = -1
       newState.replyLetters = []
@@ -1130,7 +1131,7 @@ class Main extends React.Component {
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
         .then(data => {
-          const newState = update(self.state, {})
+          const newState = { ...self.state }
           newState.user.topic = data.user.topic
           self.setState(newState)
         })
@@ -1141,7 +1142,7 @@ class Main extends React.Component {
       // update-state
       // console.log(event.detail.letter);
 
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       const replyWordIndex = event.detail.wordIndex
       const replyLetterIndex = event.detail.letterIndex
       const replyWordLetters = newState.replyLetters[replyWordIndex]
@@ -1155,7 +1156,7 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('question-letter.click', function (event) {
-      const newState = update(self.state, {})
+      const newState = { ...self.state }
       // {topic: {$set: event.detail.topic}});
       // self.setState(newState);
       const wordIndex = event.detail.wordIndex
@@ -1363,11 +1364,7 @@ class Main extends React.Component {
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox')
     let gameWarning = this.state.gameWarning
     if (!isFirefox) {
-      if (gameWarning !== null) {
-        gameWarning.message = 'The app was optimized for Firefox, please open it in Firefox. ' + gameWarning.message
-      } else {
-        gameWarning = { message: 'The app was optimized for Firefox, please open it in Firefox. ' }
-      }
+      gameWarning = { message: 'The app was optimized for Firefox, please open it in Firefox.' }
     } else {
       gameWarning = this.state.gameWarning
     }
@@ -1607,11 +1604,13 @@ class Main extends React.Component {
         <div className="row">
           <div className="column">
             {gameWidgetElems}
-            <div>
-              {helpButton}&nbsp;
-              {roundDetails}&nbsp;&nbsp;&nbsp;
-              {currentRoundTimeoutBlock}
-            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="column">
+            {helpButton}&nbsp;
+            {roundDetails}&nbsp;&nbsp;&nbsp;
+            {currentRoundTimeoutBlock}
           </div>
         </div>
         <div className="row">
