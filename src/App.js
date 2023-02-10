@@ -276,12 +276,12 @@ function WordImageColumn (props) {
   const imageStyle = {}
   if (props.isCorrectChoice) {
     imagePointsBlock = (
-      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
+      <div style={{ maxWidth: '300px', fontSize: '150px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
         +{props.score}
       </div>)
   } else if (props.userChoices.includes(props.imageChoice)) {
     imagePointsBlock = (
-      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'red', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
+      <div style={{ maxWidth: '300px', fontSize: '150px', position: 'absolute', float: 'left', color: 'red', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
         -1
       </div>)
   } else if (!props.isSolved) {
@@ -293,9 +293,8 @@ function WordImageColumn (props) {
   }
 
   return (
-    // <div className="column" style={{ position: 'relative' }}>
-    <div>
-      <div style={{ fontSize: '24px' }}>
+    <div style={{ position: 'relative' }}>
+      <div style={{ fontSize: '34px' }}>
         {choicePointer}
       </div>
       {imagePointsBlock}
@@ -330,14 +329,7 @@ BeginnerGameWidget.propTypes = {
 function BeginnerGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
   const currentRoundIndex = props.currentRoundIndex
-  const localTermLetters = []
-  for (let j = 0; j < localTerm.length; ++j) {
-    localTermLetters.push(
-      <ReplyLetter isSolved={true} letter={localTerm[j]} wordIndex={0} letterIndex={j} />)
-  }
-  // function fetchChoice (attemptMap) {
-  // return attemptMap.reply.userChoice
-  // }
+  const localTermLetters = <div style={{ fontSize: '85px' }}>{ localTerm }</div>
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
@@ -368,25 +360,30 @@ function BeginnerGameWidget (props) {
   const score3 = props.correctChoice === 4 ? props.score : null
 
   return (
-    <div>
-      <div className="row">
-        <div className="column">
+    <table style={{ border: 'none', borderCollapse: 'collapse', cellspacing: 0, cellpadding: 0 }}>
+      <tr>
+        <td style={{ verticalAlign: 'top' }}>
           <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} choicePointer={pointer0}/>
+        </td>
+        <td style={{ verticalAlign: 'top' }}>
           <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} choicePointer={pointer1}/>
-        </div>
-      </div>
-      <div className="row">
-        <div className="column">
+        </td>
+      </tr>
+      <tr>
+        <td colSpan="2">
           {localTermLetters}
-        </div>
-      </div>
-      <div className="row">
-        <div className="column">
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td style={{ verticalAlign: 'top', borderBottom: 'none' }}>
           <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} choicePointer={pointer2}/>
+        </td>
+        <td style={{ verticalAlign: 'top', borderBottom: 'none' }}>
           <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} choicePointer={pointer3}/>
-        </div>
-      </div>
-    </div>
+        </td>
+      </tr>
+    </table>
   )
 };
 
@@ -450,17 +447,18 @@ function ReplyLetter (props) {
       new CustomEvent('reply-letter.remove', eventDetail))
   };
 
-  const borderStyle = 'solid gray 2px'
-
+  const letterStyle = {}
   let removeLink = <a href="#" onClick={onClick}>x</a>
   if (props.isSolved || props.letter === ' ') {
     removeLink = ''
   }
 
+  if (props.letter !== ' ') {
+    letterStyle.border = 'solid gray 2px'
+  }
+
   return (
-        <div
-            className="reply-letter"
-            style={{ border: borderStyle }}>
+        <div className="reply-letter" style={ letterStyle }>
             {removeLink}
             <span style={{ fontSize: '40px' }}>
                 {props.letter}
@@ -1252,7 +1250,7 @@ class Main extends React.Component {
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend
-    // console.log('Before render.', self.state)
+    console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
