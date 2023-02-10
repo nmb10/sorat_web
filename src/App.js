@@ -276,12 +276,12 @@ function WordImageColumn (props) {
   const imageStyle = {}
   if (props.isCorrectChoice) {
     imagePointsBlock = (
-      <div style={{ maxWidth: '300px', fontSize: '150px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
+      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
         +{props.score}
       </div>)
   } else if (props.userChoices.includes(props.imageChoice)) {
     imagePointsBlock = (
-      <div style={{ maxWidth: '300px', fontSize: '150px', position: 'absolute', float: 'left', color: 'red', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
+      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'red', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
         -1
       </div>)
   } else if (!props.isSolved) {
@@ -1250,7 +1250,7 @@ class Main extends React.Component {
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend
-    console.log('Before render.', self.state)
+    // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
