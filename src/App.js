@@ -1269,7 +1269,7 @@ class Main extends React.Component {
           </div>
         </div>
       )
-    } else if (this.state.connection === 'error') {
+    } else if (self.state.connection === 'error') {
       return (
         <div className="container">
           <br />
@@ -1293,18 +1293,18 @@ class Main extends React.Component {
     }
 
     let finishedRounds
-    if (this.state.currentRound === -1) {
-      finishedRounds = this.state.rounds || []
+    if (self.state.currentRound === -1) {
+      finishedRounds = self.state.rounds || []
     } else {
-      finishedRounds = this.state.rounds.slice(0, this.state.currentRound - 1)
+      finishedRounds = self.state.rounds.slice(0, self.state.currentRound - 1)
     }
     let splittedLettersItems = null
 
     let isSolved = false
     let currentRound = {}
-    if (this.state.currentRound && this.state.currentRound !== -1) {
-      currentRound = this.state.rounds[this.state.currentRound - 1]
-      isSolved = currentRound.solutions[this.state.user.id].is_solved
+    if (self.state.currentRound && self.state.currentRound !== -1) {
+      currentRound = self.state.rounds[self.state.currentRound - 1]
+      isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
 
     // FIXME: Implement term with multiple words.
@@ -1323,7 +1323,7 @@ class Main extends React.Component {
         }
       }
 
-      const replyMap = this.state.replyMap || {}
+      const replyMap = self.state.replyMap || {}
       const chosenQueryIndexes = Object.values(replyMap)
 
       const questionLettersTables = []
@@ -1347,7 +1347,7 @@ class Main extends React.Component {
     };
 
     if (Object.keys(currentRound).length > 0) {
-      replyLetterItems = replyLettersToRow(this.state.replyLetters[0], isSolved)
+      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved)
     }
 
     let contextBlock = null
@@ -1357,15 +1357,7 @@ class Main extends React.Component {
 
     let gameWarningBlock = null
 
-    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox')
-    let gameWarning = this.state.gameWarning
-    if (!isFirefox) {
-      gameWarning = { message: 'The app was optimized for Firefox, please open it in Firefox.' }
-    } else {
-      gameWarning = this.state.gameWarning
-    }
-
-    if (gameWarning !== null) {
+    if (self.state.gameWarning !== null) {
       const warningBlockStyle = {
         backgroundColor: 'rgb(248, 215, 218)',
         borderColor: 'rgb(114, 28, 36)',
@@ -1379,13 +1371,13 @@ class Main extends React.Component {
       gameWarningBlock = (
         <div style={warningBlockStyle}>
           <div>
-            {gameWarning.message}
+            {self.state.gameWarning.message}
           </div>
         </div>)
     }
 
     let gameErrorBlock = null
-    if (this.state.gameError != null) {
+    if (self.state.gameError != null) {
       const errorBlockStyle = {
         backgroundColor: 'rgb(248, 215, 218)',
         borderColor: 'rgb(114, 28, 36)',
@@ -1402,7 +1394,7 @@ class Main extends React.Component {
             <a style={{ top: 0, position: 'absolute', right: 0 }} href="#" onClick={self.onErrorClose}>x</a>
           </div>
           <div>
-            {this.state.gameError.message}. ({this.state.gameError.error_id})
+            {self.state.gameError.message}. ({self.state.gameError.error_id})
           </div>
         </div>)
     }
@@ -1415,59 +1407,59 @@ class Main extends React.Component {
     let pointsBlock = null
     let points = 0
     if (isSolved && self.state.level === 'intermediate') {
-      if (currentRound.solutions[this.state.user.id].hints.length === 3) {
+      if (currentRound.solutions[self.state.user.id].hints.length === 3) {
         points = 0
       } else {
-        points = '+' + (5 - currentRound.solutions[this.state.user.id].hints.length)
+        points = '+' + (5 - currentRound.solutions[self.state.user.id].hints.length)
       }
       pointsBlock = <span style={{ color: 'green' }}>{points}</span>
     }
 
     // const languages = ['dig','os','ru','en'];
     // FIXME: Move to server side.
-    const languageOptionItems = this.state.languages
+    const languageOptionItems = self.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
 
     const levelOptionItems = levels
       .map((level) => <option key={level} value={level}>{t(userLanguage)[level]}</option>)
 
-    const topicOptionItems = this.state.topics
+    const topicOptionItems = self.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
 
     let trainBlock = null
     let contestBlock = null
     let challengeBlock = null
 
-    if (this.state.challenge) {
+    if (self.state.challenge) {
       challengeBlock = (
         <div>
-          {this.state.challenge.user.name} is challenging you!
-          <button onClick={this.onAcceptClick}>Accept</button>
-          (ignore to decline) ({this.state.challenge.timeout})
+          {self.state.challenge.user.name} is challenging you!
+          <button onClick={self.onAcceptClick}>Accept</button>
+          (ignore to decline) ({self.state.challenge.timeout})
         </div>)
     }
 
-    if (this.state.mode === 'contest') {
+    if (self.state.mode === 'contest') {
       trainBlock = (
-        <button id='train' disabled onClick={this.onTrainClick}>
+        <button id='train' disabled onClick={self.onTrainClick}>
           {t(userLanguage).train}
         </button>)
       contestBlock = (
         <button onClick={self.leave} title='Leave game'>
           {t(userLanguage).leave}
         </button>)
-    } else if (this.state.mode === 'train') {
+    } else if (self.state.mode === 'train') {
       trainBlock = (
         <button onClick={self.leave} title='Leave game'>
           {t(userLanguage).leave}
         </button>)
       contestBlock = (
-        <button disabled id='contest' onClick={this.onContestClick}>
+        <button disabled id='contest' onClick={self.onContestClick}>
           {t(userLanguage).contest}
         </button>)
-    } else if (this.state.mode === 'contest_enqueued') {
+    } else if (self.state.mode === 'contest_enqueued') {
       trainBlock = (
-        <button id='train' disabled onClick={this.onTrainClick}>
+        <button id='train' disabled onClick={self.onTrainClick}>
           {t(userLanguage).train}
         </button>)
 
@@ -1477,29 +1469,29 @@ class Main extends React.Component {
         </button>)
     } else {
       trainBlock = (
-        <button id='train' onClick={this.onTrainClick}>
+        <button id='train' onClick={self.onTrainClick}>
           {t(userLanguage).train}
         </button>)
       contestBlock = (
-        <button id='contest' onClick={this.onContestClick}>
+        <button id='contest' onClick={self.onContestClick}>
           {t(userLanguage).contest}
         </button>)
     }
 
     let helpButton = null
     let roundDetails = null
-    if (this.state.mode != null &&
+    if (self.state.mode != null &&
                 Object.keys(currentRound).length > 0) {
       roundDetails = (
         <span id='round-details' style={{ fontSize: '24px', marginTop: '10px', float: 'left' }}>
-          Round #{this.state.currentRound} of {this.state.rounds.length}
+          Round #{self.state.currentRound} of {self.state.rounds.length}
         </span>)
-      if (currentRound.solutions[this.state.user.id].hints.length < 3 && !isSolved) {
+      if (currentRound.solutions[self.state.user.id].hints.length < 3 && !isSolved) {
         helpButton = (
           <button onClick={self.getHelp}
                   title='(-1 to current game score)'
                   style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
-                        Help ({3 - currentRound.solutions[this.state.user.id].hints.length})
+                        Help ({3 - currentRound.solutions[self.state.user.id].hints.length})
           </button>
         )
       } else {
@@ -1514,7 +1506,7 @@ class Main extends React.Component {
       }
     }
 
-    const disabled = this.state.mode != null ? 'disabled' : ''
+    const disabled = self.state.mode != null ? 'disabled' : ''
 
     let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}&nbsp;|&nbsp;{pointsBlock}</h3>)
     if (currentRound.timeout <= 10 && !isSolved) {
@@ -1522,27 +1514,27 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (Object.keys(currentRound).length > 0 && this.state.level === 'beginner') {
+    if (Object.keys(currentRound).length > 0 && self.state.level === 'beginner') {
       let score
       let correctChoice
       if (isSolved) {
         // TODO: Should be taken from server response, but API doesn't compute score for
         // current round yet.
-        score = currentRound.solutions[this.state.user.id].attempts.length > 3 ? 0 : 5 - currentRound.solutions[this.state.user.id].attempts.length + 1
+        score = currentRound.solutions[self.state.user.id].attempts.length > 3 ? 0 : 5 - currentRound.solutions[self.state.user.id].attempts.length + 1
         correctChoice = currentRound.correct_choice
       }
       gameWidgetElems = <BeginnerGameWidget
         currentRound={currentRound}
-        user={this.state.user}
-        preloadedImages={this.state.preloadedImages}
-        currentRoundIndex={this.state.currentRound - 1}
+        user={self.state.user}
+        preloadedImages={self.state.preloadedImages}
+        currentRoundIndex={self.state.currentRound - 1}
         correctChoice={correctChoice}
         isSolved={isSolved}
         score={score} />
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
-    } else if (Object.keys(currentRound).length > 0 && this.state.level === 'intermediate') {
+    } else if (Object.keys(currentRound).length > 0 && self.state.level === 'intermediate') {
       gameWidgetElems = <IntermediateGameWidget currentRound={currentRound} />
     }
 
@@ -1564,25 +1556,25 @@ class Main extends React.Component {
             {gameWarningBlock}
             <div>
               <input type="text" placeholder="Username"
-                     value={this.state.user.name}
-                     onChange={this.handleNameChange}
+                     value={self.state.user.name}
+                     onChange={self.handleNameChange}
                      style={{ color: 'white' }}>
               </input>
             </div>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={this.state.user.language} onChange={this.handleLanguageChange}>
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.language} onChange={self.handleLanguageChange}>
               <option value="">---</option>
               {languageOptionItems}
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={this.state.user.level} onChange={this.handleLevelChange}>
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
               {levelOptionItems}
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={this.state.user.topic} onChange={this.handleTopicChange}>
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
               <option value="">---</option>
               {topicOptionItems}
             </select>
@@ -1595,7 +1587,7 @@ class Main extends React.Component {
           </div>
         </div>
         <div className="row">
-          <FinishedRoundsTable players={this.state.players} user={this.state.user} finishedRounds={finishedRounds} rounds={this.state.rounds} />
+          <FinishedRoundsTable players={self.state.players} user={self.state.user} finishedRounds={finishedRounds} rounds={self.state.rounds} />
         </div>
         <div className="row">
           <div className="column">
