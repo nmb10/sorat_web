@@ -37,10 +37,22 @@
           .word-image {
             max-width: 160px;
           }
+          .choice-points {
+            font-size: 100px;
+          }
+          .beginner-letters {
+            font-size: 45px
+          }
         }
         @media (min-width:768px) {
           .word-image {
-            max-width: 420px;
+            max-width: 320px;
+          }
+          .choice-points {
+            font-size: 150px;
+          }
+          .beginner-letters {
+            font-size: 85px
           }
         }
 
@@ -50,6 +62,20 @@
             display: inline-block;
             padding: 5px;
             float: left;
+        }
+        .choice-points {
+            max-width: 300px;
+            position: absolute;
+            float: left;
+            left: 0px;
+            top: 0px;
+            text-shadow: 3px 3px 4px black
+        }
+        .invalid-choice-points {
+            color: red;
+        }
+        .valid-choice-points {
+            color: green;
         }
   </style>
   </head>

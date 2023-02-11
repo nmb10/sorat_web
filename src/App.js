@@ -275,15 +275,9 @@ function WordImageColumn (props) {
   const choicePointer = props.choicePointer ? '#' + props.choicePointer : null
   const imageStyle = {}
   if (props.isCorrectChoice) {
-    imagePointsBlock = (
-      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'green', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
-        +{props.score}
-      </div>)
+    imagePointsBlock = <div className="choice-points valid-choice-points">+{props.score}</div>
   } else if (props.userChoices.includes(props.imageChoice)) {
-    imagePointsBlock = (
-      <div style={{ maxWidth: '300px', fontSize: '100px', position: 'absolute', float: 'left', color: 'red', left: '0px', top: '0px', textShadow: '3px 3px 4px black' }}>
-        -1
-      </div>)
+    imagePointsBlock = <div className="choice-points invalid-choice-points">-1</div>
   } else if (!props.isSolved) {
     imageStyle.cursor = 'pointer'
     onImageClick = function (event) {
@@ -329,7 +323,7 @@ BeginnerGameWidget.propTypes = {
 function BeginnerGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
   const currentRoundIndex = props.currentRoundIndex
-  const localTermLetters = <div style={{ fontSize: '85px' }}>{ localTerm }</div>
+  const localTermLetters = <div className="beginner-letters">{ localTerm }</div>
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
@@ -644,15 +638,6 @@ class Main extends React.Component {
     fetch('/api/v1/state', requestOptions)
       .then(response => response.json())
       .then(data => {
-        /* looks like state update is not needed here */
-        /*
-              const newState = { ...self.state }
-              newState.user.language = data.user.language;
-              newState.user.name = data.user.name;
-              newState.user.topic = data.user.topic;
-              newState.topics = data.topics;
-              self.setState(newState);
-              */
         ;
       })
   }
@@ -684,20 +669,22 @@ class Main extends React.Component {
     fetch('/api/v1/state')
       .then(response => response.json())
       .then(json => {
-        const newState = { ...self.state }
-        newState.languages = json.languages
-        newState.topics = json.topics
-        newState.user = json.user
-        newState.mode = json.mode
-        newState.level = json.level
-        newState.versions = json.versions
+        self.setState(prevState => {
+          const newState = { ...prevState }
+          newState.languages = json.languages
+          newState.topics = json.topics
+          newState.user = json.user
+          newState.mode = json.mode
+          newState.level = json.level
+          newState.versions = json.versions
 
-        if (newState.mode == null) {
-          self.stopWebsocket()
-        } else {
-          self.startWebsocket()
-        }
-        self.setState(newState)
+          if (newState.mode == null) {
+            self.stopWebsocket()
+          } else {
+            self.startWebsocket()
+          }
+          return newState
+        })
       })
 
     // Start WS only on game start.
@@ -708,45 +695,42 @@ class Main extends React.Component {
     //
 
     document.getElementById('root').addEventListener('connection.slow-message', function (event) {
-      const newState = { ...self.state }
-      if (self.state.slowMessageCount > 5) {
-        newState.gameWarning = {
-          message: 'Your connection is too slow or site has problems. Please refresh page.'
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        if (prevState.slowMessageCount > 5) {
+          newState.gameWarning = {
+            message: 'Your connection is too slow or site has problems. Please refresh page.'
+          }
+          newState.slowConnection = true
+        } else {
+          newState.slowMessageCount = prevState.slowMessageCount + 1
         }
-        newState.slowConnection = true
-      } else {
-        newState.slowMessageCount = self.state.slowMessageCount + 1
-      }
-      self.setState(newState)
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('ws.error', function (event) {
-      const newState = { ...self.state }
-      newState.connection = 'error'
-      // console.log('Error')
-      // newState.language = event.detail.state.language;
-      // newState.mode = event.detail.state.mode;
-      // FIXME:Add-other-fields.
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.connection = 'error'
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('ws.closed', function (event) {
-      const newState = { ...self.state }
-      newState.connection = 'closed'
-      // console.log('Closed')
-      // newState.language = event.detail.state.language;
-      // newState.mode = event.detail.state.mode;
-      // FIXME:Add-other-fields.
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.connection = 'closed'
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('ws.opened', function (event) {
-      const newState = { ...self.state }
-      newState.connection = 'Opened'
-      // newState.language = event.detail.state.language;
-      // newState.mode = event.detail.state.mode;
-      // FIXME:Add-other-fields.
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.connection = 'Opened'
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('game.help', function (event) {
@@ -757,22 +741,16 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('error.close', function (event) {
-      const newState = { ...self.state }
-      newState.gameError = null
-      newState.mode = null
-      newState.level = null
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.gameError = null
+        newState.mode = null
+        newState.level = null
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('game.leave', function (event) {
-      const newState = { ...self.state }
-      newState.mode = null
-      newState.level = null
-      newState.rounds = []
-      newState.currentRound = -1
-      newState.replyLetters = []
-      newState.preloadedImages = {}
-      self.setState(newState)
       self.sendMessage({
         command: 'leave',
         payload: {
@@ -780,19 +758,30 @@ class Main extends React.Component {
           topic: self.state.user.topic
         }
       })
+
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.mode = null
+        newState.level = null
+        newState.rounds = []
+        newState.currentRound = -1
+        newState.replyLetters = []
+        newState.preloadedImages = {}
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('challenge', function (event) {
-      const newState = { ...self.state }
-
-      newState.challenge = {
-        user: event.detail.user,
-        timeout: 10
-      }
-
       setTimeout(self.sendChallengeTickEvent, 1000)
+      self.setState(prevState => {
+        const newState = { ...prevState }
 
-      self.setState(newState)
+        newState.challenge = {
+          user: event.detail.user,
+          timeout: 10
+        }
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('beginner.reply', function (event) {
@@ -805,182 +794,190 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('image.load', function (event) {
-      const newState = { ...self.state }
-      // console.log('!!!!!', event.detail.img.src, event.detail.roundIndex)
-      if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
-        newState.preloadedImages[event.detail.roundIndex] = {}
-      }
-      newState.preloadedImages[event.detail.roundIndex][event.detail.imageIndex] = {
-        img: event.detail.img,
-        pointer: event.detail.imageMap.pointer
-      }
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        // console.log('!!!!!', event.detail.img.src, event.detail.roundIndex)
+        if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
+          newState.preloadedImages[event.detail.roundIndex] = {}
+        }
+        newState.preloadedImages[event.detail.roundIndex][event.detail.imageIndex] = {
+          img: event.detail.img,
+          pointer: event.detail.imageMap.pointer
+        }
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
-      const newState = { ...self.state }
-      newState.mode = 'contest_enqueued'
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.mode = 'contest_enqueued'
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('game_error', function (event) {
-      const newState = { ...self.state }
-      newState.gameError = event.detail
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...self.state }
+        newState.gameError = event.detail
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('tick-challenge', function (event) {
       if (self.state.challenge == null) {
         ;
       } else {
-        const newState = { ...self.state }
-        const currentTimeout = newState.challenge.timeout
+        self.setState(prevState => {
+          const newState = { ...prevState }
+          const currentTimeout = newState.challenge.timeout
 
-        if (currentTimeout === 1) {
-          newState.challenge = null
-        } else {
-          newState.challenge.timeout -= 1
-          setTimeout(self.sendChallengeTickEvent, 1000)
-        }
-
-        self.setState(newState)
+          if (currentTimeout === 1) {
+            newState.challenge = null
+          } else {
+            newState.challenge.timeout -= 1
+            setTimeout(self.sendChallengeTickEvent, 1000)
+          }
+          return newState
+        })
       }
     })
 
     document.getElementById('root').addEventListener('state.update', function (event) {
-      const newState = { ...self.state }
-      newState.players = event.detail.state.players
-      newState.rounds = event.detail.state.rounds
-      newState.currentRound = event.detail.state.currentRound
-      newState.mode = event.detail.state.mode
-      newState.level = event.detail.state.level
-      newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.players = event.detail.state.players
+        newState.rounds = event.detail.state.rounds
+        newState.currentRound = event.detail.state.currentRound
+        newState.mode = event.detail.state.mode
+        newState.level = event.detail.state.level
+        newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
 
-      if (newState.currentRound === -1) {
-        newState.replyLetters = []
-        newState.replyMap = {}
-        newState.preloadedImages = {}
-        newState.gameLastMessageTime = null
-        self.stopSlowConnectionMonitor()
-      } else if (self.state.currentRound !== newState.currentRound) {
-        // Round changed. Show ? for every letter of the question.
-        if (newState.currentRound === 1) {
-          self.startSlowConnectionMonitor()
-        }
-        const currentRound = newState.rounds[newState.currentRound - 1]
-        // console.log('Round changed. Loading images...')
-        if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
-          // console.log(
-          //   'No images exist for #' + (newState.currentRound - 1) + ' round. Loading now...')
-          if (currentRound.img1 !== null) {
-            // console.log('No preloaded for current round. Loading img1...')
-            preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+        if (newState.currentRound === -1) {
+          newState.replyLetters = []
+          newState.replyMap = {}
+          newState.preloadedImages = {}
+          newState.gameLastMessageTime = null
+          self.stopSlowConnectionMonitor()
+        } else if (self.state.currentRound !== newState.currentRound) {
+          // Round changed. Show ? for every letter of the question.
+          if (newState.currentRound === 1) {
+            self.startSlowConnectionMonitor()
           }
-          if (currentRound.img2 !== null) {
-            // console.log('No preloaded for current round. Loading img2...')
-            preloadImage(newState.currentRound - 1, 1, currentRound.img2)
-          }
-          if (currentRound.img3 !== null) {
-            // console.log('No preloaded for current round. Loading img3...')
-            preloadImage(newState.currentRound - 1, 2, currentRound.img3)
-          }
-          if (currentRound.img4 !== null) {
-            // console.log('No preloaded for current round. Loading img4...')
-            preloadImage(newState.currentRound - 1, 3, currentRound.img4)
-          }
-        } else {
-          if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
-            // TODO: Clean that hell.
+          const currentRound = newState.rounds[newState.currentRound - 1]
+          // console.log('Round changed. Loading images...')
+          if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
+            // console.log(
+            //   'No images exist for #' + (newState.currentRound - 1) + ' round. Loading now...')
             if (currentRound.img1 !== null) {
-              // console.log('Round is missing image 0. Loading...')
+              // console.log('No preloaded for current round. Loading img1...')
               preloadImage(newState.currentRound - 1, 0, currentRound.img1)
             }
-          }
-          if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
             if (currentRound.img2 !== null) {
-              // console.log('Round is missing image 1. Loading...')
+              // console.log('No preloaded for current round. Loading img2...')
               preloadImage(newState.currentRound - 1, 1, currentRound.img2)
             }
-          }
-          if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
             if (currentRound.img3 !== null) {
-              // console.log('Round is missing image 2. Loading...')
+              // console.log('No preloaded for current round. Loading img3...')
               preloadImage(newState.currentRound - 1, 2, currentRound.img3)
             }
-          }
-          if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
             if (currentRound.img4 !== null) {
-              // console.log('Round is missing image 3. Loading...')
+              // console.log('No preloaded for current round. Loading img4...')
               preloadImage(newState.currentRound - 1, 3, currentRound.img4)
             }
+          } else {
+            if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
+              // TODO: Clean that hell.
+              if (currentRound.img1 !== null) {
+                // console.log('Round is missing image 0. Loading...')
+                preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+              }
+            }
+            if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
+              if (currentRound.img2 !== null) {
+                // console.log('Round is missing image 1. Loading...')
+                preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+              }
+            }
+            if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
+              if (currentRound.img3 !== null) {
+                // console.log('Round is missing image 2. Loading...')
+                preloadImage(newState.currentRound - 1, 2, currentRound.img3)
+              }
+            }
+            if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
+              if (currentRound.img4 !== null) {
+                // console.log('Round is missing image 3. Loading...')
+                preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+              }
+            }
           }
-        }
 
-        const nextRound = newState.rounds[newState.currentRound]
-        if (nextRound === undefined) {
-          // console.log('No new round!!!', nextRound)
-          ;
-        } else {
-          // preload next round images.
-          if (nextRound.img1 !== null) {
-            preloadImage(newState.currentRound, 0, nextRound.img1)
+          const nextRound = newState.rounds[newState.currentRound]
+          if (nextRound === undefined) {
+            // console.log('No new round!!!', nextRound)
+            ;
+          } else {
+            // preload next round images.
+            if (nextRound.img1 !== null) {
+              preloadImage(newState.currentRound, 0, nextRound.img1)
+            }
+            if (nextRound.img2 !== null) {
+              preloadImage(newState.currentRound, 1, nextRound.img2)
+            }
+            if (nextRound.img3 !== null) {
+              preloadImage(newState.currentRound, 2, nextRound.img3)
+            }
+            if (nextRound.img4 !== null) {
+              preloadImage(newState.currentRound, 3, nextRound.img4)
+            }
           }
-          if (nextRound.img2 !== null) {
-            preloadImage(newState.currentRound, 1, nextRound.img2)
-          }
-          if (nextRound.img3 !== null) {
-            preloadImage(newState.currentRound, 2, nextRound.img3)
-          }
-          if (nextRound.img4 !== null) {
-            preloadImage(newState.currentRound, 3, nextRound.img4)
-          }
-        }
-        const word = currentRound.question[0] // FIXME: Use string instead of list of strings
-        const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
-        newState.replyMap = {}
-        newState.replyLetters = [replyLetters.join('')]
-      } else {
-        const currentRound = newState.rounds[newState.currentRound - 1]
-        const stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
-        const newStateUserHints = currentRound.solutions[newState.user.id].hints || []
-        const word = currentRound.question[0] // FIXME: Use string instead of list of strings
-
-        if (stateUserHints.length !== newStateUserHints.length) {
+          const word = currentRound.question[0] // FIXME: Use string instead of list of strings
+          const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
-          if (newStateUserHints.length > 0) {
-            // show hint.
-            const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
+          newState.replyLetters = [replyLetters.join('')]
+        } else {
+          const currentRound = newState.rounds[newState.currentRound - 1]
+          const stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
+          const newStateUserHints = currentRound.solutions[newState.user.id].hints || []
+          const word = currentRound.question[0] // FIXME: Use string instead of list of strings
 
-            const lastHintArray = newStateUserHints[newStateUserHints.length - 1]
+          if (stateUserHints.length !== newStateUserHints.length) {
+            newState.replyMap = {}
+            if (newStateUserHints.length > 0) {
+              // show hint.
+              const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
 
-            for (let i = 0; i < currentRound.question.length; ++i) {
-              const mappedIndexes = []
-              const questionWord = currentRound.question[i]
-              for (let j = 0; j < lastHintArray.length; ++j) {
-                // For every hint find appropriate letter and add to reply map.
-                for (let n = 0; n < questionWord.length; ++n) {
-                  if (questionWord[n] === lastHintArray[j][1] && !mappedIndexes.includes(n)) {
-                    // match found, add as reply
-                    newState.replyMap[pair(0, j)] = pair(0, n)
-                    replyLetters[lastHintArray[j][0]] = lastHintArray[j][1]
-                    mappedIndexes.push(n)
-                    break
+              const lastHintArray = newStateUserHints[newStateUserHints.length - 1]
+
+              for (let i = 0; i < currentRound.question.length; ++i) {
+                const mappedIndexes = []
+                const questionWord = currentRound.question[i]
+                for (let j = 0; j < lastHintArray.length; ++j) {
+                  // For every hint find appropriate letter and add to reply map.
+                  for (let n = 0; n < questionWord.length; ++n) {
+                    if (questionWord[n] === lastHintArray[j][1] && !mappedIndexes.includes(n)) {
+                      // match found, add as reply
+                      newState.replyMap[pair(0, j)] = pair(0, n)
+                      replyLetters[lastHintArray[j][0]] = lastHintArray[j][1]
+                      mappedIndexes.push(n)
+                      break
+                    }
                   }
                 }
               }
+              newState.replyLetters = [replyLetters.join('')]
             }
-            newState.replyLetters = [replyLetters.join('')]
           }
         }
-      }
-      // For some reason in firefox it doesn't upgrade the state. The problem is not clear yet,
-      // to overcome that create new object from state.
-      // Assume problem in immutable update helper
-      // FIXME: Should be fixed ASAP. stringify/parse if very heavy here.
-      // const newState1 = JSON.parse(JSON.stringify(newState))
-      // newState1.gameLastMessageTime = newState.gameLastMessageTime
-      // console.log('newState: ', newState1)
-      self.setState(newState)
+        // For some reason in firefox it doesn't upgrade the state. The problem is not clear yet,
+        // to overcome that create new object from state.
+        // Assume problem in immutable update helper
+        // FIXME: Should be fixed ASAP. stringify/parse if very heavy here.
+        // const newState1 = JSON.parse(JSON.stringify(newState))
+        // newState1.gameLastMessageTime = newState.gameLastMessageTime
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('level-changed', function (event) {
@@ -992,18 +989,20 @@ class Main extends React.Component {
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
         .then(data => {
-          const newState = { ...self.state }
-          newState.topics = data.topics
-          newState.user.language = data.user.language
-          newState.user.name = data.user.name
-          newState.user.level = data.user.level
-          newState.user.topic = data.topics[0].code
-          newState.rounds = data.rounds || []
-          newState.mode = data.mode
-          newState.level = data.level
-          newState.players = data.players
-          newState.currentRound = data.currentRound
-          self.setState(newState)
+          self.setState(prevState => {
+            const newState = { ...prevState }
+            newState.topics = data.topics
+            newState.user.language = data.user.language
+            newState.user.name = data.user.name
+            newState.user.level = data.user.level
+            newState.user.topic = data.topics[0].code
+            newState.rounds = data.rounds || []
+            newState.mode = data.mode
+            newState.level = data.level
+            newState.players = data.players
+            newState.currentRound = data.currentRound
+            return newState
+          })
         })
     })
 
@@ -1016,94 +1015,90 @@ class Main extends React.Component {
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
         .then(data => {
-          const newState = { ...self.state }
-          newState.topics = data.topics
-          newState.user.language = data.user.language
-          newState.user.name = data.user.name
-          newState.user.level = data.user.level
-          newState.user.topic = data.topics[0].code
-          newState.rounds = data.rounds || []
-          newState.mode = data.mode
-          newState.level = data.level
-          newState.players = data.players
-          newState.currentRound = data.currentRound
-          self.setState(newState)
+          self.setState(prevState => {
+            const newState = { ...prevState }
+            newState.topics = data.topics
+            newState.user.language = data.user.language
+            newState.user.name = data.user.name
+            newState.user.level = data.user.level
+            newState.user.topic = data.topics[0].code
+            newState.rounds = data.rounds || []
+            newState.mode = data.mode
+            newState.level = data.level
+            newState.players = data.players
+            newState.currentRound = data.currentRound
+            return newState
+          })
         })
-
-      /*
-            fetch('/api/v1/state')
-              .then(response => response.json())
-              .then(json => {
-                const newState = { ...self.state }
-                newState.languages = json.languages;
-                newState.topics = json.topics;
-                newState.user = json.user;
-                self.setState(newState);
-                self.startWebsocket();
-            });
-            */
     })
 
     document.getElementById('root').addEventListener('name-changed', function (event) {
       // Updates username
 
       // Update state and send to server side.
-      const newState = { ...self.state }
-      newState.user.name = event.detail.name
-      self.setState(newState)
-
-      clearTimeout(self.nameUpdateTimeout)
-      self.nameUpdateTimeout = setTimeout(self.saveState, 2000)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.user.name = event.detail.name
+        clearTimeout(self.nameUpdateTimeout)
+        self.nameUpdateTimeout = setTimeout(self.saveState, 2000)
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('contest-clicked', function (event) {
       // FIXME:
-      const newState = { ...self.state }
-      newState.mode = 'contest_requested'
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.mode = 'contest_requested'
 
-      self.sendMessage({
-        command: 'contest',
-        payload: {
-          name: self.state.user.name,
-          language: self.state.user.language,
-          topic: self.state.user.topic,
-          level: self.state.user.level
-        }
+        self.sendMessage({
+          command: 'contest',
+          payload: {
+            name: prevState.user.name,
+            language: prevState.user.language,
+            topic: prevState.user.topic,
+            level: prevState.user.level
+          }
+        })
+        return newState
       })
     })
 
     document.getElementById('root').addEventListener('train-clicked', function (event) {
-      const newState = { ...self.state }
-      newState.mode = 'train_requested'
-      self.setState(newState)
-      self.sendMessage({
-        command: 'train',
-        payload: {
-          name: self.state.user.name,
-          language: self.state.user.language,
-          topic: self.state.user.topic,
-          level: self.state.user.level
-        }
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.mode = 'train_requested'
+        self.sendMessage({
+          command: 'train',
+          payload: {
+            name: prevState.user.name,
+            language: prevState.user.language,
+            topic: prevState.user.topic,
+            level: prevState.user.level
+          }
+        })
+        return newState
       })
     })
 
     // new CustomEvent('challenge-accepted', {detail: {}}));
     document.getElementById('root').addEventListener('challenge-accepted', function (event) {
-      const newState = { ...self.state }
-      newState.challenge = null
-      newState.currentRound = -1
-      newState.replyLetters = []
-      newState.replyMap = {}
-      newState.preloadedImages = {}
-      self.setState(newState)
-      self.sendMessage({
-        command: 'challenge-accept',
-        payload: {
-          language: self.state.user.language,
-          topic: self.state.user.topic,
-          level: self.state.user.level
-        }
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.challenge = null
+        newState.currentRound = -1
+        newState.replyLetters = []
+        newState.replyMap = {}
+        newState.preloadedImages = {}
+        self.sendMessage({
+          command: 'challenge-accept',
+          payload: {
+            language: prevState.user.language,
+            topic: prevState.user.topic,
+            level: prevState.user.level
+          }
+        })
+        return newState
       })
     })
 
@@ -1129,9 +1124,11 @@ class Main extends React.Component {
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
         .then(data => {
-          const newState = { ...self.state }
-          newState.user.topic = data.user.topic
-          self.setState(newState)
+          self.setState(prevState => {
+            const newState = { ...prevState }
+            newState.user.topic = data.user.topic
+            return newState
+          })
         })
     })
 
@@ -1139,49 +1136,50 @@ class Main extends React.Component {
       // FIXME: Send to server
       // update-state
       // console.log(event.detail.letter);
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        const replyWordIndex = event.detail.wordIndex
+        const replyLetterIndex = event.detail.letterIndex
+        const replyWordLetters = newState.replyLetters[replyWordIndex]
+        const replyWordArray = replyWordLetters.split('')
+        replyWordArray[replyLetterIndex] = '?'
+        newState.replyLetters[replyWordIndex] = replyWordArray.join('')
 
-      const newState = { ...self.state }
-      const replyWordIndex = event.detail.wordIndex
-      const replyLetterIndex = event.detail.letterIndex
-      const replyWordLetters = newState.replyLetters[replyWordIndex]
-      const replyWordArray = replyWordLetters.split('')
-      replyWordArray[replyLetterIndex] = '?'
-      newState.replyLetters[replyWordIndex] = replyWordArray.join('')
-
-      // Drop removed indexes.
-      newState.replyMap[pair(replyWordIndex, replyLetterIndex)] = null
-      self.setState(newState)
+        // Drop removed indexes.
+        newState.replyMap[pair(replyWordIndex, replyLetterIndex)] = null
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('question-letter.click', function (event) {
-      const newState = { ...self.state }
-      // {topic: {$set: event.detail.topic}});
-      // self.setState(newState);
-      const wordIndex = event.detail.wordIndex
-      const letterIndex = event.detail.letterIndex
-      const letter = event.detail.letter
-      const replyWordLetters = newState.replyLetters[wordIndex]
-      const indexToReplace = replyWordLetters.indexOf('?')
-      const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
-      newState.replyLetters[wordIndex] = updatedReplyWordLetters
-      newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
-      self.setState(newState)
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        const wordIndex = event.detail.wordIndex
+        const letterIndex = event.detail.letterIndex
+        const letter = event.detail.letter
+        const replyWordLetters = newState.replyLetters[wordIndex]
+        const indexToReplace = replyWordLetters.indexOf('?')
+        const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
+        newState.replyLetters[wordIndex] = updatedReplyWordLetters
+        newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
 
-      // If all letters entered send to server side.
-      let containsQuestionMark = false
-      for (let i = 0; i < newState.replyLetters.length; ++i) {
-        const word = newState.replyLetters[i]
-        if (word.includes('?')) {
-          containsQuestionMark = true
-          break
+        // If all letters entered send to server side.
+        let containsQuestionMark = false
+        for (let i = 0; i < newState.replyLetters.length; ++i) {
+          const word = newState.replyLetters[i]
+          if (word.includes('?')) {
+            containsQuestionMark = true
+            break
+          }
         }
-      }
-      if (!containsQuestionMark) {
-        self.sendMessage({
-          command: 'reply',
-          payload: newState.replyLetters
-        })
-      }
+        if (!containsQuestionMark) {
+          self.sendMessage({
+            command: 'reply',
+            payload: newState.replyLetters
+          })
+        }
+        return newState
+      })
     })
   }
 
@@ -1250,7 +1248,7 @@ class Main extends React.Component {
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend
-    // console.log('Before render.', self.state)
+    console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
