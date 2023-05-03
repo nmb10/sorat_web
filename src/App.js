@@ -42,6 +42,15 @@ const translations = {
     contest: 'Contest',
     train: 'Train'
   },
+  de: {
+    beginner: 'Anfänger',
+    intermediate: 'Mittelmässiger',
+    advanced: 'Fortgeschrittener',
+    report_an_issue: 'Ein Problem melden',
+    leave: 'Verlassen',
+    contest: 'Wettbewerb',
+    train: 'Zug'
+  },
   ru: {
     beginner: 'Начальный',
     intermediate: 'Средний',
@@ -74,7 +83,7 @@ const translations = {
 const levels = [
   'beginner',
   'intermediate'
-  // FIXME: Implement 'advanced'
+  // FIXME: Implement 'advanced' - entering letters from keyboard
 ]
 
 function t (userLanguage) {
