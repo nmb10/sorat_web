@@ -1261,7 +1261,7 @@ class Main extends React.Component {
       ', Frontend: ' + self.state.versions.frontend +
       ', Translations: ' + self.state.versions.translations +
       ', Images: ' + self.state.versions.images
-    console.log('Before render.', self.state)
+    // console.log('Before render.', self.state)
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
