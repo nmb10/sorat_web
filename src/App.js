@@ -38,6 +38,7 @@ const translations = {
     intermediate: 'Intermediate',
     advanced: 'Advanced',
     report_an_issue: 'Report an issue',
+    contribute: 'Contribute',
     leave: 'Leave',
     contest: 'Contest',
     train: 'Train'
@@ -47,6 +48,7 @@ const translations = {
     intermediate: 'Mittelmässiger',
     advanced: 'Fortgeschrittener',
     report_an_issue: 'Ein Problem melden',
+    contribute: 'Beitragen',
     leave: 'Verlassen',
     contest: 'Wettbewerb',
     train: 'Zug'
@@ -56,6 +58,7 @@ const translations = {
     intermediate: 'Средний',
     advanced: 'Продвинутый',
     report_an_issue: 'Сообщить о проблеме',
+    contribute: 'Поучаствовать',
     leave: 'Выйти',
     contest: 'Состязание',
     train: 'Тренировка'
@@ -65,6 +68,7 @@ const translations = {
     intermediate: 'Астæуыккаг',
     advanced: 'Advanced',
     report_an_issue: 'Report an issue',
+    contribute: 'Contribute',
     leave: 'Ацæуын',
     contest: 'Ерыс',
     train: 'Train'
@@ -74,6 +78,7 @@ const translations = {
     intermediate: 'Астæуккаг',
     advanced: 'Advanced',
     report_an_issue: 'Report an issue',
+    contribute: 'Contribute',
     leave: 'Рандæ ун',
     contest: 'Ерис',
     train: 'Train'
@@ -1272,7 +1277,7 @@ class Main extends React.Component {
             </a>
             &nbsp;|&nbsp;
             <a href="https://github.com/nmb10/sorat_translations">
-              Contribute
+              {t(userLanguage).contribute}
             </a>
           </div>
           <div className="row">
@@ -1292,7 +1297,7 @@ class Main extends React.Component {
             </a>
             &nbsp;|&nbsp;
             <a href="https://github.com/nmb10/sorat_translations">
-              Contribute
+              {t(userLanguage).contribute}
             </a>
           </div>
           <div className="row">
@@ -1560,7 +1565,7 @@ class Main extends React.Component {
           </a>
           &nbsp;|&nbsp;
           <a href="https://github.com/nmb10/sorat_translations">
-            Contribute
+            {t(userLanguage).contribute}
           </a>
         </div>
         <div className="row">
