@@ -34,19 +34,20 @@ const tableSizeMap = {
 
 const translations = {
   en: {
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
-    advanced: 'Advanced',
+    'select-image': 'Select Image',
+    'select-letters': 'Select Letters',
     report_an_issue: 'Report an issue',
     contribute: 'Contribute',
     leave: 'Leave',
     contest: 'Contest',
-    train: 'Train'
+    train: 'Train',
+
+    // sets
+    simple: 'Simple',
+    normal: 'Normal',
+    normal: 'Hard',
   },
   de: {
-    beginner: 'Anfänger',
-    intermediate: 'Mittelmässiger',
-    advanced: 'Fortgeschrittener',
     report_an_issue: 'Ein Problem melden',
     contribute: 'Beitragen',
     leave: 'Verlassen',
@@ -54,19 +55,18 @@ const translations = {
     train: 'Zug'
   },
   ru: {
-    beginner: 'Начальный',
-    intermediate: 'Средний',
-    advanced: 'Продвинутый',
     report_an_issue: 'Сообщить о проблеме',
     contribute: 'Поучаствовать',
     leave: 'Выйти',
     contest: 'Состязание',
     train: 'Тренировка'
+
+    // sets
+    simple: 'Простой',
+    normal: 'Средний',
+    normal: 'Трудный',
   },
   os: { // FIXME:
-    beginner: 'Райдайæн',
-    intermediate: 'Астæуыккаг',
-    advanced: 'Advanced',
     report_an_issue: 'Report an issue',
     contribute: 'Contribute',
     leave: 'Ацæуын',
@@ -74,9 +74,6 @@ const translations = {
     train: 'Train'
   },
   dig: { // FIXME:
-    beginner: 'Райдайæн',
-    intermediate: 'Астæуккаг',
-    advanced: 'Advanced',
     report_an_issue: 'Report an issue',
     contribute: 'Contribute',
     leave: 'Рандæ ун',
@@ -85,10 +82,16 @@ const translations = {
   }
 }
 
-const levels = [
-  'beginner',
-  'intermediate'
-  // FIXME: Implement 'advanced' - entering letters from keyboard
+const methods = [
+  'select-image',
+  'select-letters'
+  // FIXME: Implement 'enter letters' - entering letters from keyboard
+]
+
+const sets = [
+  'simple',
+  'normal',
+  'hard'
 ]
 
 function t (userLanguage) {
@@ -296,7 +299,7 @@ function WordImageColumn (props) {
     imageStyle.cursor = 'pointer'
     onImageClick = function (event) {
       document.getElementById('root').dispatchEvent(
-        new CustomEvent('beginner.reply', { detail: { userChoice: props.imageChoice } }))
+        new CustomEvent('select-image.reply', { detail: { userChoice: props.imageChoice } }))
     }
   }
 
@@ -314,17 +317,17 @@ function WordImageColumn (props) {
   )
 }
 
-IntermediateGameWidget.propTypes = {
+SelectLettersGameWidget.propTypes = {
   currentRound: PropTypes.node.isRequired
 }
 
-function IntermediateGameWidget (props) {
+function SelectLettersGameWidget (props) {
   return (
     <img className="word-image" src={props.currentRound.img1.src} />
   )
 }
 
-BeginnerGameWidget.propTypes = {
+SelectImageGameWidget.propTypes = {
   currentRound: PropTypes.node.isRequired,
   preloadedImages: PropTypes.node.isRequired,
   currentRoundIndex: PropTypes.node.isRequired,
@@ -334,10 +337,10 @@ BeginnerGameWidget.propTypes = {
   score: PropTypes.number
 }
 
-function BeginnerGameWidget (props) {
+function SelectImageGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
   const currentRoundIndex = props.currentRoundIndex
-  const localTermLetters = <div className="beginner-letters">{ localTerm }</div>
+  const localTermLetters = <div className="select-image-letters">{ localTerm }</div>
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
@@ -491,14 +494,15 @@ class Main extends React.Component {
         name: null,
         id: null,
         language: null, // selected language
-        level: 'beginner', // user choice [beginner or intermediate]
+        method: 'select-image', // user choice [select-image or select-image or select-letters]
+        set: 'normal',  // user choice [simple/normal/hard]
         topic: null // selected topic.
       },
       challenge: null,
       connection: '',
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
-      level: null, // current game level, server choice. May not match to user.level
+      method: null, // current game method, server choice. May not match to user.method
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
@@ -580,7 +584,7 @@ class Main extends React.Component {
             {
               detail: {
                 state: {
-                  level: message.payload.level,
+                  method: message.payload.method,
                   mode: message.payload.mode,
                   players: message.payload.players,
                   rounds: message.payload.rounds,
@@ -691,7 +695,7 @@ class Main extends React.Component {
           newState.topics = json.topics
           newState.user = json.user
           newState.mode = json.mode
-          newState.level = json.level
+          newState.method = json.method
           newState.versions = json.versions
 
           if (newState.mode == null) {
@@ -761,7 +765,7 @@ class Main extends React.Component {
         const newState = { ...prevState }
         newState.gameError = null
         newState.mode = null
-        newState.level = null
+        newState.method = null
         return newState
       })
     })
@@ -778,7 +782,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = { ...prevState }
         newState.mode = null
-        newState.level = null
+        newState.method = null
         newState.rounds = []
         newState.currentRound = -1
         newState.replyLetters = []
@@ -800,11 +804,11 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('beginner.reply', function (event) {
+    document.getElementById('root').addEventListener('select-image.reply', function (event) {
       // console.log('userChoice: ', event.detail.userChoice)
       self.sendMessage({
         command: 'reply',
-        level: 'beginner',
+        method: 'select-image',
         payload: { userChoice: event.detail.userChoice }
       })
     })
@@ -866,7 +870,7 @@ class Main extends React.Component {
         newState.rounds = event.detail.state.rounds
         newState.currentRound = event.detail.state.currentRound
         newState.mode = event.detail.state.mode
-        newState.level = event.detail.state.level
+        newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
 
         if (newState.currentRound === -1) {
@@ -996,11 +1000,12 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('level-changed', function (event) {
+    document.getElementById('root').addEventListener('method-changed', function (event) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: { level: event.detail.level, language: self.state.user.language } })
+        body: JSON.stringify({ user: { method: event.detail.method,
+                                       language: self.state.user.language } })
       }
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
@@ -1010,11 +1015,39 @@ class Main extends React.Component {
             newState.topics = data.topics
             newState.user.language = data.user.language
             newState.user.name = data.user.name
-            newState.user.level = data.user.level
+            newState.user.method = data.user.method
             newState.user.topic = data.topics[0].code
             newState.rounds = data.rounds || []
             newState.mode = data.mode
-            newState.level = data.level
+            newState.method = data.method
+            newState.players = data.players
+            newState.currentRound = data.currentRound
+            return newState
+          })
+        })
+    })
+
+    document.getElementById('root').addEventListener('set-changed', function (event) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: { set: event.detail.set,
+                                       language: self.state.user.language } })
+      }
+      fetch('/api/v1/state', requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          self.setState(prevState => {
+            const newState = { ...prevState }
+            newState.topics = data.topics
+            newState.user.language = data.user.language
+            newState.user.name = data.user.name
+            newState.user.method = data.user.method
+            newState.user.set = data.user.set
+            newState.user.topic = data.topics[0].code
+            newState.rounds = data.rounds || []
+            newState.mode = data.mode
+            newState.method = data.method
             newState.players = data.players
             newState.currentRound = data.currentRound
             return newState
@@ -1036,11 +1069,11 @@ class Main extends React.Component {
             newState.topics = data.topics
             newState.user.language = data.user.language
             newState.user.name = data.user.name
-            newState.user.level = data.user.level
+            newState.user.method = data.user.method
             newState.user.topic = data.topics[0].code
             newState.rounds = data.rounds || []
             newState.mode = data.mode
-            newState.level = data.level
+            newState.method = data.method
             newState.players = data.players
             newState.currentRound = data.currentRound
             return newState
@@ -1073,7 +1106,7 @@ class Main extends React.Component {
             name: prevState.user.name,
             language: prevState.user.language,
             topic: prevState.user.topic,
-            level: prevState.user.level
+            method: prevState.user.method
           }
         })
         return newState
@@ -1090,7 +1123,7 @@ class Main extends React.Component {
             name: prevState.user.name,
             language: prevState.user.language,
             topic: prevState.user.topic,
-            level: prevState.user.level
+            method: prevState.user.method
           }
         })
         return newState
@@ -1111,7 +1144,7 @@ class Main extends React.Component {
           payload: {
             language: prevState.user.language,
             topic: prevState.user.topic,
-            level: prevState.user.level
+            method: prevState.user.method
           }
         })
         return newState
@@ -1133,7 +1166,7 @@ class Main extends React.Component {
           user: {
             topic: event.detail.topic,
             language: self.state.user.language,
-            level: self.state.user.level
+            method: self.state.user.method
           }
         })
       }
@@ -1204,9 +1237,14 @@ class Main extends React.Component {
     // clearInterval(this.timerID);
   }
 
-  handleLevelChange (event) {
+  handleMethodChange (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('level-changed', { detail: { level: event.target.value } }))
+      new CustomEvent('method-changed', { detail: { method: event.target.value } }))
+  }
+
+  handleSetChange (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('set-changed', { detail: { set: event.target.value } }))
   }
 
   handleLanguageChange (event) {
@@ -1418,13 +1456,13 @@ class Main extends React.Component {
     }
 
     let pointerBlock = null
-    if (self.state.level === 'intermediate' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
+    if (self.state.method === 'select-letters' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
       pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
     let pointsBlock = null
     let points = 0
-    if (isSolved && self.state.level === 'intermediate') {
+    if (isSolved && self.state.method === 'select-letters') {
       if (currentRound.solutions[self.state.user.id].hints.length === 3) {
         points = 0
       } else {
@@ -1438,8 +1476,11 @@ class Main extends React.Component {
     const languageOptionItems = self.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
 
-    const levelOptionItems = levels
-      .map((level) => <option key={level} value={level}>{t(userLanguage)[level]}</option>)
+    const methodOptionItems = methods
+      .map((method) => <option key={method} value={method}>{t(userLanguage)[method]}</option>)
+
+    const setOptionItems = sets
+      .map((set) => <option key={set} value={set}>{t(userLanguage)[set]}</option>)
 
     const topicOptionItems = self.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
@@ -1532,7 +1573,7 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (Object.keys(currentRound).length > 0 && self.state.level === 'beginner') {
+    if (Object.keys(currentRound).length > 0 && self.state.method === 'select-image') {
       let score
       let correctChoice
       if (isSolved) {
@@ -1541,7 +1582,7 @@ class Main extends React.Component {
         score = currentRound.solutions[self.state.user.id].attempts.length > 3 ? 0 : 5 - currentRound.solutions[self.state.user.id].attempts.length + 1
         correctChoice = currentRound.correct_choice
       }
-      gameWidgetElems = <BeginnerGameWidget
+      gameWidgetElems = <SelectImageGameWidget
         currentRound={currentRound}
         user={self.state.user}
         preloadedImages={self.state.preloadedImages}
@@ -1552,8 +1593,8 @@ class Main extends React.Component {
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
-    } else if (Object.keys(currentRound).length > 0 && self.state.level === 'intermediate') {
-      gameWidgetElems = <IntermediateGameWidget currentRound={currentRound} />
+    } else if (Object.keys(currentRound).length > 0 && self.state.method === 'select-letters') {
+      gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} />
     }
 
     return (
@@ -1587,8 +1628,13 @@ class Main extends React.Component {
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
-              {levelOptionItems}
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
+              {methodOptionItems}
+            </select>
+          </div>
+          <div className="column">
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.set} onChange={self.handleSetChange}>
+              {setOptionItems}
             </select>
           </div>
           <div className="column">
