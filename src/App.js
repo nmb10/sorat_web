@@ -499,7 +499,7 @@ class Main extends React.Component {
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
       level: null, // current game level, server choice. May not match to user.level
-      status: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
+      mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
@@ -581,7 +581,7 @@ class Main extends React.Component {
               detail: {
                 state: {
                   level: message.payload.level,
-                  status: message.payload.status,
+                  mode: message.payload.mode,
                   players: message.payload.players,
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
@@ -690,11 +690,11 @@ class Main extends React.Component {
           newState.languages = json.languages
           newState.topics = json.topics
           newState.user = json.user
-          newState.status = json.status
+          newState.mode = json.mode
           newState.level = json.level
           newState.versions = json.versions
 
-          if (newState.status == null) {
+          if (newState.mode == null) {
             self.stopWebsocket()
           } else {
             self.startWebsocket()
@@ -760,7 +760,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = { ...prevState }
         newState.gameError = null
-        newState.status = null
+        newState.mode = null
         newState.level = null
         return newState
       })
@@ -777,7 +777,7 @@ class Main extends React.Component {
 
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.status = null
+        newState.mode = null
         newState.level = null
         newState.rounds = []
         newState.currentRound = -1
@@ -827,7 +827,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.status = 'contest_enqueued'
+        newState.mode = 'contest_enqueued'
         return newState
       })
     })
@@ -865,7 +865,7 @@ class Main extends React.Component {
         newState.players = event.detail.state.players
         newState.rounds = event.detail.state.rounds
         newState.currentRound = event.detail.state.currentRound
-        newState.status = event.detail.state.status
+        newState.mode = event.detail.state.mode
         newState.level = event.detail.state.level
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
 
@@ -1013,7 +1013,7 @@ class Main extends React.Component {
             newState.user.level = data.user.level
             newState.user.topic = data.topics[0].code
             newState.rounds = data.rounds || []
-            newState.status = data.status
+            newState.mode = data.mode
             newState.level = data.level
             newState.players = data.players
             newState.currentRound = data.currentRound
@@ -1039,7 +1039,7 @@ class Main extends React.Component {
             newState.user.level = data.user.level
             newState.user.topic = data.topics[0].code
             newState.rounds = data.rounds || []
-            newState.status = data.status
+            newState.mode = data.mode
             newState.level = data.level
             newState.players = data.players
             newState.currentRound = data.currentRound
@@ -1065,7 +1065,7 @@ class Main extends React.Component {
       // FIXME:
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.status = 'contest_requested'
+        newState.mode = 'contest_requested'
 
         self.sendMessage({
           command: 'contest',
@@ -1083,7 +1083,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('train-clicked', function (event) {
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.status = 'train_requested'
+        newState.mode = 'train_requested'
         self.sendMessage({
           command: 'train',
           payload: {
@@ -1457,7 +1457,7 @@ class Main extends React.Component {
         </div>)
     }
 
-    if (self.state.status === 'contest') {
+    if (self.state.mode === 'contest') {
       trainBlock = (
         <button id='train' disabled onClick={self.onTrainClick}>
           {t(userLanguage).train}
@@ -1466,7 +1466,7 @@ class Main extends React.Component {
         <button onClick={self.leave} title='Leave game'>
           {t(userLanguage).leave}
         </button>)
-    } else if (self.state.status === 'train') {
+    } else if (self.state.mode === 'train') {
       trainBlock = (
         <button onClick={self.leave} title='Leave game'>
           {t(userLanguage).leave}
@@ -1475,7 +1475,7 @@ class Main extends React.Component {
         <button disabled id='contest' onClick={self.onContestClick}>
           {t(userLanguage).contest}
         </button>)
-    } else if (self.state.status === 'contest_enqueued') {
+    } else if (self.state.mode === 'contest_enqueued') {
       trainBlock = (
         <button id='train' disabled onClick={self.onTrainClick}>
           {t(userLanguage).train}
@@ -1498,7 +1498,7 @@ class Main extends React.Component {
 
     let helpButton = null
     let roundDetails = null
-    if (self.state.status != null &&
+    if (self.state.mode != null &&
                 Object.keys(currentRound).length > 0) {
       roundDetails = (
         <span id='round-details' style={{ fontSize: '24px', marginTop: '10px', float: 'left' }}>
@@ -1524,7 +1524,7 @@ class Main extends React.Component {
       }
     }
 
-    const disabled = self.state.status != null ? 'disabled' : ''
+    const disabled = self.state.mode != null ? 'disabled' : ''
 
     let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}&nbsp;|&nbsp;{pointsBlock}</h3>)
     if (currentRound.timeout <= 10 && !isSolved) {
