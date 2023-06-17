@@ -34,61 +34,81 @@ const tableSizeMap = {
 
 const translations = {
   en: {
-    'select-image': 'Select Image',
-    'select-letters': 'Select Letters',
+    'image-selection': 'Image selection',
+    'letters-selection': 'Letters selection',
     report_an_issue: 'Report an issue',
     contribute: 'Contribute',
     leave: 'Leave',
     contest: 'Contest',
     train: 'Train',
 
-    // sets
+    // levels
     simple: 'Simple',
     normal: 'Normal',
-    normal: 'Hard',
+    hard: 'Hard'
   },
   de: {
+    'image-selection': 'Image selection',
+    'letters-selection': 'Letters selection',
     report_an_issue: 'Ein Problem melden',
     contribute: 'Beitragen',
     leave: 'Verlassen',
     contest: 'Wettbewerb',
-    train: 'Zug'
+    train: 'Zug',
+    // levels
+    simple: 'Simple',
+    normal: 'Normal',
+    hard: 'Hard'
   },
   ru: {
+    'image-selection': 'Image selection',
+    'letters-selection': 'Letters selection',
     report_an_issue: 'Сообщить о проблеме',
     contribute: 'Поучаствовать',
     leave: 'Выйти',
     contest: 'Состязание',
-    train: 'Тренировка'
+    train: 'Тренировка',
 
-    // sets
+    // levels
     simple: 'Простой',
     normal: 'Средний',
-    normal: 'Трудный',
+    hard: 'Трудный'
   },
   os: { // FIXME:
+    'image-selection': 'Image selection',
+    'letters-selection': 'Letters selection',
     report_an_issue: 'Report an issue',
     contribute: 'Contribute',
     leave: 'Ацæуын',
     contest: 'Ерыс',
-    train: 'Train'
+    train: 'Train',
+    // levels
+    simple: 'Simple',
+    normal: 'Normal',
+    hard: 'Hard'
   },
   dig: { // FIXME:
+    'image-selection': 'Image selection',
+    'letters-selection': 'Letters selection',
     report_an_issue: 'Report an issue',
     contribute: 'Contribute',
     leave: 'Рандæ ун',
     contest: 'Ерис',
-    train: 'Train'
+    train: 'Train',
+    // levels
+    simple: 'Simple',
+    normal: 'Normal',
+    hard: 'Hard'
   }
 }
 
 const methods = [
-  'select-image',
-  'select-letters'
+  'image-selection',
+  'letters-selection'
   // FIXME: Implement 'enter letters' - entering letters from keyboard
 ]
 
-const sets = [
+const levels = [
   'simple',
   'normal',
   'hard'
@@ -299,7 +319,7 @@ function WordImageColumn (props) {
     imageStyle.cursor = 'pointer'
     onImageClick = function (event) {
       document.getElementById('root').dispatchEvent(
-        new CustomEvent('select-image.reply', { detail: { userChoice: props.imageChoice } }))
+        new CustomEvent('image-selection.reply', { detail: { userChoice: props.imageChoice } }))
     }
   }
 
@@ -340,7 +360,7 @@ SelectImageGameWidget.propTypes = {
 function SelectImageGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
   const currentRoundIndex = props.currentRoundIndex
-  const localTermLetters = <div className="select-image-letters">{ localTerm }</div>
+  const localTermLetters = <div className="image-selection-letters">{ localTerm }</div>
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
@@ -494,8 +514,8 @@ class Main extends React.Component {
         name: null,
         id: null,
         language: null, // selected language
-        method: 'select-image', // user choice [select-image or select-image or select-letters]
-        set: 'normal',  // user choice [simple/normal/hard]
+        method: 'image-selection', // user choice [select-image or select-image or select-letters]
+        level: 'normal', // user choice [simple/normal/hard]
         topic: null // selected topic.
       },
       challenge: null,
@@ -533,6 +553,7 @@ class Main extends React.Component {
 
   sendMessageByTimeout (message) {
     const self = this
+    // console.log('Sending WS message by timeout.', message)
     if (self.state.connection === 'Opened') {
       if (self.websocket.readyState === self.websocket.OPEN) {
         self.websocket.send(JSON.stringify(message))
@@ -550,6 +571,7 @@ class Main extends React.Component {
     const self = this
     if (self.state.connection === 'Opened') {
       if (self.websocket.readyState === self.websocket.OPEN) {
+        // console.log('Sending WS message.', message)
         self.websocket.send(JSON.stringify(message))
       } else {
         ;
@@ -609,7 +631,7 @@ class Main extends React.Component {
     const sendPing = function () {
       if (self.websocket.readyState === WebSocket.OPEN) {
         // console.log('Sending ping.')
-        self.websocket.send(JSON.stringify({ command: 'ping', payload: '' }))
+        self.websocket.send(JSON.stringify({ command: 'ping', payload: { user: self.state.user } }))
         // Send ping.
       } else {
         // console.log('WS closed. Clear interval.')
@@ -635,6 +657,7 @@ class Main extends React.Component {
 
   stopWebsocket () {
     const self = this
+    // FIXME: close WS when user leaves the game.
     // console.log('Closing websocket now.')
     if (self.websocket != null) {
       self.websocket.close()
@@ -774,8 +797,7 @@ class Main extends React.Component {
       self.sendMessage({
         command: 'leave',
         payload: {
-          language: self.state.user.language,
-          topic: self.state.user.topic
+          user: self.state.user
         }
       })
 
@@ -804,11 +826,11 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('select-image.reply', function (event) {
+    document.getElementById('root').addEventListener('image-selection.reply', function (event) {
       // console.log('userChoice: ', event.detail.userChoice)
       self.sendMessage({
         command: 'reply',
-        method: 'select-image',
+        method: 'image-selection',
         payload: { userChoice: event.detail.userChoice }
       })
     })
@@ -1004,8 +1026,15 @@ class Main extends React.Component {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: { method: event.detail.method,
-                                       language: self.state.user.language } })
+        body: JSON.stringify({
+          user: {
+            name: self.state.user.name,
+            language: self.state.user.language,
+            level: self.state.user.level,
+            topic: self.state.user.topic,
+            method: event.detail.method
+          }
+        })
       }
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
@@ -1027,12 +1056,19 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('set-changed', function (event) {
+    document.getElementById('root').addEventListener('level-changed', function (event) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: { set: event.detail.set,
-                                       language: self.state.user.language } })
+        body: JSON.stringify({
+          user: {
+            name: self.state.user.name,
+            language: self.state.user.language,
+            level: event.detail.level,
+            topic: self.state.user.topic,
+            method: self.state.user.method
+          }
+        })
       }
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
@@ -1043,7 +1079,7 @@ class Main extends React.Component {
             newState.user.language = data.user.language
             newState.user.name = data.user.name
             newState.user.method = data.user.method
-            newState.user.set = data.user.set
+            newState.user.level = data.user.level
             newState.user.topic = data.topics[0].code
             newState.rounds = data.rounds || []
             newState.mode = data.mode
@@ -1059,7 +1095,15 @@ class Main extends React.Component {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: { language: event.detail.language } })
+        body: JSON.stringify({
+          user: {
+            name: self.state.user.name,
+            language: event.detail.language,
+            level: event.detail.level,
+            topic: self.state.user.topic,
+            method: self.state.user.method
+          }
+        })
       }
       fetch('/api/v1/state', requestOptions)
         .then(response => response.json())
@@ -1099,16 +1143,9 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = { ...prevState }
         newState.mode = 'contest_requested'
-
-        self.sendMessage({
-          command: 'contest',
-          payload: {
-            name: prevState.user.name,
-            language: prevState.user.language,
-            topic: prevState.user.topic,
-            method: prevState.user.method
-          }
-        })
+        // We always send user in payload because server may loose initial state once (on
+        // backend restart for example).
+        self.sendMessage({ command: 'contest', payload: { user: newState.user } })
         return newState
       })
     })
@@ -1117,15 +1154,9 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = { ...prevState }
         newState.mode = 'train_requested'
-        self.sendMessage({
-          command: 'train',
-          payload: {
-            name: prevState.user.name,
-            language: prevState.user.language,
-            topic: prevState.user.topic,
-            method: prevState.user.method
-          }
-        })
+        // We always send user in payload because server may loose initial state once (on
+        // backend restart for example).
+        self.sendMessage({ command: 'train', payload: { user: newState.user } })
         return newState
       })
     })
@@ -1139,14 +1170,7 @@ class Main extends React.Component {
         newState.replyLetters = []
         newState.replyMap = {}
         newState.preloadedImages = {}
-        self.sendMessage({
-          command: 'challenge-accept',
-          payload: {
-            language: prevState.user.language,
-            topic: prevState.user.topic,
-            method: prevState.user.method
-          }
-        })
+        self.sendMessage({ command: 'challenge-accept', payload: {} })
         return newState
       })
     })
@@ -1166,6 +1190,8 @@ class Main extends React.Component {
           user: {
             topic: event.detail.topic,
             language: self.state.user.language,
+            level: self.state.user.level,
+            name: self.state.user.name,
             method: self.state.user.method
           }
         })
@@ -1242,9 +1268,9 @@ class Main extends React.Component {
       new CustomEvent('method-changed', { detail: { method: event.target.value } }))
   }
 
-  handleSetChange (event) {
+  handleLevelChange (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('set-changed', { detail: { set: event.target.value } }))
+      new CustomEvent('level-changed', { detail: { level: event.target.value } }))
   }
 
   handleLanguageChange (event) {
@@ -1456,13 +1482,13 @@ class Main extends React.Component {
     }
 
     let pointerBlock = null
-    if (self.state.method === 'select-letters' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
+    if (self.state.method === 'letters-selection' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
       pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
     let pointsBlock = null
     let points = 0
-    if (isSolved && self.state.method === 'select-letters') {
+    if (isSolved && self.state.method === 'letters-selection') {
       if (currentRound.solutions[self.state.user.id].hints.length === 3) {
         points = 0
       } else {
@@ -1479,8 +1505,8 @@ class Main extends React.Component {
     const methodOptionItems = methods
       .map((method) => <option key={method} value={method}>{t(userLanguage)[method]}</option>)
 
-    const setOptionItems = sets
-      .map((set) => <option key={set} value={set}>{t(userLanguage)[set]}</option>)
+    const levelOptionItems = levels
+      .map((level) => <option key={level} value={level}>{t(userLanguage)[level]}</option>)
 
     const topicOptionItems = self.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
@@ -1573,7 +1599,7 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (Object.keys(currentRound).length > 0 && self.state.method === 'select-image') {
+    if (Object.keys(currentRound).length > 0 && self.state.method === 'image-selection') {
       let score
       let correctChoice
       if (isSolved) {
@@ -1593,7 +1619,7 @@ class Main extends React.Component {
       helpButton = null // FIXME: Find better solution.
       replyLetterItems = null
       splittedLettersItems = null
-    } else if (Object.keys(currentRound).length > 0 && self.state.method === 'select-letters') {
+    } else if (Object.keys(currentRound).length > 0 && self.state.method === 'letters-selection') {
       gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} />
     }
 
@@ -1633,8 +1659,8 @@ class Main extends React.Component {
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.set} onChange={self.handleSetChange}>
-              {setOptionItems}
+            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
+              {levelOptionItems}
             </select>
           </div>
           <div className="column">
