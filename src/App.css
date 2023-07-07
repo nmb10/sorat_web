@@ -84,3 +84,7 @@
 select {
     color: white;
 }
+
+.image-selection-letters {
+    font-size: 65px;
+}

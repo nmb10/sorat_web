@@ -61,8 +61,8 @@ const translations = {
     hard: 'Hard'
   },
   ru: {
-    'image-selection': 'Image selection',
-    'letters-selection': 'Letters selection',
+    'image-selection': 'Подбор изображения',
+    'letters-selection': 'Подбор букв',
     report_an_issue: 'Сообщить о проблеме',
     contribute: 'Поучаствовать',
     leave: 'Выйти',
