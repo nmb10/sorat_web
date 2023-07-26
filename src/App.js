@@ -124,7 +124,6 @@ function getSecondsDiff (dt1, dt2) {
 }
 
 function preloadImage (roundIndex, imageIndex, imageMap) {
-  // console.log('Preloading image...', roundIndex, imageMap)
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
@@ -310,7 +309,7 @@ WordImageColumn.propTypes = {
 function WordImageColumn (props) {
   let onImageClick, imagePointsBlock
   const choicePointer = props.choicePointer ? '#' + props.choicePointer : null
-  const imageStyle = {}
+  const imageStyle = { maxHeight: '400px', width: 'auto' }
   if (props.isCorrectChoice) {
     imagePointsBlock = <div className="choice-points valid-choice-points">+{props.score}</div>
   } else if (props.userChoices.includes(props.imageChoice)) {
@@ -1599,28 +1598,33 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems = null
-    if (Object.keys(currentRound).length > 0 && self.state.method === 'image-selection') {
-      let score
-      let correctChoice
-      if (isSolved) {
-        // TODO: Should be taken from server response, but API doesn't compute score for
-        // current round yet.
-        score = currentRound.solutions[self.state.user.id].attempts.length > 3 ? 0 : 5 - currentRound.solutions[self.state.user.id].attempts.length + 1
-        correctChoice = currentRound.correct_choice
+    if (Object.keys(currentRound).length > 0) {
+      if (self.state.method === 'image-selection') {
+        let score
+        let correctChoice
+        if (isSolved) {
+          // TODO: Should be taken from server response, but API doesn't compute score for
+          // current round yet.
+          score = currentRound.solutions[self.state.user.id].attempts.length > 3 ? 0 : 5 - currentRound.solutions[self.state.user.id].attempts.length + 1
+          correctChoice = currentRound.correct_choice
+        }
+        gameWidgetElems = <SelectImageGameWidget
+          currentRound={currentRound}
+          user={self.state.user}
+          preloadedImages={self.state.preloadedImages}
+          currentRoundIndex={self.state.currentRound - 1}
+          correctChoice={correctChoice}
+          isSolved={isSolved}
+          score={score} />
+        helpButton = null // FIXME: Find better solution.
+        replyLetterItems = null
+        splittedLettersItems = null
+      } else if (self.state.method === 'letters-selection') {
+        gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} />
+      } else {
+        // console.log('Warning: Game is running but method is unknwon. method: ', self.state.method)
+        ;
       }
-      gameWidgetElems = <SelectImageGameWidget
-        currentRound={currentRound}
-        user={self.state.user}
-        preloadedImages={self.state.preloadedImages}
-        currentRoundIndex={self.state.currentRound - 1}
-        correctChoice={correctChoice}
-        isSolved={isSolved}
-        score={score} />
-      helpButton = null // FIXME: Find better solution.
-      replyLetterItems = null
-      splittedLettersItems = null
-    } else if (Object.keys(currentRound).length > 0 && self.state.method === 'letters-selection') {
-      gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} />
     }
 
     return (
