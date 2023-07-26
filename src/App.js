@@ -99,6 +99,20 @@ const translations = {
     simple: 'Simple',
     normal: 'Normal',
     hard: 'Hard'
+  },
+  fr: {
+    'image-selection': 'Sélection des images',
+    'letters-selection': 'Sélection de lettres',
+    report_an_issue: 'Signaler un problème',
+    contribute: 'Contribuer',
+    leave: 'Laisser',
+    contest: 'Concours',
+    train: 'Train',
+
+    // levels
+    simple: 'Simple',
+    normal: 'Normal',
+    hard: 'Dur'
   }
 }
 
