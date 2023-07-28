@@ -90,8 +90,8 @@ const translations = {
   dig: {
     'image-selection': 'Сорæт æвзарун',
     'letters-selection': 'Дамугътæ æвзарун',
-    report_an_issue: 'Рæдуд хегъосун кæнун',
-    contribute: 'Сиуагъæ',
+    report_an_issue: 'Рæдуд фегъосун кæнун',
+    contribute: 'Æгустадæ',
     leave: 'Рандæ ун',
     contest: 'Ерис',
     train: 'Ахур',
