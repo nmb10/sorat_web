@@ -87,18 +87,18 @@ const translations = {
     normal: 'Normal',
     hard: 'Hard'
   },
-  dig: { // FIXME:
-    'image-selection': 'Image selection',
-    'letters-selection': 'Letters selection',
-    report_an_issue: 'Report an issue',
-    contribute: 'Contribute',
+  dig: {
+    'image-selection': 'Сорæт æвзарун',
+    'letters-selection': 'Дамугътæ æвзарун',
+    report_an_issue: 'Рæдуд хегъосун кæнун',
+    contribute: 'Сиуагъæ',
     leave: 'Рандæ ун',
     contest: 'Ерис',
-    train: 'Train',
+    train: 'Ахур',
     // levels
-    simple: 'Simple',
-    normal: 'Normal',
-    hard: 'Hard'
+    simple: 'Еувазæг',
+    normal: 'Уаггин',
+    hard: 'Гъесгун'
   },
   fr: {
     'image-selection': 'Sélection des images',
