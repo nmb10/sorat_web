@@ -526,7 +526,7 @@ class Main extends React.Component {
       user: {
         name: null,
         id: null,
-        language: null, // selected language
+        language: document.location.pathname.replaceAll('/', '') || 'en', // selected language
         method: 'image-selection', // user choice [select-image or select-image or select-letters]
         level: 'normal', // user choice [simple/normal/hard]
         topic: null // selected topic.
@@ -1105,37 +1105,11 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('language-changed', function (event) {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user: {
-            name: self.state.user.name,
-            language: event.detail.language,
-            level: event.detail.level,
-            topic: self.state.user.topic,
-            method: self.state.user.method
-          }
-        })
+      if (event.detail.language === 'en') {
+        document.location.pathname = '/'
+      } else {
+        document.location.pathname = '/' + event.detail.language
       }
-      fetch('/api/v1/state', requestOptions)
-        .then(response => response.json())
-        .then(data => {
-          self.setState(prevState => {
-            const newState = { ...prevState }
-            newState.topics = data.topics
-            newState.user.language = data.user.language
-            newState.user.name = data.user.name
-            newState.user.method = data.user.method
-            newState.user.topic = data.topics[0].code
-            newState.rounds = data.rounds || []
-            newState.mode = data.mode
-            newState.method = data.method
-            newState.players = data.players
-            newState.currentRound = data.currentRound
-            return newState
-          })
-        })
     })
 
     document.getElementById('root').addEventListener('name-changed', function (event) {

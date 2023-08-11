@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+   <url>
+      <loc>https://sorat.io/</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/ru</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/fr</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/de</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/os</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/dig</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+</urlset>

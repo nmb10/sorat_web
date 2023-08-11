@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Enrich your vocabulary in certain area by guessing images. Guess them alone or in contest mode with random users all other the world"
+      content="{{ description }}"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
@@ -31,7 +31,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>Practice your language by recognizing images | Sorat App</title>
+    <title>{{ title }} | Sorat App</title>
     <style>
         @media (min-width: 321px) {
           .word-image {
@@ -80,7 +80,7 @@
   </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app. <a href="https://github.com/nmb10/sorat_web/issues">Report an issue</a></noscript>
+      <noscript>{{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">Report an issue</a></noscript>
     <div id="root"></div>
     <!--
       This HTML file is a template.

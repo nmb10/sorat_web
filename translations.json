@@ -1,0 +1,34 @@
+{
+    "description": {
+        "en": "Enrich your vocabulary in certain area by guessing images. Guess them alone or in contest mode with random users all other the world",
+        "ru": "Обогощайте свой словарный запас угадывая изображения. Отгадывайте в одиночестве или со случайными игроками со всего мира.",
+        "os": "Нывтæм гæсгæ ахуыр кæн дзырдтæ. Хъаз иунæгæй æви иннæ хъазджытимæ.",
+        "dig": "Соратмæ гæсгæ ахур кæнæ нихæстæ. Гъаз eунæгæй кенæ æндæр гъазгуттимæ.",
+        "fr": "Enrichissez votre vocabulaire dans certains domaines en devinant des images. Devinez-les seul ou en mode concours avec des utilisateurs aléatoires du monde entier.",
+        "de": "Erweitern Sie Ihren Wortschatz in bestimmten Bereichen, indem Sie Bilder erraten. Errate sie allein oder im Wettbewerbsmodus mit zufälligen Benutzern aus der ganzen Welt."
+    },
+    "title": {
+        "en": "Practice language by recognizing images",
+        "ru": "Практикуйте язык угадывая изображения",
+        "os": "Ахур кæн æвзаг сурæт æвзарынæй",
+        "dig": "Ахур кæнæ æвзаг сорæт æвзарунæй",
+        "fr": "Pratiquez la langue française en reconnaissant des images",
+        "de": "Übe die deutsche Sprache durch das Erkennen von Bildern"
+    },
+    "noscript": {
+        "en": "You need to enable JavaScript to run this app.",
+        "ru": "Вам нужно включить JavaScript чтобы использовать это приложение.",
+        "os": "Скуысын кæн JavaScript цæмæй дзы ахъазæй.",
+        "dig": "Аци гъазæни гъæуй JavaScript.",
+        "fr": "Vous devez activer JavaScript pour utiliser cette application",
+        "de": "Sie müssen JavaScript aktivieren, um diese App auszuführen."
+    },
+    "issue_report": {
+        "en": "Report an issue",
+        "ru": "Сообщить о проблеме",
+        "os": "Рæдыд фехъусын кæнын",
+        "dig": "Рæдуд фегъосун кæнун",
+        "fr": "Signaler un problème",
+        "de": "Ein Problem melden"
+    }
+}
