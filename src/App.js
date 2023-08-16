@@ -1640,23 +1640,23 @@ class Main extends React.Component {
             </div>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.language} onChange={self.handleLanguageChange}>
+            <select id="language" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.language} onChange={self.handleLanguageChange}>
               <option value="">---</option>
               {languageOptionItems}
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
+            <select id="method" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
               {methodOptionItems}
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
+            <select id="level" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
               {levelOptionItems}
             </select>
           </div>
           <div className="column">
-            <select style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
+            <select id="topic" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
               <option value="">---</option>
               {topicOptionItems}
             </select>
