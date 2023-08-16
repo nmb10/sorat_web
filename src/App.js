@@ -1179,7 +1179,8 @@ class Main extends React.Component {
             language: self.state.user.language,
             level: self.state.user.level,
             name: self.state.user.name,
-            method: self.state.user.method
+            method: self.state.user.method,
+            id: self.state.user.id
           }
         })
       }
