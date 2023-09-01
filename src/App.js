@@ -1,4 +1,5 @@
 import spinner from './spinner1.png'
+import logo from './logo.png'
 
 import React from 'react'
 import './App.css'
@@ -1331,6 +1332,9 @@ class Main extends React.Component {
             <a href="https://github.com/nmb10/sorat_translations">
               {t(userLanguage).contribute}
             </a>
+          </div>
+          <div className="row">
+            <img src={logo} alt="Logo" />
           </div>
           <div className="row">
             <div className="column">
