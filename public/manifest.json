@@ -1,7 +1,7 @@
 {
   "theme_color": "#000000",
-  "name": "Create React App Sample",
-  "short_name": "React App",
+  "name": "Language practice app",
+  "short_name": "Sorat",
   "icons": [
     {
       "src": "favicon.ico",
@@ -19,7 +19,7 @@
       "sizes": "512x512"
     }
   ],
-  "version": "0.1.90",
+  "version": "0.1.91",
   "start_url": ".",
   "background_color": "#ffffff",
   "display": "standalone"
