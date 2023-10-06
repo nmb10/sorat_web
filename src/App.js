@@ -1075,6 +1075,7 @@ class Main extends React.Component {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user: {
+            id: self.state.user.id,
             name: self.state.user.name,
             language: self.state.user.language,
             level: event.detail.level,
