@@ -2029,12 +2029,12 @@ class Main extends React.Component {
       finishedRoundsTable = <FinishedRoundsTable players={self.state.players} user={self.state.user} finishedRounds={finishedRounds} rounds={self.state.rounds} />
     }
 
-    if (currentRound.voice_path && self.state.autoplayEnabled && self.state.soundVolume > 0 && !self.state.voicePlayed) {
+    if (currentRound.voice_path && currentRound.voice_path.src && self.state.autoplayEnabled && self.state.soundVolume > 0 && !self.state.voicePlayed) {
       self.playSound(currentRound.voice_path.src, self.state.soundVolume)
     }
 
     let voiceButton
-    if (currentRound.voice_path) {
+    if (currentRound.voice_path && currentRound.voice_path.src) {
       voiceButton = (
         <button onClick={() => self.playSound(currentRound.voice_path.src, self.state.soundVolume)}
                 title={trn(userLanguage, 'Tell again')}
