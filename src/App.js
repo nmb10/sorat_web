@@ -34,85 +34,143 @@ const tableSizeMap = {
 
 const translations = {
   en: {
-    'image-selection': 'Image selection',
-    'letters-selection': 'Letters selection',
-    report_an_issue: 'Report an issue',
-    contribute: 'Contribute',
-    leave: 'Leave',
-    contest: 'Contest',
-    train: 'Train',
+    'Image selection': 'Image selection',
+    'Letters selection': 'Letters selection',
+    'Report an issue': 'Report an issue',
+    'Tell again': 'Tell again',
+    Contribute: 'Contribute',
+    Leave: 'Leave',
+    Contest: 'Contest',
+    'Find rival': 'Find rival',
+    'Start train': 'Start train',
+    Train: 'Train',
+    Amazing: 'Amazing',
+    'Very well': 'Very well',
+    'Well done': 'Well done',
+    'So bad. You can do better!': 'So bad. You can do better!',
+    Explore: 'Explore',
+    'What?': 'What?',
+    'You won!': 'You won!',
 
     // levels
-    simple: 'Simple',
-    normal: 'Normal',
-    hard: 'Hard'
+    Simple: 'Simple',
+    Normal: 'Normal',
+    Hard: 'Hard'
   },
   de: {
-    'image-selection': 'Image selection',
-    'letters-selection': 'Letters selection',
-    report_an_issue: 'Ein Problem melden',
-    contribute: 'Beitragen',
-    leave: 'Verlassen',
-    contest: 'Wettbewerb',
-    train: 'Zug',
+    'Image selection': 'Auswahl des Bildes',
+    'Letters selection': 'Auswahl der Briefe',
+    'Report an issue': 'Ein Problem melden',
+    Contribute: 'Beitragen',
+    Leave: 'Verlassen',
+    Contest: 'Wettbewerb',
+    Train: 'Zug',
+    'Start contest': 'Rivalen finden',
+    'Start train': 'Zug starten',
+    Amazing: 'Erstaunlich',
+    'Very well': 'Sehr gut',
+    Well: 'Quelle',
+    'So bad. You can do better!': 'So schlecht. Das kannst du besser!',
+    Explore: 'Erkunden',
+    'What?': 'Wie?',
+    'You won!': 'Du hast gewonnen!',
+
     // levels
-    simple: 'Simple',
-    normal: 'Normal',
-    hard: 'Hard'
+    Simple: 'Einfach',
+    Normal: 'Normal',
+    Hard: 'Hart'
   },
   ru: {
-    'image-selection': 'Подбор изображения',
-    'letters-selection': 'Подбор букв',
-    report_an_issue: 'Сообщить о проблеме',
-    contribute: 'Поучаствовать',
-    leave: 'Выйти',
-    contest: 'Состязание',
-    train: 'Тренировка',
+    'Image selection': 'Подбор изображения',
+    'Letters selection': 'Подбор букв',
+    'Report an issue': 'Сообщить о проблеме',
+    Contribute: 'Поучаствовать',
+    Leave: 'Выйти',
+    Contest: 'Состязание',
+    Train: 'Тренировка',
+    'Start contest': 'Найти соперника',
+    'Start train': 'Начать тренировку',
+    Amazing: 'Великолепно',
+    'Very well': 'Очень хорошо',
+    Well: 'Хорошо',
+    'So bad. You can do better!': 'Плохо. Ты можешь лучше!',
+    Explore: 'Прохождение',
+    'What?': 'Как?',
+    'You won!': 'Ты выиграл!',
 
     // levels
-    simple: 'Простой',
-    normal: 'Средний',
-    hard: 'Трудный'
+    Simple: 'Простой',
+    Normal: 'Средний',
+    Hard: 'Трудный'
   },
-  os: { // FIXME:
-    'image-selection': 'Image selection',
-    'letters-selection': 'Letters selection',
-    report_an_issue: 'Report an issue',
-    contribute: 'Contribute',
-    leave: 'Ацæуын',
-    contest: 'Ерыс',
-    train: 'Train',
+  os: {
+    'Image selection': 'Сурæт æвзарын',
+    'Letters selection': 'Дамгъæтæ æвзарын',
+    'Report an issue': 'Рæдыд фехъусын кæнын',
+    Contribute: 'Æмгуыстад',
+    Leave: 'Ацæуын',
+    Contest: 'Ерыс',
+    Train: 'Ахуыр',
+    'Start-contest': 'Ерыс райдайын',
+    'Start-train': 'Ахуыр райдайын',
+    Amazing: 'Иттæг хорз',
+    'Very well': 'Тынг хорз',
+    Well: 'Хорз у',
+    'So bad. You can do better!': 'Æвзæр. Дæ бон хуæздæр у!',
+    Explore: 'Иртасæн',
+    'What?': 'Куыд?',
+    'You won!': 'Ды рамбылдтай!',
+
     // levels
-    simple: 'Simple',
-    normal: 'Normal',
-    hard: 'Hard'
+    Simple: 'Хумæтæг',
+    Normal: 'Астæуккаг',
+    Hard: 'Зын'
   },
   dig: {
-    'image-selection': 'Сорæт æвзарун',
-    'letters-selection': 'Дамугътæ æвзарун',
-    report_an_issue: 'Рæдуд фегъосун кæнун',
-    contribute: 'Æгустадæ',
-    leave: 'Рандæ ун',
-    contest: 'Ерис',
-    train: 'Ахур',
-    // levels
-    simple: 'Еувазæг',
-    normal: 'Уаггин',
-    hard: 'Гъесгун'
-  },
-  fr: {
-    'image-selection': 'Sélection des images',
-    'letters-selection': 'Sélection de lettres',
-    report_an_issue: 'Signaler un problème',
-    contribute: 'Contribuer',
-    leave: 'Laisser',
-    contest: 'Concours',
-    train: 'Train',
+    'Image selection': 'Сорæт æвзарун',
+    'Letters selection': 'Дамугътæ æвзарун',
+    'Report an issue': 'Рæдуд фегъосун кæнун',
+    Contribute: 'Æгустадæ',
+    Leave: 'Рандæ ун',
+    Contest: 'Ерис',
+    Train: 'Ахур',
+    'Start contest': 'Ерис райдайун',
+    'Start train': 'Ахур райдайун',
+    Amazing: 'Хъæбæр хуарз',
+    'Very well': 'Хуарз',
+    Well: 'Бæззуй',
+    'So bad. You can do better!': 'Лæгъуз. Дæ бон хуæздæр æй!',
+    Explore: 'Æсгарун',
+    'What?': 'Куд?',
+    'You won!': 'You won! FIXME:',
 
     // levels
-    simple: 'Simple',
-    normal: 'Normal',
-    hard: 'Dur'
+    Simple: 'Еувазæг',
+    Normal: 'Уаггин',
+    Hard: 'Гъесгун'
+  },
+  fr: {
+    'Image selection': 'Sélection des images',
+    'Letters selection': 'Sélection de lettres',
+    'Report an issue': 'Signaler un problème',
+    Contribute: 'Contribuer',
+    Leave: 'Laisser',
+    Contest: 'Concours',
+    Train: 'Former',
+    'Start contest': 'Démarrer le concours',
+    'Start train': 'Démarrer le train',
+    Amazing: 'Incroyable',
+    'Very well': 'Très bien',
+    Well: 'Bien',
+    'So bad. You can do better!': 'Dommage. Tu peux faire mieux!',
+    Explore: 'Explorer',
+    'What?': 'Quoi?',
+    'You won!': 'Tu as gagné',
+
+    // levels
+    Simple: 'Simple',
+    Normal: 'Normale',
+    Hard: 'Dur'
   }
 }
 
@@ -128,8 +186,49 @@ const levels = [
   'hard'
 ]
 
-function t (userLanguage) {
-  return translations[userLanguage]
+const warningBlockStyle = {
+  backgroundColor: 'rgb(248, 215, 218)',
+  borderColor: 'rgb(114, 28, 36)',
+  color: 'rgb(114, 28, 36)',
+  fontSize: '18px',
+  position: 'fixed',
+  padding: '4px 15px 4px 4px',
+  top: 0
+}
+
+const errorBlockStyle = {
+  backgroundColor: 'rgb(248, 215, 218)',
+  borderColor: 'rgb(114, 28, 36)',
+  color: 'rgb(114, 28, 36)',
+  fontSize: '18px',
+  position: 'fixed',
+  padding: '4px 15px 4px 4px',
+  top: 0
+}
+
+// FIXME: Move to css.
+//
+const questionLetterStyle = {
+  fontSize: '35px',
+  float: 'left',
+  marginLeft: '3px',
+  padding: 0,
+  width: '75px',
+  height: '75px'
+}
+
+const finishStatusStyle = {
+  minWidth: '400px',
+  minHeight: '60px',
+  border: '3px solid green',
+  fontSize: '44px',
+  position: 'fixed',
+  top: '5px',
+  borderRadius: '10px'
+}
+
+function trn (userLanguage, text) {
+  return translations[userLanguage][text] || (userLanguage + ': ' + text)
 }
 
 function getSecondsDiff (dt1, dt2) {
@@ -137,7 +236,38 @@ function getSecondsDiff (dt1, dt2) {
   return diffMs / 1000
 }
 
+function getPlayersScores (players, finishedRounds) {
+  const scores = {}
+  if (finishedRounds.length === 0) {
+    // Show zeros for all players.
+    for (const userId in players) {
+      scores[userId] = {
+        name: players[userId].name,
+        total: 0,
+        all: []
+      }
+    }
+  } else {
+    for (let i = 0; i < finishedRounds.length; ++i) {
+      for (const userId in finishedRounds[i].solutions) {
+        if (userId in scores) {
+          scores[userId].total += finishedRounds[i].solutions[userId].score
+          scores[userId].all.push(finishedRounds[i].solutions[userId].score)
+        } else {
+          scores[userId] = {
+            name: finishedRounds[i].solutions[userId].name,
+            total: finishedRounds[i].solutions[userId].score,
+            all: [finishedRounds[i].solutions[userId].score]
+          }
+        }
+      }
+    }
+  }
+  return scores
+}
+
 function preloadImage (roundIndex, imageIndex, imageMap) {
+  // FIXME: Deprecated. Drop it.
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
@@ -175,7 +305,7 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes) {
       if (questionLetters.length > 0) {
         [letterIndex, letter] = questionLetters.shift()
         const isChosen = chosenQueryIndexes.includes(pair(0, letterIndex))
-        const questionLetter = <td style={{ display: 'inline-block', padding: 0 }}><QuestionLetter letter={letter} wordIndex={0} letterIndex={letterIndex} isChosen={isChosen} /></td>
+        const questionLetter = <td style={{ display: 'inline-block', padding: 0, borderBottom: 0 }}><QuestionLetter letter={letter} wordIndex={0} letterIndex={letterIndex} isChosen={isChosen} /></td>
         rowElems.push(questionLetter)
       }
     }
@@ -238,38 +368,12 @@ FinishedRoundsTable.propTypes = {
   user: PropTypes.object,
   players: PropTypes.array
 }
-
 function FinishedRoundsTable (props) {
   /* example of finishedRounds
   * FIXME: Add example.
   */
 
-  const scores = {}
-  if (props.finishedRounds.length === 0) {
-    // Show zeros for all players.
-    for (const userId in props.players) {
-      scores[userId] = {
-        name: props.players[userId].name,
-        total: 0,
-        all: []
-      }
-    }
-  } else {
-    for (let i = 0; i < props.finishedRounds.length; ++i) {
-      for (const userId in props.finishedRounds[i].solutions) {
-        if (userId in scores) {
-          scores[userId].total += props.finishedRounds[i].solutions[userId].score
-          scores[userId].all.push(props.finishedRounds[i].solutions[userId].score)
-        } else {
-          scores[userId] = {
-            name: props.finishedRounds[i].solutions[userId].name,
-            total: props.finishedRounds[i].solutions[userId].score,
-            all: [props.finishedRounds[i].solutions[userId].score]
-          }
-        }
-      }
-    }
-  }
+  const scores = getPlayersScores(props.players, props.finishedRounds)
 
   const imageRowElems = []
   const wordRowElems = []
@@ -307,6 +411,74 @@ function FinishedRoundsTable (props) {
         {pointsRowsElems}
       </tbody>
     </table>
+  )
+};
+
+ProgressWidget.propTypes = {
+  games: PropTypes.array
+}
+
+function ProgressWidget (props) {
+  /* example of finishedRounds
+  * FIXME: Add example.
+  */
+
+  let temp = ''
+  let temp1 = []
+  const splitted = []
+  // FIXME: Too dirty. Add tests and refactor.
+  for (let i = 0; i < props.games.length; ++i) {
+    if (temp === '') {
+      temp = props.games[i].topic.code
+    }
+
+    if (temp === props.games[i].topic.code) {
+      temp1.push(props.games[i])
+    } else {
+      splitted.push(temp1)
+      temp = props.games[i].topic.code
+      temp1 = [props.games[i]]
+    }
+  }
+  if (temp1.length >= 0) {
+    splitted.push(temp1)
+  }
+
+  const rows = []
+
+  for (let i = 0; i < splitted.length; ++i) {
+    rows.push(<TopicElems sets={ splitted[i] } />)
+  }
+
+  return (
+    <div>
+      { rows }
+    </div>
+  )
+};
+
+TopicElems.propTypes = {
+  sets: PropTypes.array
+}
+
+function TopicElems (props) {
+  const rows = []
+
+  let topicLocalName = ''
+  for (let i = 0; i < props.sets.length; ++i) {
+    topicLocalName = props.sets[i].topic.local_name
+    if (props.sets[i].is_solved) {
+      rows.push(<div style={{ border: '4px green solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
+    } else {
+      rows.push(<div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
+    }
+  }
+
+  return (
+    <div style={{ border: '1px gray solid', float: 'left' }}>
+      <div>{ topicLocalName }</div>
+      <div>{ rows }</div>
+    </div>
   )
 };
 
@@ -446,24 +618,15 @@ function QuestionLetter (props) {
         { detail: { letter: props.letter, wordIndex: props.wordIndex, letterIndex: props.letterIndex } }))
   };
 
-  const style = {
-    fontSize: '35px',
-    float: 'left',
-    marginLeft: '3px',
-    width: '75px',
-    height: '75px'
-  }
-  // FIXME: Move to css.
-
   if (props.isChosen || props.letter === ' ') {
     return (
-      <button disabled style={style}>
+      <button disabled style={questionLetterStyle}>
         {props.letter}
       </button>
     )
   } else {
     return (
-      <button onClick={onClick} style={style}>
+      <button onClick={onClick} style={questionLetterStyle}>
         {props.letter}
       </button>
     )
@@ -537,6 +700,7 @@ class Main extends React.Component {
       topics: [], // all topics of the selected language.
       method: null, // current game method, server choice. May not match to user.method
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
+      modeOpened: null,
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
@@ -547,13 +711,20 @@ class Main extends React.Component {
       gameWarning: null,
       gameLastMessageTime: null, // how many seconds passed from previous game message. Large value means slow connection.
       slowMessageCount: 0, // how many messages were delayed
-      slowConnection: false
+      slowConnection: false,
+      progress: {},
+      finishStatusDisplayTimeout: -1,
+      recentReplyTime: Date.now(),
+      autoplayEnabled: true,
+      soundVolume: 50,
+      voicePlayed: false
     }
 
     this.nameUpdateTimeout = null
     this.onTrainClick = this.onTrainClick.bind(this)
     this.saveState = this.saveState.bind(this)
     this.onContestClick = this.onContestClick.bind(this)
+    this.onExploreClick = this.onExploreClick.bind(this)
     this.onAcceptClick = this.onAcceptClick.bind(this)
     this.onDeclineClick = this.onDeclineClick.bind(this)
     this.startWebsocket = this.startWebsocket.bind(this)
@@ -562,6 +733,9 @@ class Main extends React.Component {
     this.checkSlowConnection = this.checkSlowConnection.bind(this)
     this.startSlowConnectionMonitor = this.startSlowConnectionMonitor.bind(this)
     this.stopSlowConnectionMonitor = this.stopSlowConnectionMonitor.bind(this)
+    this.displayFinishStatus = this.displayFinishStatus.bind(this)
+    this.onAutoplayToggleClick = this.onAutoplayToggleClick.bind(this)
+    this.onVolumeChange = this.onVolumeChange.bind(this)
   }
 
   sendMessageByTimeout (message) {
@@ -597,10 +771,7 @@ class Main extends React.Component {
   }
 
   startWebsocket () {
-    // console.log('Initializing WS now...')
     const self = this
-    // var wsHost = 'ws://127.0.0.1:8080/game.ws';
-    // var wsHost = 'ws://' + window.location.host + '/game.ws';
     let wsHost = 'ws://' + window.location.host + '/game.ws'
     if (window.location.protocol === 'https:') {
       wsHost = 'wss://' + window.location.host + '/game.ws'
@@ -609,7 +780,6 @@ class Main extends React.Component {
 
     const onMessage = function (event) {
       const message = JSON.parse(event.data)
-      // console.log('New message:', message)
       if (message.type === 'game') {
         // event.detail.state.rounds
         const messageTime = new Date()
@@ -624,6 +794,7 @@ class Main extends React.Component {
                   players: message.payload.players,
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
+                  progress: message.payload.progress,
                   gameLastMessageTime: messageTime
                 }
               }
@@ -639,11 +810,10 @@ class Main extends React.Component {
           new CustomEvent('game_error', { detail: message.payload }))
       }
     }
-    let intervalID = null
+    let intervalID
 
     const sendPing = function () {
       if (self.websocket.readyState === WebSocket.OPEN) {
-        // console.log('Sending ping.')
         self.websocket.send(JSON.stringify({ command: 'ping', payload: { user: self.state.user } }))
         // Send ping.
       } else {
@@ -704,6 +874,20 @@ class Main extends React.Component {
     if (self.state.gameLastMessageTime !== null && getSecondsDiff(now, self.state.gameLastMessageTime) > 4) {
       document.getElementById('root').dispatchEvent(
         new CustomEvent('connection.slow-message', { detail: {} }))
+    }
+  }
+
+  displayFinishStatus () {
+    const self = this
+    /*
+        if (self.state.finishStatusDisplayTimeout === 1) {
+          // FIXME: Restart game.
+        }
+    */
+    if (self.state.finishStatusDisplayTimeout > 0) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('finish-status.tick', { detail: {} }))
+      setTimeout(self.displayFinishStatus, 1000)
     }
   }
 
@@ -796,6 +980,14 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('finish-status.tick', function (event) {
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.finishStatusDisplayTimeout -= 1
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('error.close', function (event) {
       self.setState(prevState => {
         const newState = { ...prevState }
@@ -817,6 +1009,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = { ...prevState }
         newState.mode = null
+        newState.modeOpened = null
         newState.method = null
         newState.rounds = []
         newState.currentRound = -1
@@ -839,12 +1032,26 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('voice.played', function (event) {
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.voicePlayed = true
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('image-selection.reply', function (event) {
       // console.log('userChoice: ', event.detail.userChoice)
       self.sendMessage({
         command: 'reply',
         method: 'image-selection',
         payload: { userChoice: event.detail.userChoice }
+      })
+
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.recentReplyTime = Date.now()
+        return newState
       })
     })
 
@@ -904,6 +1111,7 @@ class Main extends React.Component {
         newState.players = event.detail.state.players
         newState.rounds = event.detail.state.rounds
         newState.currentRound = event.detail.state.currentRound
+        newState.progress = event.detail.state.progress || {}
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
@@ -913,9 +1121,12 @@ class Main extends React.Component {
           newState.replyMap = {}
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
+          newState.finishStatusDisplayTimeout = 5
           self.stopSlowConnectionMonitor()
+          self.displayFinishStatus()
         } else if (self.state.currentRound !== newState.currentRound) {
           // Round changed. Show ? for every letter of the question.
+          newState.voicePlayed = false
           if (newState.currentRound === 1) {
             self.startSlowConnectionMonitor()
           }
@@ -1126,14 +1337,34 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('autoplay-enabled', function (event) {
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.autoplayEnabled = true
+        return newState
+      })
+    })
+
+    document.getElementById('root').addEventListener('autoplay-disabled', function (event) {
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.autoplayEnabled = false
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('contest-clicked', function (event) {
       // FIXME:
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.mode = 'contest_requested'
-        // We always send user in payload because server may loose initial state once (on
-        // backend restart for example).
-        self.sendMessage({ command: 'contest', payload: { user: newState.user } })
+        if (newState.modeOpened === 'contest') {
+          newState.mode = 'contest_requested'
+          // We always send user in payload because server may loose initial state once (on
+          // backend restart for example).
+          self.sendMessage({ command: 'contest', payload: { user: newState.user } })
+        } else {
+          newState.modeOpened = 'contest'
+        }
         return newState
       })
     })
@@ -1141,10 +1372,27 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('train-clicked', function (event) {
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.mode = 'train_requested'
+        if (newState.modeOpened === 'train') {
+          newState.mode = 'train_requested'
+          // We always send user in payload because server may loose initial state once (on
+          // backend restart for example).
+          self.sendMessage({ command: 'train', payload: { user: newState.user } })
+        } else {
+          newState.modeOpened = 'train'
+        }
+        return newState
+      })
+    })
+
+    document.getElementById('root').addEventListener('explore-clicked', function (event) {
+      // FIXME:
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.mode = 'explore'
+        newState.modeOpened = 'explore'
         // We always send user in payload because server may loose initial state once (on
         // backend restart for example).
-        self.sendMessage({ command: 'train', payload: { user: newState.user } })
+        self.sendMessage({ command: 'explore', payload: { user: newState.user } })
         return newState
       })
     })
@@ -1196,10 +1444,17 @@ class Main extends React.Component {
         })
     })
 
+    document.getElementById('root').addEventListener('volume-changed', function (event) {
+      self.setState(prevState => {
+        const newState = { ...prevState }
+        newState.soundVolume = event.detail.volume
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('reply-letter.remove', function (event) {
       // FIXME: Send to server
       // update-state
-      // console.log(event.detail.letter);
       self.setState(prevState => {
         const newState = { ...prevState }
         const replyWordIndex = event.detail.wordIndex
@@ -1226,6 +1481,7 @@ class Main extends React.Component {
         const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
         newState.replyLetters[wordIndex] = updatedReplyWordLetters
         newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
+        newState.recentReplyTime = Date.now()
 
         // If all letters entered send to server side.
         let containsQuestionMark = false
@@ -1282,6 +1538,35 @@ class Main extends React.Component {
       new CustomEvent('contest-clicked', { detail: {} }))
   }
 
+  onAutoplayToggleClick (event) {
+    if (event.target.checked) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('autoplay-enabled', { detail: {} }))
+    } else {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('autoplay-disabled', { detail: {} }))
+    }
+  }
+
+  onVolumeChange (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('volume-changed', { detail: { volume: event.target.valueAsNumber } }))
+  }
+
+  onExploreClick (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('explore-clicked', { detail: {} }))
+  }
+
+  playSound (src, volume) {
+    const voice1 = new Audio(src)
+    voice1.volume = volume / 100.0
+    voice1.play()
+
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('voice.played', { detail: { src: src, soundVolume: volume } }))
+  }
+
   onAcceptClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('challenge-accepted', { detail: {} }))
@@ -1320,22 +1605,48 @@ class Main extends React.Component {
       ', Translations: ' + self.state.versions.translations +
       ', Images: ' + self.state.versions.images
     // console.log('Before render.', self.state)
+
+    const languageOptionItems = self.state.languages
+      .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
+
+    const volumeWidget = (
+      <input type="range" id="volume" name="volume" min="0" max="100" defaultValue={self.state.soundVolume} onChange={this.onVolumeChange}/>
+    )
+
+    const header = (<div>
+      <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" />
+      <a style={{ float: 'left' }} href="https://github.com/nmb10/sorat_web/issues" title={versions}>
+        {trn(userLanguage, 'Report an issue')}
+      </a>
+      <span style={{ float: 'left' }}>&nbsp;|&nbsp;</span>
+      <a style={{ float: 'left' }} href="https://github.com/nmb10/sorat_translations">
+        {trn(userLanguage, 'Contribute')}
+      </a>
+
+      <div style={{ float: 'right' }}>
+        <select id="language" style={{ backgroundColor: '#282c34' }} value={self.state.user.language} onChange={self.handleLanguageChange}>
+          <option value="">---</option>
+          {languageOptionItems}
+        </select>
+      </div>
+      <div style={{ float: 'right' }}>
+        <div>
+          <label htmlFor="autoplay-toggle-checkbox" title="Enable or disable autoplay">
+            Autoplay:
+            <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
+          </label>
+        </div>
+        <div>
+          {volumeWidget}
+        </div>
+      </div>
+    </div>)
+
     if (self.state.connection === 'closed') {
       return (
         <div className="container">
           <br />
-          <div style={{ float: 'left' }}>
-            <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
-              {t(userLanguage).report_an_issue}
-            </a>
-            &nbsp;|&nbsp;
-            <a href="https://github.com/nmb10/sorat_translations">
-              {t(userLanguage).contribute}
-            </a>
-          </div>
-          <div className="row">
-            <img src="/logo.png" alt="Logo" />
-          </div>
+          {header}
           <div className="row">
             <div className="column">
               <div style={{ fontSize: '45px' }}>Connection closed. Please refresh the page.</div>
@@ -1347,18 +1658,7 @@ class Main extends React.Component {
       return (
         <div className="container">
           <br />
-          <div style={{ float: 'left' }}>
-            <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
-              {t(userLanguage).report_an_issue}
-            </a>
-            &nbsp;|&nbsp;
-            <a href="https://github.com/nmb10/sorat_translations">
-              {t(userLanguage).contribute}
-            </a>
-          </div>
-          <div className="row">
-            <img src="/logo.png" alt="Logo" />
-          </div>
+          {header}
           <div className="row">
             <div className="column">
               <div style={{ fontSize: '45px' }}>
@@ -1375,7 +1675,63 @@ class Main extends React.Component {
     } else {
       finishedRounds = self.state.rounds.slice(0, self.state.currentRound - 1)
     }
-    let splittedLettersItems = null
+
+    let finishStatusBlock
+    if (self.state.finishStatusDisplayTimeout > 0) {
+      // FIXME: cache scores somewhere for that case. We do not need to recompute because
+      // round is finished.
+      const allPlayersScores = getPlayersScores(self.state.players, finishedRounds)
+      const userScores = allPlayersScores[self.state.user.id]
+
+      let levelWord
+      if (Object.keys(self.state.rounds[0].solutions).length === 1) {
+        // Single player mode (train)
+        let scorePercent = 0
+        if (userScores.all.length > 0) {
+          const totalPossible = 5 * userScores.all.length
+          scorePercent = (userScores.total / totalPossible) * 100
+        }
+
+        if (scorePercent >= 99) {
+          levelWord = trn(userLanguage, 'Amazing')
+        } else if (scorePercent >= 80) {
+          levelWord = trn(userLanguage, 'Very well')
+        } else if (scorePercent >= 60) {
+          levelWord = trn(userLanguage, 'Well')
+        } else {
+          levelWord = trn(userLanguage, 'So bad. You can do better!')
+        }
+      } else {
+        // FIXME: Add you lost.
+        levelWord = trn(userLanguage, 'You won!')
+      }
+      if (self.state.mode === 'explore') {
+        finishStatusBlock = <div style={finishStatusStyle}>
+          {levelWord} {self.state.finishStatusDisplayTimeout}
+        </div>
+      } else {
+        finishStatusBlock = <div style={finishStatusStyle}>
+          {levelWord} {self.state.finishStatusDisplayTimeout}
+        </div>
+      }
+    }
+
+    const secondsFromRecentAction = (Date.now() - self.state.recentReplyTime) / 1000
+
+    const startNextExploreGame = self.state.finishStatusDisplayTimeout === 5 && self.state.modeOpened === 'explore' && secondsFromRecentAction < 60
+    if (startNextExploreGame) {
+      setTimeout(
+        function () {
+          self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+        },
+        5000)
+    }
+
+    // finishStatusDisplayed: false,
+    // finishStatusDisplayTimeout: 0
+    // console.log('Before render.', self.state)
+
+    let splittedLettersItems
 
     let isSolved = false
     let currentRound = {}
@@ -1427,24 +1783,14 @@ class Main extends React.Component {
       replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved)
     }
 
-    let contextBlock = null
+    let contextBlock
     if (currentRound.context != null && currentRound.context !== '') {
       contextBlock = <span style={{ fontSize: '34px' }}>({currentRound.context_value || currentRound.context})</span>
     }
 
-    let gameWarningBlock = null
+    let gameWarningBlock
 
     if (self.state.gameWarning !== null) {
-      const warningBlockStyle = {
-        backgroundColor: 'rgb(248, 215, 218)',
-        borderColor: 'rgb(114, 28, 36)',
-        color: 'rgb(114, 28, 36)',
-        fontSize: '18px',
-        position: 'fixed',
-        padding: '4px 15px 4px 4px',
-        top: 0
-      }
-
       gameWarningBlock = (
         <div style={warningBlockStyle}>
           <div>
@@ -1453,18 +1799,8 @@ class Main extends React.Component {
         </div>)
     }
 
-    let gameErrorBlock = null
+    let gameErrorBlock
     if (self.state.gameError != null) {
-      const errorBlockStyle = {
-        backgroundColor: 'rgb(248, 215, 218)',
-        borderColor: 'rgb(114, 28, 36)',
-        color: 'rgb(114, 28, 36)',
-        fontSize: '18px',
-        position: 'fixed',
-        padding: '4px 15px 4px 4px',
-        top: 0
-      }
-
       gameErrorBlock = (
         <div style={errorBlockStyle}>
           <div style={{ height: '10px' }}>
@@ -1476,12 +1812,12 @@ class Main extends React.Component {
         </div>)
     }
 
-    let pointerBlock = null
+    let pointerBlock
     if (self.state.method === 'letters-selection' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
       pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
-    let pointsBlock = null
+    let pointsBlock
     let points = 0
     if (isSolved && self.state.method === 'letters-selection') {
       if (currentRound.solutions[self.state.user.id].hints.length === 3) {
@@ -1494,21 +1830,19 @@ class Main extends React.Component {
 
     // const languages = ['dig','os','ru','en'];
     // FIXME: Move to server side.
-    const languageOptionItems = self.state.languages
-      .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
-
     const methodOptionItems = methods
-      .map((method) => <option key={method} value={method}>{t(userLanguage)[method]}</option>)
+      .map((method) => <option key={method} value={method}>{trn(userLanguage, method)}</option>)
 
     const levelOptionItems = levels
-      .map((level) => <option key={level} value={level}>{t(userLanguage)[level]}</option>)
+      .map((level) => <option key={level} value={level}>{trn(userLanguage, level)}</option>)
 
     const topicOptionItems = self.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
 
-    let trainBlock = null
-    let contestBlock = null
-    let challengeBlock = null
+    let trainBlock
+    let contestBlock
+    let challengeBlock
+    let exploreBlock
 
     if (self.state.challenge) {
       challengeBlock = (
@@ -1520,46 +1854,52 @@ class Main extends React.Component {
     }
 
     if (self.state.mode === 'contest') {
-      trainBlock = (
-        <button id='train' disabled onClick={self.onTrainClick}>
-          {t(userLanguage).train}
-        </button>)
       contestBlock = (
-        <button onClick={self.leave} title='Leave game'>
-          {t(userLanguage).leave}
+        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}
+        </button>)
+    } else if (self.state.modeOpened === 'contest') {
+      contestBlock = (
+        <button id='contest' onClick={self.onContestClick}>
+          {trn(userLanguage, 'Start contest')}
         </button>)
     } else if (self.state.mode === 'train') {
       trainBlock = (
-        <button onClick={self.leave} title='Leave game'>
-          {t(userLanguage).leave}
+        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}
         </button>)
-      contestBlock = (
-        <button disabled id='contest' onClick={self.onContestClick}>
-          {t(userLanguage).contest}
+    } else if (self.state.modeOpened === 'train') {
+      trainBlock = (
+        <button id='train' onClick={self.onTrainClick}>
+          {trn(userLanguage, 'Start train')}
         </button>)
     } else if (self.state.mode === 'contest_enqueued') {
-      trainBlock = (
-        <button id='train' disabled onClick={self.onTrainClick}>
-          {t(userLanguage).train}
-        </button>)
-
       contestBlock = (
-        <button onClick={self.leave} title='Leave game'>
-          {t(userLanguage).leave}<img src={spinner} alt="Spinner" />
+        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
+        </button>)
+    } else if (self.state.modeOpened === 'explore') {
+      exploreBlock = (
+        <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}
         </button>)
     } else {
       trainBlock = (
-        <button id='train' onClick={self.onTrainClick}>
-          {t(userLanguage).train}
+        <button id="train" onClick={self.onTrainClick}>
+          {trn(userLanguage, 'Train')}
         </button>)
       contestBlock = (
-        <button id='contest' onClick={self.onContestClick}>
-          {t(userLanguage).contest}
+        <button id="contest" onClick={self.onContestClick}>
+          {trn(userLanguage, 'Contest')}
+        </button>)
+      exploreBlock = (
+        <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Explore')}>
+          {trn(userLanguage, 'Explore')}
         </button>)
     }
 
-    let helpButton = null
-    let roundDetails = null
+    let helpButton
+    let roundDetails
     if (self.state.mode != null &&
                 Object.keys(currentRound).length > 0) {
       roundDetails = (
@@ -1588,12 +1928,12 @@ class Main extends React.Component {
 
     const disabled = self.state.mode != null ? 'disabled' : ''
 
-    let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}&nbsp;|&nbsp;{pointsBlock}</h3>)
+    let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}&nbsp;&nbsp;{pointsBlock}</h3>)
     if (currentRound.timeout <= 10 && !isSolved) {
       currentRoundTimeoutBlock = <h3 style={{ color: 'red', fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}</h3>
     }
 
-    let gameWidgetElems = null
+    let gameWidgetElems
     if (Object.keys(currentRound).length > 0) {
       if (self.state.method === 'image-selection') {
         let score
@@ -1623,54 +1963,108 @@ class Main extends React.Component {
       }
     }
 
+    let progressRows = ''
+    if (self.state.modeOpened === 'explore' && self.state.progress.simple) {
+      progressRows = (
+        <table>
+          <tbody>
+            <tr>
+              <td style={{ verticalAlign: 'top' }}>
+                {trn(userLanguage, 'Simple')}
+              </td>
+              <td>
+                <ProgressWidget games={self.state.progress.simple || []} />
+              </td>
+            </tr>
+            <tr>
+              <td style={{ verticalAlign: 'top' }}>
+                {trn(userLanguage, 'Normal')}
+              </td>
+              <td>
+                <ProgressWidget games={self.state.progress.normal || []} />
+              </td>
+            </tr>
+            <tr>
+              <td style={{ verticalAlign: 'top' }}>
+                {trn(userLanguage, 'Hard')}
+              </td>
+              <td>
+                <ProgressWidget games={self.state.progress.hard || []} />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )
+    }
+
+    let methodSelectBox
+    let levelSelectBox
+    let topicSelectBox
+    let usernameInput
+    let finishedRoundsTable
+
+    if (self.state.modeOpened === 'train') {
+      methodSelectBox = <select id="method" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
+        {methodOptionItems}
+      </select>
+
+      levelSelectBox = <select id="level" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
+        {levelOptionItems}
+      </select>
+
+      topicSelectBox = <select id="topic" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
+        <option value="">---</option>
+        {topicOptionItems}
+      </select>
+    } else if (self.state.modeOpened === 'contest') {
+      usernameInput = (
+        <input type="text" placeholder="Username"
+               value={self.state.user.name}
+               onChange={self.handleNameChange}
+               style={{ color: 'white' }}>
+        </input>)
+    }
+
+    if (self.state.mode === 'contest') {
+      finishedRoundsTable = <FinishedRoundsTable players={self.state.players} user={self.state.user} finishedRounds={finishedRounds} rounds={self.state.rounds} />
+    }
+
+    if (currentRound.voice_path && self.state.autoplayEnabled && self.state.soundVolume > 0 && !self.state.voicePlayed) {
+      self.playSound(currentRound.voice_path.src, self.state.soundVolume)
+    }
+
+    let voiceButton
+    if (currentRound.voice_path) {
+      voiceButton = (
+        <button onClick={() => self.playSound(currentRound.voice_path.src, self.state.soundVolume)}
+                title={trn(userLanguage, 'Tell again')}
+                style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
+          {trn(userLanguage, 'What?')}
+        </button>
+      )
+    }
+
     return (
       <div className="container">
         <br />
-        <div style={{ float: 'left' }}>
-          <a href="https://github.com/nmb10/sorat_web/issues" title={versions}>
-            {t(userLanguage).report_an_issue}
-          </a>
-          &nbsp;|&nbsp;
-          <a href="https://github.com/nmb10/sorat_translations">
-            {t(userLanguage).contribute}
-          </a>
-        </div>
-        <div className="row">
-          <img src="/logo.png" alt="Logo" />
-        </div>
+        {header}
+        {finishStatusBlock}
         <div className="row">
           <div className="column">
             {gameErrorBlock}
             {gameWarningBlock}
             <div>
-              <input type="text" placeholder="Username"
-                     value={self.state.user.name}
-                     onChange={self.handleNameChange}
-                     style={{ color: 'white' }}>
-              </input>
+              {usernameInput}
             </div>
           </div>
           <div className="column">
-            <select id="language" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.language} onChange={self.handleLanguageChange}>
-              <option value="">---</option>
-              {languageOptionItems}
-            </select>
+            {methodSelectBox}
           </div>
           <div className="column">
-            <select id="method" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
-              {methodOptionItems}
-            </select>
+            {levelSelectBox}
           </div>
           <div className="column">
-            <select id="level" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
-              {levelOptionItems}
-            </select>
-          </div>
-          <div className="column">
-            <select id="topic" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
-              <option value="">---</option>
-              {topicOptionItems}
-            </select>
+            {topicSelectBox}
           </div>
           <div className="column">
             {trainBlock}
@@ -1678,9 +2072,12 @@ class Main extends React.Component {
           <div className="column">
             {contestBlock}
           </div>
+          <div className="column">
+            {exploreBlock}
+          </div>
         </div>
         <div className="row">
-          <FinishedRoundsTable players={self.state.players} user={self.state.user} finishedRounds={finishedRounds} rounds={self.state.rounds} />
+          {finishedRoundsTable}
         </div>
         <div className="row">
           <div className="column">
@@ -1690,6 +2087,7 @@ class Main extends React.Component {
         <div className="row">
           <div className="column">
             {helpButton}&nbsp;
+            {voiceButton}
             {roundDetails}&nbsp;&nbsp;&nbsp;
             {currentRoundTimeoutBlock}
           </div>
@@ -1708,6 +2106,9 @@ class Main extends React.Component {
             {splittedLettersItems}
           </div>
         </div>
+        <div>
+        {progressRows}
+        </div>
       </div>
     )
   }
@@ -1719,6 +2120,21 @@ function App () {
       <header className="App-header">
         <Main />
       </header>
+      <hr style={{ margin: 0 }}/>
+      <footer style={{ padding: '5px', backgroundColor: '#282c34' }}>
+        <div>
+          Tools:&nbsp;
+          <a href="https://www.python.org">python</a>&nbsp;|&nbsp;
+          <a href="https://www.erlang.org">erlang</a>&nbsp;|&nbsp;
+          <a href="https://github.com/ninenines/cowboy">cowboy</a>&nbsp;|&nbsp;
+          <a href="https://react.dev">react.js</a>
+        </div>
+        <div>
+          <a href="https://github.com/nmb10/sorat_web">Source code</a>&nbsp;|&nbsp;
+          <a href="https://github.com/nmb10/sorat_translations">Translations</a>&nbsp;|&nbsp;
+          Developed by <a href="https://github.com/nmb10">k.biasti</a>
+        </div>
+      </footer>
     </div>
   )
 }
