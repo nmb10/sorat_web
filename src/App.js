@@ -38,6 +38,7 @@ const translations = {
     'Letters selection': 'Letters selection',
     'Report an issue': 'Report an issue',
     'Tell again': 'Tell again',
+    Help: 'Help',
     Contribute: 'Contribute',
     Leave: 'Leave',
     Contest: 'Contest',
@@ -45,6 +46,10 @@ const translations = {
     'Start train': 'Start train',
     Train: 'Train',
     Amazing: 'Amazing',
+    'Amazing. New round will start in': 'Amazing. New round will start in',
+    'Well, but not enough. Try again in': 'Well, but not enough. Try again in',
+    'Very well. New round will start in': 'Very well. New round will start in',
+    seconds: 'seconds',
     'Very well': 'Very well',
     'Well done': 'Well done',
     'So bad. You can do better!': 'So bad. You can do better!',
@@ -91,6 +96,10 @@ const translations = {
     'Start contest': 'Найти соперника',
     'Start train': 'Начать тренировку',
     Amazing: 'Великолепно',
+    'Amazing. New round will start in': 'Великолепно. Новый раунд начнется через',
+    'Well, but not enough. Try again in': 'Хорошо, но недостаточно. Попробуй еще раз через',
+    'Very well. New round will start in': 'Очень хорошо. Новый раунд начнется через',
+    seconds: 'секунд',
     'Very well': 'Очень хорошо',
     Well: 'Хорошо',
     'So bad. You can do better!': 'Плохо. Ты можешь лучше!',
@@ -130,6 +139,7 @@ const translations = {
     'Image selection': 'Сорæт æвзарун',
     'Letters selection': 'Дамугътæ æвзарун',
     'Report an issue': 'Рæдуд фегъосун кæнун',
+    Help: 'Агъаз',
     Contribute: 'Æгустадæ',
     Leave: 'Рандæ ун',
     Contest: 'Ерис',
@@ -209,12 +219,12 @@ const errorBlockStyle = {
 // FIXME: Move to css.
 //
 const questionLetterStyle = {
-  fontSize: '35px',
+  fontSize: '30px',
   float: 'left',
-  marginLeft: '3px',
+  marginLeft: '5px',
   padding: 0,
-  width: '75px',
-  height: '75px'
+  width: '60px',
+  height: '60px'
 }
 
 const finishStatusStyle = {
@@ -223,12 +233,27 @@ const finishStatusStyle = {
   border: '3px solid green',
   fontSize: '44px',
   position: 'fixed',
-  top: '5px',
+  top: '45px',
+  backgroundColor: '#282c34',
+  padding: '5px',
   borderRadius: '10px'
 }
 
 function trn (userLanguage, text) {
-  return translations[userLanguage][text] || (userLanguage + ': ' + text)
+  let searchText = text
+  if (searchText === 'image-selection') {
+    // select box options.
+    searchText = 'Image selection'
+  } else if (searchText === 'letters-selection') {
+    searchText = 'Letters selection'
+  } else if (searchText === 'normal') {
+    searchText = 'Normal'
+  } else if (searchText === 'simple') {
+    searchText = 'Simple'
+  } else if (searchText === 'hard') {
+    searchText = 'Hard'
+  }
+  return translations[userLanguage][searchText] || (userLanguage + ': ' + searchText)
 }
 
 function getSecondsDiff (dt1, dt2) {
@@ -495,7 +520,8 @@ WordImageColumn.propTypes = {
 function WordImageColumn (props) {
   let onImageClick, imagePointsBlock
   const choicePointer = props.choicePointer ? '#' + props.choicePointer : null
-  const imageStyle = { maxHeight: '400px', width: 'auto' }
+  const imageStyle = {} // Do not write here display settings. Otherwise use index.html@media
+  // const imageStyle = { objectFit: 'cover', height: '400px', width: '300px', scroll: 'auto' }
   if (props.isCorrectChoice) {
     imagePointsBlock = <div className="choice-points valid-choice-points">+{props.score}</div>
   } else if (props.userChoices.includes(props.imageChoice)) {
@@ -549,8 +575,6 @@ function SelectImageGameWidget (props) {
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
-  // <img src={spinner} alt="Spinner" />
-  //
   let src0, src1, src2, src3
   let pointer0, pointer1, pointer2, pointer3
   if (props.preloadedImages[currentRoundIndex] === undefined) {
@@ -641,7 +665,7 @@ ReplyLetter.propTypes = {
 }
 
 function ReplyLetter (props) {
-  function onClick (e) {
+  function onRemoveClick (e) {
     e.preventDefault()
     const eventDetail = {
       detail: {
@@ -655,21 +679,18 @@ function ReplyLetter (props) {
   };
 
   const letterStyle = {}
-  let removeLink = <a href="#" onClick={onClick}>x</a>
-  if (props.isSolved || props.letter === ' ') {
-    removeLink = ''
-  }
 
   if (props.letter !== ' ') {
     letterStyle.border = 'solid gray 2px'
   }
 
+  if (props.letter !== '?') {
+    letterStyle.cursor = 'pointer'
+  }
+
   return (
-        <div className="reply-letter" style={ letterStyle }>
-            {removeLink}
-            <span style={{ fontSize: '40px' }}>
-                {props.letter}
-            </span>
+        <div className="reply-letter" title="Remove letter" style={ letterStyle } onClick={onRemoveClick}>
+          {props.letter}
         </div>
   )
 };
@@ -1613,34 +1634,39 @@ class Main extends React.Component {
       <input type="range" id="volume" name="volume" min="0" max="100" defaultValue={self.state.soundVolume} onChange={this.onVolumeChange}/>
     )
 
-    const header = (<div>
-      <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" />
-      <a style={{ float: 'left' }} href="https://github.com/nmb10/sorat_web/issues" title={versions}>
-        {trn(userLanguage, 'Report an issue')}
-      </a>
-      <span style={{ float: 'left' }}>&nbsp;|&nbsp;</span>
-      <a style={{ float: 'left' }} href="https://github.com/nmb10/sorat_translations">
-        {trn(userLanguage, 'Contribute')}
-      </a>
-
-      <div style={{ float: 'right' }}>
-        <select id="language" style={{ backgroundColor: '#282c34' }} value={self.state.user.language} onChange={self.handleLanguageChange}>
-          <option value="">---</option>
-          {languageOptionItems}
-        </select>
-      </div>
-      <div style={{ float: 'right' }}>
-        <div>
-          <label htmlFor="autoplay-toggle-checkbox" title="Enable or disable autoplay">
-            Autoplay:
-            <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
-          </label>
+    const header = (
+      <div className="row">
+        <div className="column">
+          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" />
         </div>
-        <div>
-          {volumeWidget}
+        <div className="column">
+          <a style={{ float: 'right' }} href="https://github.com/nmb10/sorat_web/issues" title={versions}>
+            {trn(userLanguage, 'Report an issue')}
+          </a>
         </div>
-      </div>
-    </div>)
+        <div className="column">
+          <a style={{ float: 'left' }} href="https://github.com/nmb10/sorat_translations">
+            {trn(userLanguage, 'Contribute')}
+          </a>
+        </div>
+        <div className="column">
+          <div>
+            <label htmlFor="autoplay-toggle-checkbox" title="Enable or disable autoplay">
+              Autoplay:
+              <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
+            </label>
+          </div>
+          <div>
+            {volumeWidget}
+          </div>
+        </div>
+        <div className="column">
+          <select id="language" style={{ backgroundColor: '#282c34' }} value={self.state.user.language} onChange={self.handleLanguageChange}>
+            <option value="">---</option>
+            {languageOptionItems}
+          </select>
+        </div>
+      </div>)
 
     if (self.state.connection === 'closed') {
       return (
@@ -1677,43 +1703,56 @@ class Main extends React.Component {
     }
 
     let finishStatusBlock
+    let finishStatus
+
     if (self.state.finishStatusDisplayTimeout > 0) {
       // FIXME: cache scores somewhere for that case. We do not need to recompute because
       // round is finished.
       const allPlayersScores = getPlayersScores(self.state.players, finishedRounds)
       const userScores = allPlayersScores[self.state.user.id]
 
-      let levelWord
       if (Object.keys(self.state.rounds[0].solutions).length === 1) {
-        // Single player mode (train)
+        // Single player mode (train/progress)
         let scorePercent = 0
         if (userScores.all.length > 0) {
           const totalPossible = 5 * userScores.all.length
           scorePercent = (userScores.total / totalPossible) * 100
         }
 
-        if (scorePercent >= 99) {
-          levelWord = trn(userLanguage, 'Amazing')
+        if (scorePercent >= 95) {
+          if (self.state.modeOpened === 'explore') {
+            finishStatus = trn(userLanguage, 'Amazing. New round will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+          } else {
+            finishStatus = trn(userLanguage, 'Amazing')
+          }
         } else if (scorePercent >= 80) {
-          levelWord = trn(userLanguage, 'Very well')
+          if (self.state.modeOpened === 'explore') {
+            finishStatus = trn(userLanguage, 'Very well. New round will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+          } else {
+            finishStatus = trn(userLanguage, 'Very well')
+          }
         } else if (scorePercent >= 60) {
-          levelWord = trn(userLanguage, 'Well')
+          if (self.state.modeOpened === 'explore') {
+            finishStatus = trn(userLanguage, 'Well, but not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatusStyle.border = '3px solid red'
+          } else {
+            finishStatus = trn(userLanguage, 'Well')
+          }
         } else {
-          levelWord = trn(userLanguage, 'So bad. You can do better!')
+          if (self.state.modeOpened === 'explore') {
+            finishStatus = trn(userLanguage, 'So bad. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatusStyle.border = '3px solid red'
+          } else {
+            finishStatus = trn(userLanguage, 'So bad. You can do better!')
+          }
         }
       } else {
         // FIXME: Add you lost.
-        levelWord = trn(userLanguage, 'You won!')
+        finishStatus = trn(userLanguage, 'You won!')
       }
-      if (self.state.mode === 'explore') {
-        finishStatusBlock = <div style={finishStatusStyle}>
-          {levelWord} {self.state.finishStatusDisplayTimeout}
-        </div>
-      } else {
-        finishStatusBlock = <div style={finishStatusStyle}>
-          {levelWord} {self.state.finishStatusDisplayTimeout}
-        </div>
-      }
+      finishStatusBlock = <div style={finishStatusStyle}>
+        {finishStatus}
+      </div>
     }
 
     const secondsFromRecentAction = (Date.now() - self.state.recentReplyTime) / 1000
@@ -1784,8 +1823,14 @@ class Main extends React.Component {
     }
 
     let contextBlock
+
     if (currentRound.context != null && currentRound.context !== '') {
-      contextBlock = <span style={{ fontSize: '34px' }}>({currentRound.context_value || currentRound.context})</span>
+      contextBlock = (
+        <div className="row">
+          <span style={{ fontSize: '34px' }}>
+            ({currentRound.context_value || currentRound.context})
+          </span>
+        </div>)
     }
 
     let gameWarningBlock
@@ -1810,11 +1855,6 @@ class Main extends React.Component {
             {self.state.gameError.message}. ({self.state.gameError.error_id})
           </div>
         </div>)
-    }
-
-    let pointerBlock
-    if (self.state.method === 'letters-selection' && currentRound.img1 !== undefined && currentRound.img1.pointer != null) {
-      pointerBlock = <span style={{ fontSize: '34px' }}>#{currentRound.img1.pointer}</span>
     }
 
     let pointsBlock
@@ -1846,7 +1886,7 @@ class Main extends React.Component {
 
     if (self.state.challenge) {
       challengeBlock = (
-        <div>
+        <div className="row">
           {self.state.challenge.user.name} is challenging you!
           <button onClick={self.onAcceptClick}>Accept</button>
           (ignore to decline) ({self.state.challenge.timeout})
@@ -1910,8 +1950,8 @@ class Main extends React.Component {
         helpButton = (
           <button onClick={self.getHelp}
                   title='(-1 to current game score)'
-                  style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
-                        Help ({3 - currentRound.solutions[self.state.user.id].hints.length})
+                  style={{ fontSize: '16px', float: 'left', margin: '5px', width: '165px', height: '45px' }}>
+                  { trn(userLanguage, 'Help') } ({3 - currentRound.solutions[self.state.user.id].hints.length})
           </button>
         )
       } else {
@@ -1919,8 +1959,8 @@ class Main extends React.Component {
           <button onClick={self.getHelp}
                   disabled='disabled'
                   title='(-1 to current game score)'
-                  style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
-            Help (0)
+                  style={{ fontSize: '16px', float: 'left', margin: '5px', width: '165px', height: '45px' }}>
+            { trn(userLanguage, 'Help') } (0)
           </button>
         )
       }
@@ -1934,6 +1974,7 @@ class Main extends React.Component {
     }
 
     let gameWidgetElems
+    let gameColumn
     if (Object.keys(currentRound).length > 0) {
       if (self.state.method === 'image-selection') {
         let score
@@ -1955,8 +1996,10 @@ class Main extends React.Component {
         helpButton = null // FIXME: Find better solution.
         replyLetterItems = null
         splittedLettersItems = null
+        gameColumn = <div className="column">{gameWidgetElems}</div>
       } else if (self.state.method === 'letters-selection') {
         gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} />
+        gameColumn = <div className="column image-wrapper">{gameWidgetElems}</div>
       } else {
         // console.log('Warning: Game is running but method is unknwon. method: ', self.state.method)
         ;
@@ -2045,9 +2088,12 @@ class Main extends React.Component {
     }
 
     return (
+    <>
+      <header className="App-header">
+        {header}
+      </header>
       <div className="container">
         <br />
-        {header}
         {finishStatusBlock}
         <div className="row">
           <div className="column">
@@ -2080,9 +2126,7 @@ class Main extends React.Component {
           {finishedRoundsTable}
         </div>
         <div className="row">
-          <div className="column">
-            {gameWidgetElems}
-          </div>
+          {gameColumn}
         </div>
         <div className="row">
           <div className="column">
@@ -2092,12 +2136,8 @@ class Main extends React.Component {
             {currentRoundTimeoutBlock}
           </div>
         </div>
-        <div className="row">
-          {challengeBlock}
-        </div>
-        <div className="row">
-          {contextBlock}&nbsp;{pointerBlock}
-        </div>
+        {challengeBlock}
+        {contextBlock}
         <div className="row">
           {replyLetterItems}
         </div>
@@ -2110,31 +2150,15 @@ class Main extends React.Component {
         {progressRows}
         </div>
       </div>
-    )
+    </>)
   }
 };
 
 function App () {
   return (
     <div className="App">
-      <header className="App-header">
-        <Main />
-      </header>
+      <Main />
       <hr style={{ margin: 0 }}/>
-      <footer style={{ padding: '5px', backgroundColor: '#282c34' }}>
-        <div>
-          Tools:&nbsp;
-          <a href="https://www.python.org">python</a>&nbsp;|&nbsp;
-          <a href="https://www.erlang.org">erlang</a>&nbsp;|&nbsp;
-          <a href="https://github.com/ninenines/cowboy">cowboy</a>&nbsp;|&nbsp;
-          <a href="https://react.dev">react.js</a>
-        </div>
-        <div>
-          <a href="https://github.com/nmb10/sorat_web">Source code</a>&nbsp;|&nbsp;
-          <a href="https://github.com/nmb10/sorat_translations">Translations</a>&nbsp;|&nbsp;
-          Developed by <a href="https://github.com/nmb10">k.biasti</a>
-        </div>
-      </footer>
     </div>
   )
 }

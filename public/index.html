@@ -36,7 +36,10 @@
     <style>
         @media (min-width: 321px) {
           .word-image {
-            max-width: 160px;
+            height: 200px;
+          }
+          .image-wrapper {
+            height: 200px;
           }
           .choice-points {
             font-size: 100px;
@@ -45,9 +48,12 @@
             font-size: 45px
           }
         }
-        @media (min-width:768px) {
+        @media (min-width: 768px) {
+          .image-wrapper {
+            height: 350px;
+          }
           .word-image {
-            max-width: 320px;
+            height: 350px;
           }
           .choice-points {
             font-size: 150px;
@@ -58,11 +64,12 @@
         }
 
         .word-image {
-            width: 100%;
-            height: auto;
-            display: inline-block;
             padding: 5px;
             float: left;
+            object-fit: cover;
+        }
+        .image-wrapper {
+            overflow: auto;
         }
         .choice-points {
             max-width: 300px;
@@ -81,7 +88,7 @@
   </style>
   </head>
   <body>
-      <noscript>{{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">Report an issue</a></noscript>
+    <noscript>{{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">Report an issue</a></noscript>
     <div id="root"></div>
     <!--
       This HTML file is a template.
@@ -93,5 +100,20 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+
+    <footer style="padding: 5px; background-color: #282c34; margin: 0 auto; max-width: 112.0rem; text-align: center;">
+      <div>
+        Tools:&nbsp;
+        <a href="https://www.python.org">python</a>&nbsp;|&nbsp;
+        <a href="https://www.erlang.org">erlang</a>&nbsp;|&nbsp;
+        <a href="https://github.com/ninenines/cowboy">cowboy</a>&nbsp;|&nbsp;
+        <a href="https://react.dev">react.js</a>
+      </div>
+      <div>
+        <a href="https://github.com/nmb10/sorat_web">Source code</a>&nbsp;|&nbsp;
+        <a href="https://github.com/nmb10/sorat_translations">Translations</a>&nbsp;|&nbsp;
+        Developed and maintained by <a href="https://github.com/nmb10">k.biasti</a>&nbsp;-&nbsp;2022-2024
+      </div>
+    </footer>
   </body>
 </html>
