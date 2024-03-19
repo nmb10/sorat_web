@@ -707,9 +707,9 @@ function ReplyLetter (props) {
     letterStyle.border = 'solid gray 2px'
   }
 
-  if (props.isSolved) {
+  if (props.isSolved && props.letter !== ' ') {
     letterStyle.border = 'solid green 2px'
-  } else if (props.isWrongReply) {
+  } else if (props.isWrongReply && props.letter !== ' ') {
     letterStyle.border = 'solid red 2px'
   }
 
@@ -1805,14 +1805,9 @@ class Main extends React.Component {
 
     const secondsFromRecentAction = (Date.now() - self.state.recentReplyTime) / 1000
 
-    const startNextExploreGame = self.state.finishStatusDisplayTimeout === 5 && self.state.modeOpened === 'explore' && secondsFromRecentAction < 60
-    if (startNextExploreGame) {
-      setTimeout(
-        function () {
-          self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
-        },
-        5000)
-    }
+    const startNextExploreGame = self.state.finishStatusDisplayTimeout === 5 &&
+      self.state.modeOpened === 'explore' &&
+      secondsFromRecentAction < 60
 
     let splittedLettersItems
 
@@ -1822,10 +1817,20 @@ class Main extends React.Component {
       currentRound = self.state.rounds[self.state.currentRound - 1]
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
+    const currentRoundNotEmpty = Object.keys(currentRound).length > 0
+    const currentRoundIsEmpty = Object.keys(currentRound).length === 0
+
+    if (startNextExploreGame && currentRoundIsEmpty) {
+      setTimeout(
+        function () {
+          self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+        },
+        5000)
+    }
 
     let replyLetterItems = []
 
-    if (Object.keys(currentRound).length > 0) {
+    if (currentRoundNotEmpty) {
       // New responsive implementation
       // FIXME: handle currentRound.question as string instead of list of words.
       const attempts = currentRound.solutions[self.state.user.id].attempts
@@ -1987,8 +1992,7 @@ class Main extends React.Component {
 
     let helpButton
     let roundDetails
-    if (self.state.mode != null &&
-                Object.keys(currentRound).length > 0) {
+    if (self.state.mode != null && currentRoundNotEmpty) {
       roundDetails = (
         <span id='round-details' style={{ fontSize: '24px', marginTop: '10px', float: 'left' }}>
           Round #{self.state.currentRound} of {self.state.rounds.length}
@@ -2034,7 +2038,7 @@ class Main extends React.Component {
 
     let gameWidgetElems
     let gameColumn
-    if (Object.keys(currentRound).length > 0) {
+    if (currentRoundNotEmpty) {
       if (self.state.method === 'image-selection') {
         let score
         let correctChoice
