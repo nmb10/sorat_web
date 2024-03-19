@@ -349,15 +349,29 @@ function pair (wordIndex, letterIndex) {
   return wordIndex + ',' + letterIndex
 }
 
-function replyLettersToRow (words, isSolved) {
+function replyLettersToRow (words, isSolved, attempts) {
   const replyLetters = []
-  for (let j = 0; j < words.length; ++j) {
-    replyLetters.push(
-      <ReplyLetter isSolved={isSolved} letter={words[j]} wordIndex={0} letterIndex={j} />)
+  // const attemptWords = []
+  let inReplyWords = false
+  for (let i = 0; i < attempts.length; ++i) {
+    if (attempts[i].reply.includes(words)) {
+      inReplyWords = true
+      break
+    }
   }
 
+  const isWrongReply = !isSolved && inReplyWords
+
+  for (let j = 0; j < words.length; ++j) {
+    replyLetters.push(
+      <ReplyLetter isWrongReply={isWrongReply} isSolved={isSolved} letter={words[j]} wordIndex={0} letterIndex={j} />)
+  }
+
+  const styles = {
+    whiteSpace: 'nowrap'
+  }
   return (
-    <div style={{ whiteSpace: 'nowrap' }}>
+    <div style={styles}>
       {replyLetters}
     </div>
   )
@@ -490,6 +504,7 @@ function TopicElems (props) {
   const rows = []
 
   let topicLocalName = ''
+
   for (let i = 0; i < props.sets.length; ++i) {
     topicLocalName = props.sets[i].topic.local_name
     if (props.sets[i].is_solved) {
@@ -549,13 +564,20 @@ function WordImageColumn (props) {
 }
 
 SelectLettersGameWidget.propTypes = {
-  currentRound: PropTypes.node.isRequired
+  currentRound: PropTypes.node.isRequired,
+  isSolved: PropTypes.bool
 }
 
 function SelectLettersGameWidget (props) {
-  return (
-    <img className="word-image" src={props.currentRound.img1.src} />
-  )
+  if (props.isSolved) {
+    return (
+      <img className="word-image word-image-solved" src={props.currentRound.img1.src}/>
+    )
+  } else {
+    return (
+      <img className="word-image" src={props.currentRound.img1.src}/>
+    )
+  }
 }
 
 SelectImageGameWidget.propTypes = {
@@ -661,7 +683,8 @@ ReplyLetter.propTypes = {
   letter: PropTypes.node.isRequired,
   wordIndex: PropTypes.node.isRequired,
   letterIndex: PropTypes.node.isRequired,
-  isSolved: PropTypes.node.isRequired
+  isSolved: PropTypes.node.isRequired,
+  isWrongReply: PropTypes.bool
 }
 
 function ReplyLetter (props) {
@@ -682,6 +705,12 @@ function ReplyLetter (props) {
 
   if (props.letter !== ' ') {
     letterStyle.border = 'solid gray 2px'
+  }
+
+  if (props.isSolved) {
+    letterStyle.border = 'solid green 2px'
+  } else if (props.isWrongReply) {
+    letterStyle.border = 'solid red 2px'
   }
 
   if (props.letter !== '?') {
@@ -1409,7 +1438,7 @@ class Main extends React.Component {
       // FIXME:
       self.setState(prevState => {
         const newState = { ...prevState }
-        newState.mode = 'explore'
+        newState.mode = 'explore_requested'
         newState.modeOpened = 'explore'
         // We always send user in payload because server may loose initial state once (on
         // backend restart for example).
@@ -1540,6 +1569,10 @@ class Main extends React.Component {
   }
 
   handleLanguageChange (event) {
+    // Leave should go first to use language before changed.
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('game.leave', { detail: {} }))
+
     document.getElementById('root').dispatchEvent(
       new CustomEvent('language-changed', { detail: { language: event.target.value } }))
   }
@@ -1772,15 +1805,12 @@ class Main extends React.Component {
 
     let splittedLettersItems
 
-    let isSolved = false
+    let isSolved
     let currentRound = {}
     if (self.state.currentRound && self.state.currentRound !== -1) {
       currentRound = self.state.rounds[self.state.currentRound - 1]
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
-
-    // FIXME: Implement term with multiple words.
-    let replyLetterItems = []
 
     if (Object.keys(currentRound).length > 0) {
       // New responsive implementation
@@ -1818,8 +1848,11 @@ class Main extends React.Component {
       )
     };
 
+    let replyLetterItems = []
+
     if (Object.keys(currentRound).length > 0) {
-      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved)
+      const attempts = currentRound.solutions[self.state.user.id].attempts
+      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
     }
 
     let contextBlock
@@ -1918,6 +1951,11 @@ class Main extends React.Component {
         <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
         </button>)
+    } else if (self.state.mode === 'explore_requested') {
+      exploreBlock = (
+        <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
+        </button>)
     } else if (self.state.modeOpened === 'explore') {
       exploreBlock = (
         <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
@@ -1968,9 +2006,21 @@ class Main extends React.Component {
 
     const disabled = self.state.mode != null ? 'disabled' : ''
 
-    let currentRoundTimeoutBlock = (<h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}&nbsp;&nbsp;{pointsBlock}</h3>)
-    if (currentRound.timeout <= 10 && !isSolved) {
-      currentRoundTimeoutBlock = <h3 style={{ color: 'red', fontSize: '45px', float: 'left', marginLeft: '15px' }}>{currentRound.timeout}</h3>
+    let currentRoundTimeoutBlock = (
+        <h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>
+          {pointsBlock}
+        </h3>)
+
+    if (!isSolved) {
+      currentRoundTimeoutBlock = (
+        <h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>
+          {currentRound.timeout}
+        </h3>)
+    } else if (currentRound.timeout <= 10 && !isSolved) {
+      currentRoundTimeoutBlock = (
+        <h3 style={{ color: 'red', fontSize: '45px', float: 'left', marginLeft: '15px' }}>
+          {currentRound.timeout}
+        </h3>)
     }
 
     let gameWidgetElems
@@ -1998,7 +2048,7 @@ class Main extends React.Component {
         splittedLettersItems = null
         gameColumn = <div className="column">{gameWidgetElems}</div>
       } else if (self.state.method === 'letters-selection') {
-        gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} />
+        gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} isSolved={isSolved}/>
         gameColumn = <div className="column image-wrapper">{gameWidgetElems}</div>
       } else {
         // console.log('Warning: Game is running but method is unknwon. method: ', self.state.method)
