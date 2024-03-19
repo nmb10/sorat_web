@@ -3,6 +3,7 @@ import spinner from './spinner1.png'
 import React from 'react'
 import './App.css'
 import PropTypes from 'prop-types'
+import _ from 'lodash'
 
 // Slow network emulation. Set to 0 to disable. Note: this timeout works for first round. Other rounds use preloaded images.
 // How many ms to wait before images display.
@@ -351,7 +352,6 @@ function pair (wordIndex, letterIndex) {
 
 function replyLettersToRow (words, isSolved, attempts) {
   const replyLetters = []
-  // const attemptWords = []
   let inReplyWords = false
   for (let i = 0; i < attempts.length; ++i) {
     if (attempts[i].reply.includes(words)) {
@@ -730,6 +730,7 @@ class Main extends React.Component {
 
     // Initial state
     this.state = {
+      stateReceived: false,
       versions: {
         backend: '',
         frontend: '',
@@ -960,13 +961,15 @@ class Main extends React.Component {
       .then(response => response.json())
       .then(json => {
         self.setState(prevState => {
-          const newState = { ...prevState }
+          const newState = _.cloneDeep(prevState)
           newState.languages = json.languages
           newState.topics = json.topics
           newState.user = json.user
           newState.mode = json.mode
+          newState.modeOpened = json.mode
           newState.method = json.method
           newState.versions = json.versions
+          newState.stateReceived = true
 
           if (newState.mode == null) {
             self.stopWebsocket()
@@ -986,7 +989,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('connection.slow-message', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         if (prevState.slowMessageCount > 5) {
           newState.gameWarning = {
             message: 'Your connection is too slow or site has problems. Please refresh page.'
@@ -1001,7 +1004,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('ws.error', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.connection = 'error'
         return newState
       })
@@ -1009,7 +1012,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('ws.closed', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.connection = 'closed'
         return newState
       })
@@ -1017,7 +1020,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('ws.opened', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.connection = 'Opened'
         return newState
       })
@@ -1032,7 +1035,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('finish-status.tick', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.finishStatusDisplayTimeout -= 1
         return newState
       })
@@ -1040,7 +1043,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('error.close', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.gameError = null
         newState.mode = null
         newState.method = null
@@ -1057,7 +1060,7 @@ class Main extends React.Component {
       })
 
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.mode = null
         newState.modeOpened = null
         newState.method = null
@@ -1072,7 +1075,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('challenge', function (event) {
       setTimeout(self.sendChallengeTickEvent, 1000)
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
 
         newState.challenge = {
           user: event.detail.user,
@@ -1084,7 +1087,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('voice.played', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.voicePlayed = true
         return newState
       })
@@ -1099,7 +1102,7 @@ class Main extends React.Component {
       })
 
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.recentReplyTime = Date.now()
         return newState
       })
@@ -1107,7 +1110,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('image.load', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         // console.log('!!!!!', event.detail.img.src, event.detail.roundIndex)
         if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
           newState.preloadedImages[event.detail.roundIndex] = {}
@@ -1122,7 +1125,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('contest_enqueued', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.mode = 'contest_enqueued'
         return newState
       })
@@ -1130,7 +1133,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('game_error', function (event) {
       self.setState(prevState => {
-        const newState = { ...self.state }
+        const newState = _.cloneDeep(prevState)
         newState.gameError = event.detail
         return newState
       })
@@ -1141,7 +1144,7 @@ class Main extends React.Component {
         ;
       } else {
         self.setState(prevState => {
-          const newState = { ...prevState }
+          const newState = _.cloneDeep(prevState)
           const currentTimeout = newState.challenge.timeout
 
           if (currentTimeout === 1) {
@@ -1157,7 +1160,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('state.update', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.players = event.detail.state.players
         newState.rounds = event.detail.state.rounds
         newState.currentRound = event.detail.state.currentRound
@@ -1314,7 +1317,7 @@ class Main extends React.Component {
         .then(response => response.json())
         .then(data => {
           self.setState(prevState => {
-            const newState = { ...prevState }
+            const newState = _.cloneDeep(prevState)
             newState.topics = data.topics
             newState.user.language = data.user.language
             newState.user.name = data.user.name
@@ -1349,7 +1352,7 @@ class Main extends React.Component {
         .then(response => response.json())
         .then(data => {
           self.setState(prevState => {
-            const newState = { ...prevState }
+            const newState = _.cloneDeep(prevState)
             newState.topics = data.topics
             newState.user.language = data.user.language
             newState.user.name = data.user.name
@@ -1379,7 +1382,7 @@ class Main extends React.Component {
 
       // Update state and send to server side.
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.user.name = event.detail.name
         clearTimeout(self.nameUpdateTimeout)
         self.nameUpdateTimeout = setTimeout(self.saveState, 2000)
@@ -1389,7 +1392,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('autoplay-enabled', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = true
         return newState
       })
@@ -1397,7 +1400,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('autoplay-disabled', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = false
         return newState
       })
@@ -1406,7 +1409,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('contest-clicked', function (event) {
       // FIXME:
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         if (newState.modeOpened === 'contest') {
           newState.mode = 'contest_requested'
           // We always send user in payload because server may loose initial state once (on
@@ -1421,7 +1424,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('train-clicked', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         if (newState.modeOpened === 'train') {
           newState.mode = 'train_requested'
           // We always send user in payload because server may loose initial state once (on
@@ -1437,7 +1440,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('explore-clicked', function (event) {
       // FIXME:
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.mode = 'explore_requested'
         newState.modeOpened = 'explore'
         // We always send user in payload because server may loose initial state once (on
@@ -1450,7 +1453,7 @@ class Main extends React.Component {
     // new CustomEvent('challenge-accepted', {detail: {}}));
     document.getElementById('root').addEventListener('challenge-accepted', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.challenge = null
         newState.currentRound = -1
         newState.replyLetters = []
@@ -1487,7 +1490,7 @@ class Main extends React.Component {
         .then(response => response.json())
         .then(data => {
           self.setState(prevState => {
-            const newState = { ...prevState }
+            const newState = _.cloneDeep(prevState)
             newState.user.topic = data.user.topic
             return newState
           })
@@ -1496,7 +1499,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('volume-changed', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         newState.soundVolume = event.detail.volume
         return newState
       })
@@ -1506,7 +1509,7 @@ class Main extends React.Component {
       // FIXME: Send to server
       // update-state
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         const replyWordIndex = event.detail.wordIndex
         const replyLetterIndex = event.detail.letterIndex
         const replyWordLetters = newState.replyLetters[replyWordIndex]
@@ -1522,7 +1525,7 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('question-letter.click', function (event) {
       self.setState(prevState => {
-        const newState = { ...prevState }
+        const newState = _.cloneDeep(prevState)
         const wordIndex = event.detail.wordIndex
         const letterIndex = event.detail.letterIndex
         const letter = event.detail.letter
@@ -1713,6 +1716,18 @@ class Main extends React.Component {
           </div>
         </div>
       )
+    } else if (!self.state.stateReceived) {
+      return (
+        <div className="container">
+          <br />
+          {header}
+          <div className="row">
+            <div className="column">
+              <div style={{ fontSize: '45px' }}></div>
+            </div>
+          </div>
+        </div>
+      )
     } else if (self.state.connection === 'error') {
       return (
         <div className="container">
@@ -1799,10 +1814,6 @@ class Main extends React.Component {
         5000)
     }
 
-    // finishStatusDisplayed: false,
-    // finishStatusDisplayTimeout: 0
-    // console.log('Before render.', self.state)
-
     let splittedLettersItems
 
     let isSolved
@@ -1812,9 +1823,14 @@ class Main extends React.Component {
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
 
+    let replyLetterItems = []
+
     if (Object.keys(currentRound).length > 0) {
       // New responsive implementation
       // FIXME: handle currentRound.question as string instead of list of words.
+      const attempts = currentRound.solutions[self.state.user.id].attempts
+      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
+
       const splittedLetters = [[]]
       const words = currentRound.question[0]
       for (let letterIndex = 0; letterIndex < words.length; ++letterIndex) {
@@ -1847,13 +1863,6 @@ class Main extends React.Component {
         </table>
       )
     };
-
-    let replyLetterItems = []
-
-    if (Object.keys(currentRound).length > 0) {
-      const attempts = currentRound.solutions[self.state.user.id].attempts
-      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
-    }
 
     let contextBlock
 
