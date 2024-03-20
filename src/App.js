@@ -787,7 +787,7 @@ class Main extends React.Component {
     this.checkSlowConnection = this.checkSlowConnection.bind(this)
     this.startSlowConnectionMonitor = this.startSlowConnectionMonitor.bind(this)
     this.stopSlowConnectionMonitor = this.stopSlowConnectionMonitor.bind(this)
-    this.displayFinishStatus = this.displayFinishStatus.bind(this)
+    this.startFinishStatusTicker = this.startFinishStatusTicker.bind(this)
     this.onAutoplayToggleClick = this.onAutoplayToggleClick.bind(this)
     this.onVolumeChange = this.onVolumeChange.bind(this)
   }
@@ -924,12 +924,12 @@ class Main extends React.Component {
     }
   }
 
-  displayFinishStatus (seconds) {
+  startFinishStatusTicker (seconds) {
     const self = this
     if (seconds > 0) {
       document.getElementById('root').dispatchEvent(
         new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
-      setTimeout(self.displayFinishStatus, 1000, seconds - 1)
+      setTimeout(self.startFinishStatusTicker, 1000, seconds - 1)
     }
   }
 
@@ -1162,7 +1162,7 @@ class Main extends React.Component {
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
           self.stopSlowConnectionMonitor()
-          self.displayFinishStatus(6)
+          self.startFinishStatusTicker(6)
         } else if (self.state.currentRound !== newState.currentRound) {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
@@ -1404,7 +1404,7 @@ class Main extends React.Component {
         newState.method = null
         newState.currentRound = -1
         newState.preloadedImages = {}
-        self.displayFinishStatus(6)
+        self.startFinishStatusTicker(6)
         return newState
       })
     })
@@ -1847,7 +1847,6 @@ class Main extends React.Component {
           splittedLetters[i], chosenQueryIndexes))
       }
 
-      // var letterItems1 = letterItems.map((divGroup) => <td style={{display: "inline-block", borderBottom: 0}}>{divGroup}</td>);
       const letterItems1 = questionLettersTables
         .map((divGroup, index) => <td key={index} style={{ verticalAlign: 'top', display: 'inline-block', borderBottom: 0 }}>{divGroup}</td>)
 
