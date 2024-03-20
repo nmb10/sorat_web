@@ -507,8 +507,10 @@ function TopicElems (props) {
 
   for (let i = 0; i < props.sets.length; ++i) {
     topicLocalName = props.sets[i].topic.local_name
-    if (props.sets[i].is_solved) {
+    if (props.sets[i].status === 'solved') {
       rows.push(<div style={{ border: '4px green solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
+    } else if (props.sets[i].status === 'skipped') {
+      rows.push(<div style={{ border: '4px orange solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
     } else {
       rows.push(<div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
     }
@@ -773,6 +775,7 @@ class Main extends React.Component {
 
     this.nameUpdateTimeout = null
     this.onTrainClick = this.onTrainClick.bind(this)
+    this.onSkipClick = this.onSkipClick.bind(this)
     this.saveState = this.saveState.bind(this)
     this.onContestClick = this.onContestClick.bind(this)
     this.onExploreClick = this.onExploreClick.bind(this)
@@ -791,16 +794,13 @@ class Main extends React.Component {
 
   sendMessageByTimeout (message) {
     const self = this
-    // console.log('Sending WS message by timeout.', message)
     if (self.state.connection === 'Opened') {
       if (self.websocket.readyState === self.websocket.OPEN) {
         self.websocket.send(JSON.stringify(message))
       } else {
         ;
-        // console.log('Websocket is not connected.')
       }
     } else {
-      // console.log('Not opened. Still waiting...')
       setTimeout(self.sendMessageByTimeout, 500, message)
     }
   }
@@ -809,11 +809,9 @@ class Main extends React.Component {
     const self = this
     if (self.state.connection === 'Opened') {
       if (self.websocket.readyState === self.websocket.OPEN) {
-        // console.log('Sending WS message.', message)
         self.websocket.send(JSON.stringify(message))
       } else {
         ;
-        // console.log('Websocket is not connected.')
       }
     } else {
       self.startWebsocket()
@@ -868,7 +866,6 @@ class Main extends React.Component {
         self.websocket.send(JSON.stringify({ command: 'ping', payload: { user: self.state.user } }))
         // Send ping.
       } else {
-        // console.log('WS closed. Clear interval.')
         clearInterval(intervalID)
       }
     }
@@ -892,7 +889,6 @@ class Main extends React.Component {
   stopWebsocket () {
     const self = this
     // FIXME: close WS when user leaves the game.
-    // console.log('Closing websocket now.')
     if (self.websocket != null) {
       self.websocket.close()
     }
@@ -928,17 +924,12 @@ class Main extends React.Component {
     }
   }
 
-  displayFinishStatus () {
+  displayFinishStatus (seconds) {
     const self = this
-    /*
-        if (self.state.finishStatusDisplayTimeout === 1) {
-          // FIXME: Restart game.
-        }
-    */
-    if (self.state.finishStatusDisplayTimeout > 0) {
+    if (seconds > 0) {
       document.getElementById('root').dispatchEvent(
-        new CustomEvent('finish-status.tick', { detail: {} }))
-      setTimeout(self.displayFinishStatus, 1000)
+        new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
+      setTimeout(self.displayFinishStatus, 1000, seconds - 1)
     }
   }
 
@@ -950,13 +941,11 @@ class Main extends React.Component {
   stopSlowConnectionMonitor () {
     const self = this
     clearInterval(self.slowConnectionMonitorIntervalID)
-    // console.log('Slow network monitor stopped.')
   }
 
   componentDidMount () {
     const self = this
 
-    // console.log('Fetch categories.')
     fetch('/api/v1/state')
       .then(response => response.json())
       .then(json => {
@@ -1036,7 +1025,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('finish-status.tick', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.finishStatusDisplayTimeout -= 1
+        newState.finishStatusDisplayTimeout = event.detail.seconds
         return newState
       })
     })
@@ -1094,7 +1083,6 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener('image-selection.reply', function (event) {
-      // console.log('userChoice: ', event.detail.userChoice)
       self.sendMessage({
         command: 'reply',
         method: 'image-selection',
@@ -1111,7 +1099,6 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('image.load', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        // console.log('!!!!!', event.detail.img.src, event.detail.roundIndex)
         if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
           newState.preloadedImages[event.detail.roundIndex] = {}
         }
@@ -1174,9 +1161,8 @@ class Main extends React.Component {
           newState.replyMap = {}
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
-          newState.finishStatusDisplayTimeout = 5
           self.stopSlowConnectionMonitor()
-          self.displayFinishStatus()
+          self.displayFinishStatus(6)
         } else if (self.state.currentRound !== newState.currentRound) {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
@@ -1184,49 +1170,38 @@ class Main extends React.Component {
             self.startSlowConnectionMonitor()
           }
           const currentRound = newState.rounds[newState.currentRound - 1]
-          // console.log('Round changed. Loading images...')
           if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
-            // console.log(
-            //   'No images exist for #' + (newState.currentRound - 1) + ' round. Loading now...')
             if (currentRound.img1 !== null) {
-              // console.log('No preloaded for current round. Loading img1...')
               preloadImage(newState.currentRound - 1, 0, currentRound.img1)
             }
             if (currentRound.img2 !== null) {
-              // console.log('No preloaded for current round. Loading img2...')
               preloadImage(newState.currentRound - 1, 1, currentRound.img2)
             }
             if (currentRound.img3 !== null) {
-              // console.log('No preloaded for current round. Loading img3...')
               preloadImage(newState.currentRound - 1, 2, currentRound.img3)
             }
             if (currentRound.img4 !== null) {
-              // console.log('No preloaded for current round. Loading img4...')
               preloadImage(newState.currentRound - 1, 3, currentRound.img4)
             }
           } else {
             if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
               // TODO: Clean that hell.
               if (currentRound.img1 !== null) {
-                // console.log('Round is missing image 0. Loading...')
                 preloadImage(newState.currentRound - 1, 0, currentRound.img1)
               }
             }
             if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
               if (currentRound.img2 !== null) {
-                // console.log('Round is missing image 1. Loading...')
                 preloadImage(newState.currentRound - 1, 1, currentRound.img2)
               }
             }
             if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
               if (currentRound.img3 !== null) {
-                // console.log('Round is missing image 2. Loading...')
                 preloadImage(newState.currentRound - 1, 2, currentRound.img3)
               }
             }
             if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
               if (currentRound.img4 !== null) {
-                // console.log('Round is missing image 3. Loading...')
                 preloadImage(newState.currentRound - 1, 3, currentRound.img4)
               }
             }
@@ -1234,7 +1209,6 @@ class Main extends React.Component {
 
           const nextRound = newState.rounds[newState.currentRound]
           if (nextRound === undefined) {
-            // console.log('No new round!!!', nextRound)
             ;
           } else {
             // preload next round images.
@@ -1422,6 +1396,19 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('game.skip', function (event) {
+      self.sendMessage({ command: 'skip', payload: {} })
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.mode = null
+        newState.method = null
+        newState.currentRound = -1
+        newState.preloadedImages = {}
+        self.displayFinishStatus(6)
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('train-clicked', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1588,6 +1575,11 @@ class Main extends React.Component {
   onTrainClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('train-clicked', { detail: {} }))
+  }
+
+  onSkipClick (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('game.skip', { detail: {} }))
   }
 
   onContestClick (event) {
@@ -1767,7 +1759,7 @@ class Main extends React.Component {
           scorePercent = (userScores.total / totalPossible) * 100
         }
 
-        if (scorePercent >= 95) {
+        if (scorePercent >= 98) {
           if (self.state.modeOpened === 'explore') {
             finishStatus = trn(userLanguage, 'Amazing. New round will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
           } else {
@@ -1775,7 +1767,7 @@ class Main extends React.Component {
           }
         } else if (scorePercent >= 80) {
           if (self.state.modeOpened === 'explore') {
-            finishStatus = trn(userLanguage, 'Very well. New round will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatus = trn(userLanguage, 'Very well, but not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
           } else {
             finishStatus = trn(userLanguage, 'Very well')
           }
@@ -1804,7 +1796,6 @@ class Main extends React.Component {
     }
 
     const secondsFromRecentAction = (Date.now() - self.state.recentReplyTime) / 1000
-
     const startNextExploreGame = self.state.finishStatusDisplayTimeout === 5 &&
       self.state.modeOpened === 'explore' &&
       secondsFromRecentAction < 60
@@ -1975,6 +1966,10 @@ class Main extends React.Component {
         <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}
         </button>)
+      contestBlock = (
+        <button id="skip" onClick={self.onSkipClick}>
+          {trn(userLanguage, 'Skip')}
+        </button>)
     } else {
       trainBlock = (
         <button id="train" onClick={self.onTrainClick}>
@@ -2064,7 +2059,6 @@ class Main extends React.Component {
         gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} isSolved={isSolved}/>
         gameColumn = <div className="column image-wrapper">{gameWidgetElems}</div>
       } else {
-        // console.log('Warning: Game is running but method is unknwon. method: ', self.state.method)
         ;
       }
     }
@@ -2153,6 +2147,9 @@ class Main extends React.Component {
     return (
     <>
       <header className="App-header">
+        <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
+          Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.
+        </div>
         {header}
       </header>
       <div className="container">

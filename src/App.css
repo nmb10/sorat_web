@@ -34,8 +34,8 @@
   color: white;
 }
 
-.word-image-solved {
-  box-Shadow: inset 0px 0px 0px 10px green;
+.word-image {
+  box-shadow: inset 0px 0px 0px 10px green;
 }
 
 @keyframes App-logo-spin {
