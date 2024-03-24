@@ -39,6 +39,8 @@ const translations = {
     'Letters selection': 'Letters selection',
     'Report an issue': 'Report an issue',
     'Tell again': 'Tell again',
+    Skip: 'Skip',
+    'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.',
     Help: 'Help',
     Contribute: 'Contribute',
     Leave: 'Leave',
@@ -141,6 +143,8 @@ const translations = {
     'Letters selection': 'Дамугътæ æвзарун',
     'Report an issue': 'Рæдуд фегъосун кæнун',
     Help: 'Агъаз',
+    Skip: 'Фæццох кæнун',
+    'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Кит: алфа верси. Уотæ гæнæн ес æма дæ прогресс байсафдзæнæй еу бон. Нихатир мин йæ кæнæ.',
     Contribute: 'Æгустадæ',
     Leave: 'Рандæ ун',
     Contest: 'Ерис',
@@ -153,7 +157,7 @@ const translations = {
     'So bad. You can do better!': 'Лæгъуз. Дæ бон хуæздæр æй!',
     Explore: 'Æсгарун',
     'What?': 'Куд?',
-    'You won!': 'You won! FIXME:',
+    'You won!': 'Рамбулдтай!',
 
     // levels
     Simple: 'Еувазæг',
@@ -758,6 +762,7 @@ class Main extends React.Component {
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
       currentRound: null,
+      status: null, // Status of the current game - new, skipped, solved
       players: {}, // current round players.
       preloadedImages: {},
       gameError: null,
@@ -766,7 +771,7 @@ class Main extends React.Component {
       slowMessageCount: 0, // how many messages were delayed
       slowConnection: false,
       progress: {},
-      finishStatusDisplayTimeout: -1,
+      finishStatusDisplayTimeout: 0,
       recentReplyTime: Date.now(),
       autoplayEnabled: true,
       soundVolume: 50,
@@ -843,6 +848,7 @@ class Main extends React.Component {
                   players: message.payload.players,
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
+                  status: message.payload.status,
                   progress: message.payload.progress,
                   gameLastMessageTime: messageTime
                 }
@@ -930,6 +936,25 @@ class Main extends React.Component {
       document.getElementById('root').dispatchEvent(
         new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
       setTimeout(self.startFinishStatusTicker, 1000, seconds - 1)
+    } else {
+      // ticker finished. Start new explore game if needed.
+      let currentRound = {}
+      if (self.state.currentRound && self.state.currentRound !== -1) {
+        currentRound = self.state.rounds[self.state.currentRound - 1]
+      }
+      const currentRoundIsEmpty = Object.keys(currentRound).length === 0
+      const secondsFromRecentInteraction = (Date.now() - self.state.recentReplyTime) / 1000
+      if (self.state.modeOpened === 'explore') {
+        if (secondsFromRecentInteraction < 60 && currentRoundIsEmpty) {
+          self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+        } else {
+          self.setState(prevState => {
+            const newState = _.cloneDeep(prevState)
+            newState.modeOpened = null
+            return newState
+          })
+        }
+      }
     }
   }
 
@@ -1047,16 +1072,10 @@ class Main extends React.Component {
           user: self.state.user
         }
       })
-
+      // It may handle only client side specific state. Server side state should be handled by server.
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.mode = null
         newState.modeOpened = null
-        newState.method = null
-        newState.rounds = []
-        newState.currentRound = -1
-        newState.replyLetters = []
-        newState.preloadedImages = {}
         return newState
       })
     })
@@ -1151,18 +1170,22 @@ class Main extends React.Component {
         newState.players = event.detail.state.players
         newState.rounds = event.detail.state.rounds
         newState.currentRound = event.detail.state.currentRound
+        newState.status = event.detail.state.status
         newState.progress = event.detail.state.progress || {}
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
-
         if (newState.currentRound === -1) {
           newState.replyLetters = []
           newState.replyMap = {}
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
           self.stopSlowConnectionMonitor()
-          self.startFinishStatusTicker(6)
+          if (['explore', 'train'].includes(prevState.modeOpened) && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
+            // WS message just after game finish.
+            // WTF? It should be much simpler!
+            self.startFinishStatusTicker(6)
+          }
         } else if (self.state.currentRound !== newState.currentRound) {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
@@ -1263,12 +1286,6 @@ class Main extends React.Component {
             }
           }
         }
-        // For some reason in firefox it doesn't upgrade the state. The problem is not clear yet,
-        // to overcome that create new object from state.
-        // Assume problem in immutable update helper
-        // FIXME: Should be fixed ASAP. stringify/parse if very heavy here.
-        // const newState1 = JSON.parse(JSON.stringify(newState))
-        // newState1.gameLastMessageTime = newState.gameLastMessageTime
         return newState
       })
     })
@@ -1400,10 +1417,7 @@ class Main extends React.Component {
       self.sendMessage({ command: 'skip', payload: {} })
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.mode = null
-        newState.method = null
-        newState.currentRound = -1
-        newState.preloadedImages = {}
+        newState.status = 'skipped'
         self.startFinishStatusTicker(6)
         return newState
       })
@@ -1653,7 +1667,7 @@ class Main extends React.Component {
       ', Frontend: ' + self.state.versions.frontend +
       ', Translations: ' + self.state.versions.translations +
       ', Images: ' + self.state.versions.images
-    // console.log('Before render.', self.state)
+    console.log('Before render.', self.state)
 
     const languageOptionItems = self.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
@@ -1751,7 +1765,14 @@ class Main extends React.Component {
       const allPlayersScores = getPlayersScores(self.state.players, finishedRounds)
       const userScores = allPlayersScores[self.state.user.id]
 
-      if (Object.keys(self.state.rounds[0].solutions).length === 1) {
+      if (self.state.status === 'skipped') {
+        finishStatusStyle.border = '3px solid red'
+        finishStatus = trn(userLanguage, 'Game skipped. New game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+        finishStatusBlock = <div style={finishStatusStyle}>
+          {finishStatus}
+        </div>
+      } else if (Object.keys(self.state.rounds[0].solutions).length === 1) {
+        // FIXME: Too dirty. Refactor!
         // Single player mode (train/progress)
         let scorePercent = 0
         if (userScores.all.length > 0) {
@@ -1761,12 +1782,14 @@ class Main extends React.Component {
 
         if (scorePercent >= 98) {
           if (self.state.modeOpened === 'explore') {
-            finishStatus = trn(userLanguage, 'Amazing. New round will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatusStyle.border = '3px solid green'
+            finishStatus = trn(userLanguage, 'Amazing. New game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
           } else {
             finishStatus = trn(userLanguage, 'Amazing')
           }
         } else if (scorePercent >= 80) {
           if (self.state.modeOpened === 'explore') {
+            finishStatusStyle.border = '3px solid red'
             finishStatus = trn(userLanguage, 'Very well, but not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
           } else {
             finishStatus = trn(userLanguage, 'Very well')
@@ -1795,11 +1818,6 @@ class Main extends React.Component {
       </div>
     }
 
-    const secondsFromRecentAction = (Date.now() - self.state.recentReplyTime) / 1000
-    const startNextExploreGame = self.state.finishStatusDisplayTimeout === 5 &&
-      self.state.modeOpened === 'explore' &&
-      secondsFromRecentAction < 60
-
     let splittedLettersItems
 
     let isSolved
@@ -1809,19 +1827,9 @@ class Main extends React.Component {
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
     const currentRoundNotEmpty = Object.keys(currentRound).length > 0
-    const currentRoundIsEmpty = Object.keys(currentRound).length === 0
-
-    if (startNextExploreGame && currentRoundIsEmpty) {
-      setTimeout(
-        function () {
-          self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
-        },
-        5000)
-    }
 
     let replyLetterItems = []
-
-    if (currentRoundNotEmpty) {
+    if (currentRoundNotEmpty && self.state.method === 'letters-selection') {
       // New responsive implementation
       // FIXME: handle currentRound.question as string instead of list of words.
       const attempts = currentRound.solutions[self.state.user.id].attempts
@@ -1960,15 +1968,17 @@ class Main extends React.Component {
         <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
         </button>)
-    } else if (self.state.modeOpened === 'explore') {
+    } else if (self.state.modeOpened === 'explore' && currentRoundNotEmpty) {
       exploreBlock = (
         <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}
         </button>)
-      contestBlock = (
-        <button id="skip" onClick={self.onSkipClick}>
-          {trn(userLanguage, 'Skip')}
-        </button>)
+      if (self.state.status !== 'skipped') {
+        contestBlock = (
+          <button id="skip" onClick={self.onSkipClick}>
+            {trn(userLanguage, 'Skip')}
+          </button>)
+      }
     } else {
       trainBlock = (
         <button id="train" onClick={self.onTrainClick}>
@@ -2147,7 +2157,7 @@ class Main extends React.Component {
     <>
       <header className="App-header">
         <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
-          Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.
+          {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.')}
         </div>
         {header}
       </header>
