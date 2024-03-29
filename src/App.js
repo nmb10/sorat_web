@@ -39,6 +39,8 @@ const translations = {
     'Letters selection': 'Letters selection',
     'Report an issue': 'Report an issue',
     'Tell again': 'Tell again',
+    'Game skipped. New game will start in': 'Game skipped. New game will start in',
+    'Amazing. New game will start in': 'Amazing. New game will start in',
     Skip: 'Skip',
     'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.',
     Help: 'Help',
@@ -97,6 +99,10 @@ const translations = {
     Leave: 'Выйти',
     Contest: 'Состязание',
     Train: 'Тренировка',
+    Skip: 'Пропустить',
+    'Amazing. New game will start in': 'Отлично. Новая игра начнется через',
+    'Game skipped. New game will start in': 'Игра пропущена. Новая игра начнется через',
+    Help: 'Помощь',
     'Start contest': 'Найти соперника',
     'Start train': 'Начать тренировку',
     Amazing: 'Великолепно',
@@ -765,6 +771,7 @@ class Main extends React.Component {
       replyLetters: [], // Letters user clicked while replying
       currentRound: null,
       status: null, // Status of the current game - new, skipped, solved
+      totalHints: null, // Amount of hints on that game.
       players: {}, // current round players.
       preloadedImages: {},
       gameError: null,
@@ -851,6 +858,7 @@ class Main extends React.Component {
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
                   status: message.payload.status,
+                  totalHints: message.payload.total_hints,
                   progress: message.payload.progress,
                   gameLastMessageTime: messageTime
                 }
@@ -1173,6 +1181,7 @@ class Main extends React.Component {
         newState.rounds = event.detail.state.rounds
         newState.currentRound = event.detail.state.currentRound
         newState.status = event.detail.state.status
+        newState.totalHints = event.detail.state.totalHints
         newState.progress = event.detail.state.progress || {}
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
@@ -1669,7 +1678,7 @@ class Main extends React.Component {
       ', Frontend: ' + self.state.versions.frontend +
       ', Translations: ' + self.state.versions.translations +
       ', Images: ' + self.state.versions.images
-    console.log('Before render.', self.state)
+    // console.log('Before render.', self.state)
 
     const languageOptionItems = self.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
@@ -1782,31 +1791,21 @@ class Main extends React.Component {
           scorePercent = (userScores.total / totalPossible) * 100
         }
 
-        if (scorePercent >= 98) {
-          if (self.state.modeOpened === 'explore') {
+        if (self.state.modeOpened === 'explore') {
+          if (self.state.totalHints > 3) {
+            finishStatus = trn(userLanguage, 'Not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatusStyle.border = '3px solid red'
+          } else {
             finishStatusStyle.border = '3px solid green'
             finishStatus = trn(userLanguage, 'Amazing. New game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
-          } else {
-            finishStatus = trn(userLanguage, 'Amazing')
-          }
-        } else if (scorePercent >= 80) {
-          if (self.state.modeOpened === 'explore') {
-            finishStatusStyle.border = '3px solid red'
-            finishStatus = trn(userLanguage, 'Very well, but not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
-          } else {
-            finishStatus = trn(userLanguage, 'Very well')
-          }
-        } else if (scorePercent >= 60) {
-          if (self.state.modeOpened === 'explore') {
-            finishStatus = trn(userLanguage, 'Well, but not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
-            finishStatusStyle.border = '3px solid red'
-          } else {
-            finishStatus = trn(userLanguage, 'Well')
           }
         } else {
-          if (self.state.modeOpened === 'explore') {
-            finishStatus = trn(userLanguage, 'So bad. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
-            finishStatusStyle.border = '3px solid red'
+          if (scorePercent >= 98) {
+            finishStatus = trn(userLanguage, 'Amazing')
+          } else if (scorePercent >= 80) {
+            finishStatus = trn(userLanguage, 'Very well')
+          } else if (scorePercent >= 60) {
+            finishStatus = trn(userLanguage, 'Well')
           } else {
             finishStatus = trn(userLanguage, 'So bad. You can do better!')
           }
@@ -1994,6 +1993,13 @@ class Main extends React.Component {
         <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Explore')}>
           {trn(userLanguage, 'Explore')}
         </button>)
+    }
+
+    // FIXME: Too dirty. Refactor (see the upper code.)
+    if (self.state.finishStatusDisplayTimeout > 0) {
+      exploreBlock = null
+      contestBlock = null
+      trainBlock = null
     }
 
     let helpButton
