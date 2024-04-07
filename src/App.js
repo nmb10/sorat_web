@@ -229,17 +229,6 @@ const errorBlockStyle = {
   top: 0
 }
 
-// FIXME: Move to css.
-//
-const questionLetterStyle = {
-  fontSize: '30px',
-  float: 'left',
-  marginLeft: '5px',
-  padding: 0,
-  width: '60px',
-  height: '60px'
-}
-
 const finishStatusStyle = {
   minWidth: '400px',
   minHeight: '60px',
@@ -465,6 +454,71 @@ function FinishedRoundsTable (props) {
   )
 };
 
+TransitionWidget.propTypes = {
+  currentGame: PropTypes.object,
+  nextGame: PropTypes.object,
+  mode: PropTypes.string,
+  totalHints: PropTypes.number,
+  currentRoundNumber: PropTypes.number
+}
+
+function TransitionWidget (props) {
+  // Displays transition between current and next rounds.
+
+  // TODO: Refactor and move styles to css.
+  if (props.mode === 'explore' && props.currentRoundNumber >= 0) {
+    if (props.totalHints === 0) {
+      return (<table>
+        <tr>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
+          <td style={{ borderBottom: 0 }}>
+            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
+            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
+            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
+          </td>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
+        </tr>
+      </table>)
+    } else if (props.totalHints === 1) {
+      return (<table>
+        <tr>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
+          <td style={{ borderBottom: 0 }}>
+            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
+            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
+            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
+          </td>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
+        </tr>
+      </table>)
+    } else if (props.totalHints === 2) {
+      return (<table>
+        <tr>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
+          <td style={{ borderBottom: 0 }}>
+            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
+            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
+            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
+          </td>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
+        </tr>
+      </table>)
+    } else {
+      return (<table>
+        <tr>
+          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
+          <td style={{ borderBottom: 0 }}>
+            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
+            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
+            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
+          </td>
+          <td style={{ borderBottom: 0, color: 'red', fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
+        </tr>
+      </table>)
+    }
+  }
+};
+
 ProgressWidget.propTypes = {
   games: PropTypes.array
 }
@@ -474,25 +528,23 @@ function ProgressWidget (props) {
   * FIXME: Add example.
   */
 
-  let temp = ''
-  let temp1 = []
+  let topicPivot = ''
+  let gamesCollector = []
   const splitted = []
+
   // FIXME: Too dirty. Add tests and refactor.
   for (let i = 0; i < props.games.length; ++i) {
-    if (temp === '') {
-      temp = props.games[i].topic.code
+    if (topicPivot === '') {
+      topicPivot = props.games[i].topic.code
     }
 
-    if (temp === props.games[i].topic.code) {
-      temp1.push(props.games[i])
+    if (topicPivot === props.games[i].topic.code) {
+      gamesCollector.push(props.games[i])
     } else {
-      splitted.push(temp1)
-      temp = props.games[i].topic.code
-      temp1 = [props.games[i]]
+      splitted.push(gamesCollector)
+      topicPivot = props.games[i].topic.code
+      gamesCollector = [props.games[i]]
     }
-  }
-  if (temp1.length >= 0) {
-    splitted.push(temp1)
   }
 
   const rows = []
@@ -680,13 +732,13 @@ function QuestionLetter (props) {
 
   if (props.isChosen || props.letter === ' ') {
     return (
-      <button disabled style={questionLetterStyle}>
+      <button className="question-letter-button" disabled>
         {props.letter}
       </button>
     )
   } else {
     return (
-      <button onClick={onClick} style={questionLetterStyle}>
+      <button className="question-letter-button" onClick={onClick}>
         {props.letter}
       </button>
     )
@@ -749,7 +801,8 @@ class Main extends React.Component {
         backend: '',
         frontend: '',
         images: '',
-        translations: ''
+        translations: '',
+        voices: 'FIXME:'
       },
       user: {
         name: null,
@@ -771,7 +824,7 @@ class Main extends React.Component {
       replyLetters: [], // Letters user clicked while replying
       currentRound: null,
       status: null, // Status of the current game - new, skipped, solved
-      totalHints: null, // Amount of hints on that game.
+      totalHints: 0, // Amount of hints on that game.
       players: {}, // current round players.
       preloadedImages: {},
       gameError: null,
@@ -781,6 +834,7 @@ class Main extends React.Component {
       slowConnection: false,
       progress: {},
       finishStatusDisplayTimeout: 0,
+      replyWaitingTimeout: 0,
       recentReplyTime: Date.now(),
       autoplayEnabled: true,
       soundVolume: 50,
@@ -2160,6 +2214,25 @@ class Main extends React.Component {
         </button>
       )
     }
+    let debugBlock = null
+    if (window.location.hash === '#debug=1') {
+      debugBlock = <div>{Date.now() + ': ' + 'asdfsd'}</div>
+    }
+
+    let firstUnsolvedGame = {}
+    let secondUnsolvedGame = {}
+    if (Object.keys(self.state.progress).length > 0) {
+      // Progress exists.
+      firstUnsolvedGame = self.state.progress.first_unsolved_game
+      secondUnsolvedGame = self.state.progress.second_unsolved_game
+    }
+
+    const transitionBlock = <TransitionWidget
+      currentGame={ firstUnsolvedGame }
+      nextGame={ secondUnsolvedGame }
+      totalHints={ self.state.totalHints || 0 }
+      mode={ self.state.mode }
+      currentRoundNumber={ self.state.currentRound } />
 
     return (
     <>
@@ -2170,6 +2243,7 @@ class Main extends React.Component {
         {header}
       </header>
       <div className="container">
+        {debugBlock}
         <br />
         {finishStatusBlock}
         <div className="row">
@@ -2201,6 +2275,9 @@ class Main extends React.Component {
         </div>
         <div className="row">
           {finishedRoundsTable}
+        </div>
+        <div className="row">
+          {transitionBlock}
         </div>
         <div className="row">
           {gameColumn}

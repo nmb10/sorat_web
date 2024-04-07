@@ -51,16 +51,6 @@ body {
   background-color: #282c34;
 }
 
-.reply-letter {
-    font-size: 40px;
-    float: left;
-    margin: 0;
-    width: 60px;
-    height: 60px;
-    padding: 0;
-    text-align: center;
-}
-
 .reply-letter a {
     float: right;
     margin-top: -10px;
