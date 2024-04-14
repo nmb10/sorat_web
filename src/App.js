@@ -5,9 +5,6 @@ import './App.css'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-// Slow network emulation. Set to 0 to disable. Note: this timeout works for first round. Other rounds use preloaded images.
-// How many ms to wait before images display.
-// const imageLoadTimeout = 5000
 const imageLoadTimeout = 0
 
 const tableSizeMap = {
@@ -189,6 +186,7 @@ const translations = {
     Explore: 'Explorer',
     'What?': 'Quoi?',
     'You won!': 'Tu as gagné',
+    'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': "Avertissement: il s'agit d'une version alpha de l'application. Soyez prêt à vous perdre votre progression en mode d'exploration une fois. Désolé pour les désagréments.",
 
     // levels
     Simple: 'Simple',
@@ -256,11 +254,6 @@ function trn (userLanguage, text) {
     searchText = 'Hard'
   }
   return translations[userLanguage][searchText] || (userLanguage + ': ' + searchText)
-}
-
-function getSecondsDiff (dt1, dt2) {
-  const diffMs = dt1.getTime() - dt2.getTime()
-  return diffMs / 1000
 }
 
 function getPlayersScores (players, finishedRounds) {
@@ -458,6 +451,7 @@ TransitionWidget.propTypes = {
   currentGame: PropTypes.object,
   nextGame: PropTypes.object,
   mode: PropTypes.string,
+  userLanguage: PropTypes.string,
   totalHints: PropTypes.number,
   currentRoundNumber: PropTypes.number
 }
@@ -465,56 +459,27 @@ TransitionWidget.propTypes = {
 function TransitionWidget (props) {
   // Displays transition between current and next rounds.
 
-  // TODO: Refactor and move styles to css.
-  if (props.mode === 'explore' && props.currentRoundNumber >= 0) {
-    if (props.totalHints === 0) {
-      return (<table>
-        <tr>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
-          <td style={{ borderBottom: 0 }}>
-            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
-            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
-            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
-          </td>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
-        </tr>
-      </table>)
-    } else if (props.totalHints === 1) {
-      return (<table>
-        <tr>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
-          <td style={{ borderBottom: 0 }}>
-            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
-            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
-            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
-          </td>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
-        </tr>
-      </table>)
-    } else if (props.totalHints === 2) {
-      return (<table>
-        <tr>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
-          <td style={{ borderBottom: 0 }}>
-            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
-            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
-            <div style={{ color: 'green', fontSize: '30px' }}>---</div>
-          </td>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
-        </tr>
-      </table>)
+  if (props.mode === 'explore' && props.currentRoundNumber >= 0 && props.currentGame && props.currentGame.topic) {
+    const diff = 3 - props.totalHints
+    if (diff > 0) {
+      return <span
+          title={trn(props.userLanguage, 'Hints amount allowed pass to the next round.')}
+          style={{ marginRight: '6px', float: 'left', color: 'green', fontSize: '33px' }}>
+        {diff}
+      </span>
+    } else if (diff === 0) {
+      return <span
+            title={trn(props.userLanguage, 'Hints are not allowed to pass to the next round.')}
+            style={{ marginRight: '6px', float: 'left', color: 'rgb(114, 28, 36)', fontSize: '33px' }}>
+        0
+      </span>
     } else {
-      return (<table>
-        <tr>
-          <td style={{ borderBottom: 0, fontSize: '30px' }}>{ props.currentGame.topic.local_name }#{ props.currentGame.topic_set }</td>
-          <td style={{ borderBottom: 0 }}>
-            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
-            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
-            <div style={{ color: 'red', fontSize: '30px' }}>-x-</div>
-          </td>
-          <td style={{ borderBottom: 0, color: 'red', fontSize: '30px' }}>{ props.nextGame.topic.local_name }#{ props.nextGame.topic_set }</td>
-        </tr>
-      </table>)
+      // Too much hints. Next round not allowed.
+      return <span
+          title={trn(props.userLanguage, 'Too many hints. The next game will not be available.')}
+          style={{ marginRight: '6px', float: 'left', color: 'red', fontSize: '33px' }}>
+        x
+      </span>
     }
   }
 };
@@ -772,7 +737,6 @@ function ReplyLetter (props) {
   if (props.letter !== ' ') {
     letterStyle.border = 'solid gray 2px'
   }
-
   if (props.isSolved && props.letter !== ' ') {
     letterStyle.border = 'solid green 2px'
   } else if (props.isWrongReply && props.letter !== ' ') {
@@ -851,16 +815,14 @@ class Main extends React.Component {
     this.onDeclineClick = this.onDeclineClick.bind(this)
     this.startWebsocket = this.startWebsocket.bind(this)
     this.stopWebsocket = this.stopWebsocket.bind(this)
-    this.sendMessageByTimeout = this.sendMessageByTimeout.bind(this)
-    this.checkSlowConnection = this.checkSlowConnection.bind(this)
-    this.startSlowConnectionMonitor = this.startSlowConnectionMonitor.bind(this)
-    this.stopSlowConnectionMonitor = this.stopSlowConnectionMonitor.bind(this)
-    this.startFinishStatusTicker = this.startFinishStatusTicker.bind(this)
+    this.sendMessageWhenOpened = this.sendMessageWhenOpened.bind(this)
+    this.runFinishStatusTicker = this.runFinishStatusTicker.bind(this)
+    this.runCurrentRoundTimeoutTicker = this.runCurrentRoundTimeoutTicker.bind(this)
     this.onAutoplayToggleClick = this.onAutoplayToggleClick.bind(this)
     this.onVolumeChange = this.onVolumeChange.bind(this)
   }
 
-  sendMessageByTimeout (message) {
+  sendMessageWhenOpened (message) {
     const self = this
     if (self.state.connection === 'Opened') {
       if (self.websocket.readyState === self.websocket.OPEN) {
@@ -869,7 +831,7 @@ class Main extends React.Component {
         ;
       }
     } else {
-      setTimeout(self.sendMessageByTimeout, 500, message)
+      setTimeout(self.sendMessageWhenOpened, 500, message)
     }
   }
 
@@ -883,7 +845,7 @@ class Main extends React.Component {
       }
     } else {
       self.startWebsocket()
-      self.sendMessageByTimeout(message)
+      self.sendMessageWhenOpened(message)
     }
   }
 
@@ -913,7 +875,6 @@ class Main extends React.Component {
                   currentRound: message.payload.current_round,
                   status: message.payload.status,
                   totalHints: message.payload.total_hints,
-                  progress: message.payload.progress,
                   gameLastMessageTime: messageTime
                 }
               }
@@ -927,10 +888,14 @@ class Main extends React.Component {
       } else if (message.type === 'game_error') {
         document.getElementById('root').dispatchEvent(
           new CustomEvent('game_error', { detail: message.payload }))
+      } else if (message.type === 'progress') {
+        // progress: message.payload.progress,
+        document.getElementById('root').dispatchEvent(
+          new CustomEvent('progress', { detail: message.payload }))
       }
     }
+    /*
     let intervalID
-
     const sendPing = function () {
       if (self.websocket.readyState === WebSocket.OPEN) {
         self.websocket.send(JSON.stringify({ command: 'ping', payload: { user: self.state.user } }))
@@ -939,11 +904,11 @@ class Main extends React.Component {
         clearInterval(intervalID)
       }
     }
-
+    */
     self.websocket.onopen = function (evt) {
-      sendPing()
-      intervalID = setInterval(sendPing, 1000 * 30)
+      // intervalID = setInterval(sendPing, 1000 * 30)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.opened'))
+      self.runCurrentRoundTimeoutTicker()
     }
 
     self.websocket.onclose = function (evt) {
@@ -985,21 +950,32 @@ class Main extends React.Component {
       })
   }
 
-  checkSlowConnection () {
+  runCurrentRoundTimeoutTicker () {
     const self = this
-    const now = new Date()
-    if (self.state.gameLastMessageTime !== null && getSecondsDiff(now, self.state.gameLastMessageTime) > 4) {
-      document.getElementById('root').dispatchEvent(
-        new CustomEvent('connection.slow-message', { detail: {} }))
+    let currentRound = {}
+    if (self.state.currentRound && self.state.currentRound !== -1) {
+      currentRound = self.state.rounds[self.state.currentRound - 1]
     }
+    if (currentRound.timeout > 0) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent(
+          'round-timeout.tick',
+          {
+            detail: {
+              timeout: currentRound.timeout - 1,
+              currentRound: self.state.currentRound
+            }
+          }))
+    }
+    setTimeout(self.runCurrentRoundTimeoutTicker, 1000)
   }
 
-  startFinishStatusTicker (seconds) {
+  runFinishStatusTicker (seconds) {
     const self = this
     if (seconds > 0) {
       document.getElementById('root').dispatchEvent(
         new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
-      setTimeout(self.startFinishStatusTicker, 1000, seconds - 1)
+      setTimeout(self.runFinishStatusTicker, 1000, seconds - 1)
     } else {
       // ticker finished. Start new explore game if needed.
       let currentRound = {}
@@ -1022,16 +998,6 @@ class Main extends React.Component {
     }
   }
 
-  startSlowConnectionMonitor () {
-    const self = this
-    self.slowConnectionMonitorIntervalID = setInterval(self.checkSlowConnection, 1000)
-  }
-
-  stopSlowConnectionMonitor () {
-    const self = this
-    clearInterval(self.slowConnectionMonitorIntervalID)
-  }
-
   componentDidMount () {
     const self = this
 
@@ -1048,7 +1014,6 @@ class Main extends React.Component {
           newState.method = json.method
           newState.versions = json.versions
           newState.stateReceived = true
-
           if (newState.mode == null) {
             self.stopWebsocket()
           } else {
@@ -1115,6 +1080,14 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.finishStatusDisplayTimeout = event.detail.seconds
+        return newState
+      })
+    })
+
+    document.getElementById('root').addEventListener('round-timeout.tick', function (event) {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.rounds[event.detail.currentRound - 1].timeout = event.detail.timeout
         return newState
       })
     })
@@ -1209,6 +1182,14 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('progress', function (event) {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.progress = event.detail
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('tick-challenge', function (event) {
       if (self.state.challenge == null) {
         ;
@@ -1236,7 +1217,6 @@ class Main extends React.Component {
         newState.currentRound = event.detail.state.currentRound
         newState.status = event.detail.state.status
         newState.totalHints = event.detail.state.totalHints
-        newState.progress = event.detail.state.progress || {}
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
@@ -1245,18 +1225,14 @@ class Main extends React.Component {
           newState.replyMap = {}
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
-          self.stopSlowConnectionMonitor()
           if (['explore', 'train'].includes(prevState.modeOpened) && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
             // WS message just after game finish.
             // WTF? It should be much simpler!
-            self.startFinishStatusTicker(6)
+            self.runFinishStatusTicker(6)
           }
         } else if (self.state.currentRound !== newState.currentRound) {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
-          if (newState.currentRound === 1) {
-            self.startSlowConnectionMonitor()
-          }
           const currentRound = newState.rounds[newState.currentRound - 1]
           if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
             if (currentRound.img1 !== null) {
@@ -1483,7 +1459,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.status = 'skipped'
-        self.startFinishStatusTicker(6)
+        self.runFinishStatusTicker(6)
         return newState
       })
     })
@@ -2061,7 +2037,7 @@ class Main extends React.Component {
     if (self.state.mode != null && currentRoundNotEmpty) {
       roundDetails = (
         <span id='round-details' style={{ fontSize: '24px', marginTop: '10px', float: 'left' }}>
-          Round #{self.state.currentRound} of {self.state.rounds.length}
+          #{self.state.currentRound} of {self.state.rounds.length}
         </span>)
       if (currentRound.solutions[self.state.user.id].hints.length < 3 && !isSolved) {
         helpButton = (
@@ -2228,6 +2204,7 @@ class Main extends React.Component {
     }
 
     const transitionBlock = <TransitionWidget
+      userLanguage={ userLanguage }
       currentGame={ firstUnsolvedGame }
       nextGame={ secondUnsolvedGame }
       totalHints={ self.state.totalHints || 0 }
@@ -2277,13 +2254,11 @@ class Main extends React.Component {
           {finishedRoundsTable}
         </div>
         <div className="row">
-          {transitionBlock}
-        </div>
-        <div className="row">
           {gameColumn}
         </div>
         <div className="row">
           <div className="column">
+            {transitionBlock}
             {helpButton}&nbsp;
             {voiceButton}
             {roundDetails}&nbsp;&nbsp;&nbsp;
