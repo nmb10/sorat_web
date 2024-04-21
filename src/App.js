@@ -766,7 +766,7 @@ class Main extends React.Component {
         frontend: '',
         images: '',
         translations: '',
-        voices: 'FIXME:'
+        voices: ''
       },
       user: {
         name: null,
@@ -889,22 +889,11 @@ class Main extends React.Component {
         document.getElementById('root').dispatchEvent(
           new CustomEvent('game_error', { detail: message.payload }))
       } else if (message.type === 'progress') {
-        // progress: message.payload.progress,
         document.getElementById('root').dispatchEvent(
           new CustomEvent('progress', { detail: message.payload }))
       }
     }
-    /*
-    let intervalID
-    const sendPing = function () {
-      if (self.websocket.readyState === WebSocket.OPEN) {
-        self.websocket.send(JSON.stringify({ command: 'ping', payload: { user: self.state.user } }))
-        // Send ping.
-      } else {
-        clearInterval(intervalID)
-      }
-    }
-    */
+
     self.websocket.onopen = function (evt) {
       // intervalID = setInterval(sendPing, 1000 * 30)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.opened'))
@@ -976,8 +965,9 @@ class Main extends React.Component {
       document.getElementById('root').dispatchEvent(
         new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
       setTimeout(self.runFinishStatusTicker, 1000, seconds - 1)
-    } else {
-      // ticker finished. Start new explore game if needed.
+    }
+    if (seconds === 2) {
+      // ticker will finish soon. Start new explore game if needed.
       let currentRound = {}
       if (self.state.currentRound && self.state.currentRound !== -1) {
         currentRound = self.state.rounds[self.state.currentRound - 1]
@@ -1707,7 +1697,8 @@ class Main extends React.Component {
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend +
       ', Translations: ' + self.state.versions.translations +
-      ', Images: ' + self.state.versions.images
+      ', Images: ' + self.state.versions.images +
+      ', Voices: ' + self.state.versions.voices
     // console.log('Before render.', self.state)
 
     const languageOptionItems = self.state.languages
