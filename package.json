@@ -11,7 +11,7 @@
       "not op_mini all"
     ]
   },
-  "version": "0.1.319",
+  "version": "0.1.320",
   "version_note": "actual version is in manifest.json. Change there if you changed it here.",
   "private": true,
   "dependencies": {
