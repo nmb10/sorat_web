@@ -1,4 +1,5 @@
 import spinner from './spinner1.png'
+import iconHelp from './icons8-help-50.png'
 
 import React from 'react'
 import './App.css'
@@ -6,6 +7,9 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 const imageLoadTimeout = 0
+
+// how many seconds to wait before showing word letters.
+const LETTERS_DISPLAY_TIMEOUT = 3
 
 const tableSizeMap = {
   1: [1, 1],
@@ -314,10 +318,18 @@ function preloadImage (roundIndex, imageIndex, imageMap) {
   img.src = imageMap.src
 }
 
-function questionLettersToTable (questionLetters, chosenQueryIndexes) {
+function questionLettersToTable (questionLetters, chosenQueryIndexes, lettersDisplayTimeout) {
   const [tableRowsCount, tableColumnsCount] = tableSizeMap[questionLetters.length]
   let letterIndex, letter
   const tableRows = []
+
+  const tdStyle = {
+    display: 'inline-block', padding: 0, borderBottom: 0
+  }
+
+  if (lettersDisplayTimeout > 0) {
+    tdStyle.opacity = 0
+  }
 
   for (let i = 0; i < tableRowsCount; ++i) {
     const rowElems = []
@@ -325,7 +337,9 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes) {
       if (questionLetters.length > 0) {
         [letterIndex, letter] = questionLetters.shift()
         const isChosen = chosenQueryIndexes.includes(pair(0, letterIndex))
-        const questionLetter = <td style={{ display: 'inline-block', padding: 0, borderBottom: 0 }}><QuestionLetter letter={letter} wordIndex={0} letterIndex={letterIndex} isChosen={isChosen} /></td>
+        const questionLetter = <td style={tdStyle}>
+          <QuestionLetter letter={letter} wordIndex={0} letterIndex={letterIndex} isChosen={isChosen} />
+        </td>
         rowElems.push(questionLetter)
       }
     }
@@ -337,7 +351,8 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes) {
       <tbody>
         {tableRows}
       </tbody>
-    </table>)
+    </table>
+  )
 };
 
 function pair (wordIndex, letterIndex) {
@@ -802,7 +817,9 @@ class Main extends React.Component {
       recentReplyTime: Date.now(),
       autoplayEnabled: true,
       soundVolume: 50,
-      voicePlayed: false
+      voicePlayed: false,
+      isDemoGame: false,
+      lettersDisplayTimeout: 0
     }
 
     this.nameUpdateTimeout = null
@@ -817,6 +834,7 @@ class Main extends React.Component {
     this.stopWebsocket = this.stopWebsocket.bind(this)
     this.sendMessageWhenOpened = this.sendMessageWhenOpened.bind(this)
     this.runFinishStatusTicker = this.runFinishStatusTicker.bind(this)
+    this.runLettersDisplayTimeoutTicker = this.runLettersDisplayTimeoutTicker.bind(this)
     this.runCurrentRoundTimeoutTicker = this.runCurrentRoundTimeoutTicker.bind(this)
     this.onAutoplayToggleClick = this.onAutoplayToggleClick.bind(this)
     this.onVolumeChange = this.onVolumeChange.bind(this)
@@ -893,9 +911,18 @@ class Main extends React.Component {
           new CustomEvent('progress', { detail: message.payload }))
       }
     }
+    let intervalID
+    const sendPing = function () {
+      if (self.websocket.readyState === WebSocket.OPEN) {
+        // TODO: Find a native way to send ping.
+        self.websocket.send(JSON.stringify({ command: 'ping', payload: '' }))
+      } else {
+        clearInterval(intervalID)
+      }
+    }
 
     self.websocket.onopen = function (evt) {
-      // intervalID = setInterval(sendPing, 1000 * 30)
+      intervalID = setInterval(sendPing, 1000 * 30)
       document.getElementById('root').dispatchEvent(new CustomEvent('ws.opened'))
       self.runCurrentRoundTimeoutTicker()
     }
@@ -959,6 +986,15 @@ class Main extends React.Component {
     setTimeout(self.runCurrentRoundTimeoutTicker, 1000)
   }
 
+  runLettersDisplayTimeoutTicker (seconds) {
+    const self = this
+    if (seconds > 0) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('letters-display.tick', { detail: { seconds: seconds - 1 } }))
+      setTimeout(self.runLettersDisplayTimeoutTicker, 1000, seconds - 1)
+    }
+  }
+
   runFinishStatusTicker (seconds) {
     const self = this
     if (seconds > 0) {
@@ -1000,11 +1036,23 @@ class Main extends React.Component {
           newState.topics = json.topics
           newState.user = json.user
           newState.mode = json.mode
+          newState.isDemoGame = json.is_demo_game
           newState.modeOpened = json.mode
           newState.method = json.method
           newState.versions = json.versions
           newState.stateReceived = true
+          newState.rounds = json.rounds
+          newState.currentRound = json.current_round
+          const currentRoundObj = newState.rounds[newState.currentRound - 1]
+          const word = currentRoundObj.question[0] // FIXME: Use string instead of list of strings
+          const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
+          newState.replyMap = {}
+          newState.replyLetters = [replyLetters.join('')]
+          // FIXME: Add state.
+
           if (newState.mode == null) {
+            self.stopWebsocket()
+          } else if (newState.isDemoGame) {
             self.stopWebsocket()
           } else {
             self.startWebsocket()
@@ -1063,6 +1111,14 @@ class Main extends React.Component {
       self.sendMessage({
         command: 'help',
         payload: {}
+      })
+    })
+
+    document.getElementById('root').addEventListener('letters-display.tick', function (event) {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.lettersDisplayTimeout = event.detail.seconds
+        return newState
       })
     })
 
@@ -1283,6 +1339,7 @@ class Main extends React.Component {
           const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
           newState.replyLetters = [replyLetters.join('')]
+          self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
         } else {
           const currentRound = newState.rounds[newState.currentRound - 1]
           const stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
@@ -1578,10 +1635,21 @@ class Main extends React.Component {
           }
         }
         if (!containsQuestionMark) {
-          self.sendMessage({
-            command: 'reply',
-            payload: newState.replyLetters
-          })
+          if (prevState.isDemoGame) {
+            newState.mode = 'explore_requested'
+            newState.modeOpened = 'explore'
+            newState.isDemoGame = false
+            newState.rounds = []
+            newState.currentRound = -1
+            // We always send user in payload because server may loose initial state once (on
+            // backend restart for example).
+            self.sendMessage({ command: 'explore', payload: { user: newState.user } })
+          } else {
+            self.sendMessage({
+              command: 'reply',
+              payload: newState.replyLetters
+            })
+          }
         }
         return newState
       })
@@ -1854,9 +1922,10 @@ class Main extends React.Component {
     if (currentRoundNotEmpty && self.state.method === 'letters-selection') {
       // New responsive implementation
       // FIXME: handle currentRound.question as string instead of list of words.
-      const attempts = currentRound.solutions[self.state.user.id].attempts
-      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
 
+      const attempts = currentRound.solutions[self.state.user.id].attempts
+
+      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
       const splittedLetters = [[]]
       const words = currentRound.question[0]
       for (let letterIndex = 0; letterIndex < words.length; ++letterIndex) {
@@ -1874,7 +1943,7 @@ class Main extends React.Component {
 
       for (let i = 0; i < splittedLetters.length; ++i) {
         questionLettersTables.push(questionLettersToTable(
-          splittedLetters[i], chosenQueryIndexes))
+          splittedLetters[i], chosenQueryIndexes, self.state.lettersDisplayTimeout))
       }
 
       const letterItems1 = questionLettersTables
@@ -2025,26 +2094,33 @@ class Main extends React.Component {
 
     let helpButton
     let roundDetails
-    if (self.state.mode != null && currentRoundNotEmpty) {
+    if (self.state.mode != null && currentRoundNotEmpty && !self.state.isDemoGame) {
       roundDetails = (
-        <span id='round-details' style={{ fontSize: '24px', marginTop: '10px', float: 'left' }}>
+        <div id='round-details' style={{ color: 'green', marginLeft: '10px', textShadow: '2px 2px 2px #000', position: 'absolute', fontSize: '32px', float: 'left' }}>
           #{self.state.currentRound} of {self.state.rounds.length}
-        </span>)
+        </div>)
+
       if (currentRound.solutions[self.state.user.id].hints.length < 3 && !isSolved) {
         helpButton = (
           <button onClick={self.getHelp}
                   title='(-1 to current game score)'
-                  style={{ fontSize: '16px', float: 'left', margin: '5px', width: '165px', height: '45px' }}>
-                  { trn(userLanguage, 'Help') } ({3 - currentRound.solutions[self.state.user.id].hints.length})
+                  style={{ float: 'left', width: '70px', maring: 0, padding: 0 }}>
+            <img src={iconHelp} alt="{ trn(userLanguage, 'Help') }" style={{ maxHeight: '36px', float: 'left' }} />
+            <div style={{ fontSize: '16px', float: 'left' }}>
+              ({3 - currentRound.solutions[self.state.user.id].hints.length})
+            </div>
           </button>
         )
       } else {
         helpButton = (
-          <button onClick={self.getHelp}
-                  disabled='disabled'
+          <button disabled="disabled"
                   title='(-1 to current game score)'
-                  style={{ fontSize: '16px', float: 'left', margin: '5px', width: '165px', height: '45px' }}>
-            { trn(userLanguage, 'Help') } (0)
+                  style={{ float: 'left', width: '70px', maring: 0, padding: 0 }}>
+            <img src={iconHelp} alt="{ trn(userLanguage, 'Help') }"
+                 style={{ maxHeight: '36px', float: 'left' }} />
+            <div style={{ fontSize: '16px', float: 'left' }}>
+              (0)
+            </div>
           </button>
         )
       }
@@ -2052,21 +2128,34 @@ class Main extends React.Component {
 
     const disabled = self.state.mode != null ? 'disabled' : ''
 
-    let currentRoundTimeoutBlock = (
-        <h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>
-          {pointsBlock}
-        </h3>)
+    let currentRoundTimeoutBlock
 
-    if (!isSolved) {
+    if (self.state.isDemoGame) {
+      // Do not display counter for demo.
+      ;
+    } else if (!isSolved) {
       currentRoundTimeoutBlock = (
-        <h3 style={{ fontSize: '45px', float: 'left', marginLeft: '15px' }}>
+        <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
           {currentRound.timeout}
         </h3>)
     } else if (currentRound.timeout <= 10 && !isSolved) {
       currentRoundTimeoutBlock = (
-        <h3 style={{ color: 'red', fontSize: '45px', float: 'left', marginLeft: '15px' }}>
+        <h3 style={{ color: 'red', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
           {currentRound.timeout}
         </h3>)
+    } else {
+      currentRoundTimeoutBlock = (<h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        {pointsBlock}
+      </h3>)
+    }
+
+    let timeoutBlock
+    if (self.state.lettersDisplayTimeout) {
+      timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>Think...</span>
+      </h3>
+    } else {
+      timeoutBlock = currentRoundTimeoutBlock
     }
 
     let gameWidgetElems
@@ -2095,7 +2184,7 @@ class Main extends React.Component {
         gameColumn = <div className="column">{gameWidgetElems}</div>
       } else if (self.state.method === 'letters-selection') {
         gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} isSolved={isSolved}/>
-        gameColumn = <div className="column image-wrapper">{gameWidgetElems}</div>
+        gameColumn = <div className="column image-wrapper">{roundDetails}{gameWidgetElems}</div>
       } else {
         ;
       }
@@ -2194,13 +2283,17 @@ class Main extends React.Component {
       secondUnsolvedGame = self.state.progress.second_unsolved_game
     }
 
-    const transitionBlock = <TransitionWidget
-      userLanguage={ userLanguage }
-      currentGame={ firstUnsolvedGame }
-      nextGame={ secondUnsolvedGame }
-      totalHints={ self.state.totalHints || 0 }
-      mode={ self.state.mode }
-      currentRoundNumber={ self.state.currentRound } />
+    let transitionBlock
+
+    if (!self.state.isDemoGame) {
+      transitionBlock = <TransitionWidget
+        userLanguage={ userLanguage }
+        currentGame={ firstUnsolvedGame }
+        nextGame={ secondUnsolvedGame }
+        totalHints={ self.state.totalHints || 0 }
+        mode={ self.state.mode }
+        currentRoundNumber={ self.state.currentRound } />
+    }
 
     return (
     <>
@@ -2252,8 +2345,6 @@ class Main extends React.Component {
             {transitionBlock}
             {helpButton}&nbsp;
             {voiceButton}
-            {roundDetails}&nbsp;&nbsp;&nbsp;
-            {currentRoundTimeoutBlock}
           </div>
         </div>
         {challengeBlock}
@@ -2262,6 +2353,7 @@ class Main extends React.Component {
           {replyLetterItems}
         </div>
         <div className="row">
+          {timeoutBlock}
           <div id="letters">
             {splittedLettersItems}
           </div>
