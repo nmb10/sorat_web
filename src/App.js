@@ -11,6 +11,21 @@ const imageLoadTimeout = 0
 // how many seconds to wait before showing word letters.
 const LETTERS_DISPLAY_TIMEOUT = 3
 
+const UI_STATES = {
+  init: 'init',
+  demo: 'demo',
+  inTrain: 'inTrain', // In train mode dialog.
+  trainRequested: 'trainRequested',
+  inExplore: 'inExplore', // In explore mode dialog.
+  exploreRequested: 'exploreRequested',
+  leaveRequested: 'leaveRequested',
+  training: 'training', // Playing train game.
+  exploring: 'exploring', // Playing epxlore game.
+  constesting: 'contesting', // Playing contest game.
+  skipRequested: 'skipRequested',
+  contestEnqueued: 'contestEnqueued'
+}
+
 const tableSizeMap = {
   1: [1, 1],
   2: [1, 2],
@@ -134,6 +149,7 @@ const translations = {
     'Start-contest': 'Ерыс райдайын',
     'Start-train': 'Ахуыр райдайын',
     Amazing: 'Иттæг хорз',
+    Skip: 'Фæуадзын',
     'Very well': 'Тынг хорз',
     Well: 'Хорз у',
     'So bad. You can do better!': 'Æвзæр. Дæ бон хуæздæр у!',
@@ -797,7 +813,7 @@ class Main extends React.Component {
       topics: [], // all topics of the selected language.
       method: null, // current game method, server choice. May not match to user.method
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
-      modeOpened: null,
+      modeOpened: null, // deprecated. Use uiState instead.
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying
@@ -819,7 +835,8 @@ class Main extends React.Component {
       soundVolume: 50,
       voicePlayed: false,
       isDemoGame: false,
-      lettersDisplayTimeout: 0
+      lettersDisplayTimeout: 0,
+      uiState: UI_STATES.init
     }
 
     this.nameUpdateTimeout = null
@@ -877,6 +894,7 @@ class Main extends React.Component {
 
     const onMessage = function (event) {
       const message = JSON.parse(event.data)
+      // console.log('New message:', message)
       if (message.type === 'game') {
         // event.detail.state.rounds
         const messageTime = new Date()
@@ -888,6 +906,7 @@ class Main extends React.Component {
                 state: {
                   method: message.payload.method,
                   mode: message.payload.mode,
+                  isDemoGame: false, // no way to get demo game on state updated.
                   players: message.payload.players,
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
@@ -1010,7 +1029,7 @@ class Main extends React.Component {
       }
       const currentRoundIsEmpty = Object.keys(currentRound).length === 0
       const secondsFromRecentInteraction = (Date.now() - self.state.recentReplyTime) / 1000
-      if (self.state.modeOpened === 'explore') {
+      if (self.state.uiState === UI_STATES.inExplore) {
         if (secondsFromRecentInteraction < 60 && currentRoundIsEmpty) {
           self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
         } else {
@@ -1036,12 +1055,13 @@ class Main extends React.Component {
           newState.topics = json.topics
           newState.user = json.user
           newState.mode = json.mode
-          newState.isDemoGame = json.is_demo_game
           newState.modeOpened = json.mode
           newState.method = json.method
           newState.versions = json.versions
           newState.stateReceived = true
           newState.rounds = json.rounds
+          newState.isDemoGame = json.is_demo_game
+          newState.uiState = UI_STATES.demo
           newState.currentRound = json.current_round
           const currentRoundObj = newState.rounds[newState.currentRound - 1]
           const word = currentRoundObj.question[0] // FIXME: Use string instead of list of strings
@@ -1052,7 +1072,7 @@ class Main extends React.Component {
 
           if (newState.mode == null) {
             self.stopWebsocket()
-          } else if (newState.isDemoGame) {
+          } else if (newState.uiState === UI_STATES.demo) {
             self.stopWebsocket()
           } else {
             self.startWebsocket()
@@ -1159,6 +1179,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.modeOpened = null
+        newState.uiState = UI_STATES.leaveRequested
         return newState
       })
     })
@@ -1263,9 +1284,23 @@ class Main extends React.Component {
         newState.currentRound = event.detail.state.currentRound
         newState.status = event.detail.state.status
         newState.totalHints = event.detail.state.totalHints
+        newState.isDemoGame = event.detail.state.isDemoGame
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
+        if (event.detail.state.mode === 'train') {
+          if (event.detail.state.currentRound > -1) {
+            newState.uiState = UI_STATES.training
+          } else {
+            newState.uiState = UI_STATES.inTrain
+          }
+        } else if (event.detail.state.mode === 'explore') {
+          if (event.detail.state.currentRound > -1) {
+            newState.uiState = UI_STATES.exploring
+          } else {
+            newState.uiState = UI_STATES.inExplore
+          }
+        }
         if (newState.currentRound === -1) {
           newState.replyLetters = []
           newState.replyMap = {}
@@ -1275,6 +1310,9 @@ class Main extends React.Component {
             // WS message just after game finish.
             // WTF? It should be much simpler!
             self.runFinishStatusTicker(6)
+            if (prevState.uiState === UI_STATES.exploring) {
+              newState.uiState = UI_STATES.inExplore
+            }
           }
         } else if (self.state.currentRound !== newState.currentRound) {
           // Round changed. Show ? for every letter of the question.
@@ -1506,6 +1544,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.status = 'skipped'
+        newState.uiState = UI_STATES.skipRequested
         self.runFinishStatusTicker(6)
         return newState
       })
@@ -1516,11 +1555,13 @@ class Main extends React.Component {
         const newState = _.cloneDeep(prevState)
         if (newState.modeOpened === 'train') {
           newState.mode = 'train_requested'
+          newState.uiState = UI_STATES.trainRequested
           // We always send user in payload because server may loose initial state once (on
           // backend restart for example).
           self.sendMessage({ command: 'train', payload: { user: newState.user } })
         } else {
           newState.modeOpened = 'train'
+          newState.uiState = UI_STATES.inTrain
         }
         return newState
       })
@@ -1532,6 +1573,7 @@ class Main extends React.Component {
         const newState = _.cloneDeep(prevState)
         newState.mode = 'explore_requested'
         newState.modeOpened = 'explore'
+        newState.uiState = UI_STATES.exploreRequested
         // We always send user in payload because server may loose initial state once (on
         // backend restart for example).
         self.sendMessage({ command: 'explore', payload: { user: newState.user } })
@@ -1635,10 +1677,10 @@ class Main extends React.Component {
           }
         }
         if (!containsQuestionMark) {
-          if (prevState.isDemoGame) {
+          if (prevState.uiState === UI_STATES.demo) {
             newState.mode = 'explore_requested'
             newState.modeOpened = 'explore'
-            newState.isDemoGame = false
+            newState.uiState = UI_STATES.exploreRequested
             newState.rounds = []
             newState.currentRound = -1
             // We always send user in payload because server may loose initial state once (on
@@ -1767,7 +1809,6 @@ class Main extends React.Component {
       ', Translations: ' + self.state.versions.translations +
       ', Images: ' + self.state.versions.images +
       ', Voices: ' + self.state.versions.voices
-    // console.log('Before render.', self.state)
 
     const languageOptionItems = self.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
@@ -1912,7 +1953,13 @@ class Main extends React.Component {
 
     let isSolved
     let currentRound = {}
-    if (self.state.currentRound && self.state.currentRound !== -1) {
+
+    if (self.state.isDemoGame) {
+      if (self.state.uiState === UI_STATES.demo) {
+        currentRound = self.state.rounds[self.state.currentRound - 1]
+        isSolved = currentRound.solutions[self.state.user.id].is_solved
+      }
+    } else if (self.state.currentRound && self.state.currentRound !== -1) {
       currentRound = self.state.rounds[self.state.currentRound - 1]
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
@@ -2029,39 +2076,50 @@ class Main extends React.Component {
         </div>)
     }
 
-    if (self.state.mode === 'contest') {
-      contestBlock = (
-        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}
-        </button>)
-    } else if (self.state.modeOpened === 'contest') {
-      contestBlock = (
-        <button id='contest' onClick={self.onContestClick}>
-          {trn(userLanguage, 'Start contest')}
-        </button>)
-    } else if (self.state.mode === 'train') {
-      trainBlock = (
-        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}
-        </button>)
-    } else if (self.state.modeOpened === 'train') {
+    if (self.state.uiState === UI_STATES.inTrain) {
       trainBlock = (
         <button id='train' onClick={self.onTrainClick}>
           {trn(userLanguage, 'Start train')}
         </button>)
-    } else if (self.state.mode === 'contest_enqueued') {
+    } else if (self.state.uiState === UI_STATES.contesting) {
+      contestBlock = (
+        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}
+        </button>)
+    } else if (self.state.uiState === UI_STATES.training) {
+      trainBlock = (
+        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}
+        </button>)
+    } else if (self.state.uiState === UI_STATES.inTrain) {
+      trainBlock = (
+        <button id='train' onClick={self.onTrainClick}>
+          {trn(userLanguage, 'Start train')}
+        </button>)
+    } else if (self.state.uiState === UI_STATES.contestEnqueued) {
       contestBlock = (
         <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
         </button>)
-    } else if (self.state.mode === 'explore_requested') {
+    } else if (self.state.uiState === UI_STATES.exploreRequested) {
       exploreBlock = (
         <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
         </button>)
-    } else if (self.state.modeOpened === 'explore' && currentRoundNotEmpty) {
+    } else if (self.state.uiState === UI_STATES.inExplore) {
       exploreBlock = (
-        <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+        <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+          {trn(userLanguage, 'Leave')}
+        </button>)
+      if (self.state.status !== 'skipped') {
+        contestBlock = (
+          <button id="skip" onClick={self.onSkipClick}>
+            {trn(userLanguage, 'Skip')}
+          </button>)
+      }
+    } else if (self.state.uiState === UI_STATES.exploring) {
+      exploreBlock = (
+        <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
           {trn(userLanguage, 'Leave')}
         </button>)
       if (self.state.status !== 'skipped') {
@@ -2125,8 +2183,6 @@ class Main extends React.Component {
         )
       }
     }
-
-    const disabled = self.state.mode != null ? 'disabled' : ''
 
     let currentRoundTimeoutBlock
 
@@ -2230,7 +2286,10 @@ class Main extends React.Component {
     let usernameInput
     let finishedRoundsTable
 
-    if (self.state.modeOpened === 'train') {
+    // if (self.state.modeOpened === 'train') {
+    if (self.state.uiState === UI_STATES.inTrain || self.state.uiState === UI_STATES.training) {
+      const disabled = self.state.uiState === UI_STATES.training ? 'disabled' : ''
+
       methodSelectBox = <select id="method" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
         {methodOptionItems}
       </select>
@@ -2306,7 +2365,9 @@ class Main extends React.Component {
       <div className="container">
         {debugBlock}
         <br />
-        {finishStatusBlock}
+        <div className="column">
+          {finishStatusBlock}
+        </div>
         <div className="row">
           <div className="column">
             {gameErrorBlock}
