@@ -843,7 +843,7 @@ class Main extends React.Component {
         new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
       setTimeout(self.runFinishStatusTicker, 1000, seconds - 1)
     }
-    if (seconds === 2) {
+    if (seconds === 1) {
       // ticker will finish soon. Start new explore game if needed.
       let currentRound = {}
       if (self.state.currentRound && self.state.currentRound !== -1) {
@@ -1741,13 +1741,13 @@ class Main extends React.Component {
 
       if (self.state.status === 'skipped') {
         finishStatusStyle.border = '3px solid red'
-        finishStatus = trn(userLanguage, 'Game skipped. New game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+        finishStatus = trn(userLanguage, 'Game skipped. Starting next game in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
       } else if (self.state.method === IMAGE_SELECTION_METHOD) {
         finishStatusStyle.border = '3px solid green'
-        finishStatus = trn(userLanguage, 'Good, but letters selection mode is required to pass. Starting new game in ') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+        finishStatus = trn(userLanguage, 'Good, but letters selection mode is required to pass. Starting the same game in ') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
@@ -1760,13 +1760,13 @@ class Main extends React.Component {
           scorePercent = (userScores.total / totalPossible) * 100
         }
 
-        if (self.state.modeOpened === 'explore') {
+        if (self.state.uiState === UI_STATES.inExplore) {
           if (self.state.totalHints > 3) {
-            finishStatus = trn(userLanguage, 'Not enough. Try again in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatus = trn(userLanguage, 'Too many hints. Starting the same game in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
             finishStatusStyle.border = '3px solid red'
           } else {
             finishStatusStyle.border = '3px solid green'
-            finishStatus = trn(userLanguage, 'Amazing. New game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatus = trn(userLanguage, 'Amazing. Next game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
           }
         } else {
           if (scorePercent >= 98) {
