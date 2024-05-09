@@ -11,6 +11,9 @@ const imageLoadTimeout = 0
 // how many seconds to wait before showing word letters.
 const LETTERS_DISPLAY_TIMEOUT = 3
 
+const LETTERS_SELECTION_METHOD = 'letters-selection'
+const IMAGE_SELECTION_METHOD = 'image-selection'
+
 const UI_STATES = {
   init: 'init',
   demo: 'demo',
@@ -216,8 +219,8 @@ const translations = {
 }
 
 const methods = [
-  'image-selection',
-  'letters-selection'
+  IMAGE_SELECTION_METHOD,
+  LETTERS_SELECTION_METHOD
   // FIXME: Implement 'enter letters' - entering letters from keyboard
 ]
 
@@ -248,10 +251,8 @@ const errorBlockStyle = {
 }
 
 const finishStatusStyle = {
-  minWidth: '400px',
-  minHeight: '60px',
   border: '3px solid green',
-  fontSize: '44px',
+  fontSize: '2em',
   position: 'fixed',
   top: '45px',
   backgroundColor: '#282c34',
@@ -261,10 +262,10 @@ const finishStatusStyle = {
 
 function trn (userLanguage, text) {
   let searchText = text
-  if (searchText === 'image-selection') {
+  if (searchText === IMAGE_SELECTION_METHOD) {
     // select box options.
     searchText = 'Image selection'
-  } else if (searchText === 'letters-selection') {
+  } else if (searchText === LETTERS_SELECTION_METHOD) {
     searchText = 'Letters selection'
   } else if (searchText === 'normal') {
     searchText = 'Normal'
@@ -494,13 +495,13 @@ function TransitionWidget (props) {
     const diff = 3 - props.totalHints
     if (diff > 0) {
       return <span
-          title={trn(props.userLanguage, 'Hints amount allowed pass to the next round.')}
+          title={trn(props.userLanguage, 'Hints amount limit to pass to the next round.')}
           style={{ marginRight: '6px', float: 'left', color: 'green', fontSize: '33px' }}>
         {diff}
       </span>
     } else if (diff === 0) {
       return <span
-            title={trn(props.userLanguage, 'Hints are not allowed to pass to the next round.')}
+            title={trn(props.userLanguage, 'No more hint attempts. Otherwise new round will not be available.')}
             style={{ marginRight: '6px', float: 'left', color: 'rgb(114, 28, 36)', fontSize: '33px' }}>
         0
       </span>
@@ -803,7 +804,7 @@ class Main extends React.Component {
         name: null,
         id: null,
         language: document.location.pathname.replaceAll('/', '') || 'en', // selected language
-        method: 'image-selection', // user choice [select-image or select-image or select-letters]
+        method: IMAGE_SELECTION_METHOD, // user choice [select-image or select-image or select-letters]
         level: 'normal', // user choice [simple/normal/hard]
         topic: null // selected topic.
       },
@@ -847,6 +848,7 @@ class Main extends React.Component {
     this.onExploreClick = this.onExploreClick.bind(this)
     this.onAcceptClick = this.onAcceptClick.bind(this)
     this.onDeclineClick = this.onDeclineClick.bind(this)
+    this.onImageSelectModeSwitchClick = this.onImageSelectModeSwitchClick.bind(this)
     this.startWebsocket = this.startWebsocket.bind(this)
     this.stopWebsocket = this.stopWebsocket.bind(this)
     this.sendMessageWhenOpened = this.sendMessageWhenOpened.bind(this)
@@ -1208,7 +1210,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('image-selection.reply', function (event) {
       self.sendMessage({
         command: 'reply',
-        method: 'image-selection',
+        method: IMAGE_SELECTION_METHOD,
         payload: { userChoice: event.detail.userChoice }
       })
 
@@ -1301,6 +1303,7 @@ class Main extends React.Component {
             newState.uiState = UI_STATES.inExplore
           }
         }
+        const forceImagesPreload = (self.state.currentRound !== newState.currentRound) || (self.state.method !== newState.method)
         if (newState.currentRound === -1) {
           newState.replyLetters = []
           newState.replyMap = {}
@@ -1314,7 +1317,7 @@ class Main extends React.Component {
               newState.uiState = UI_STATES.inExplore
             }
           }
-        } else if (self.state.currentRound !== newState.currentRound) {
+        } else if (forceImagesPreload) {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
           const currentRound = newState.rounds[newState.currentRound - 1]
@@ -1377,7 +1380,9 @@ class Main extends React.Component {
           const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
           newState.replyLetters = [replyLetters.join('')]
-          self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
+          if (newState.method === LETTERS_SELECTION_METHOD) {
+            self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
+          }
         } else {
           const currentRound = newState.rounds[newState.currentRound - 1]
           const stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
@@ -1582,6 +1587,10 @@ class Main extends React.Component {
     })
 
     // new CustomEvent('challenge-accepted', {detail: {}}));
+    document.getElementById('root').addEventListener('force-image-select-method', function (event) {
+      self.sendMessage({ command: 'force-image-select-method', payload: { } })
+    })
+
     document.getElementById('root').addEventListener('challenge-accepted', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1776,6 +1785,11 @@ class Main extends React.Component {
       new CustomEvent('challenge-accepted', { detail: {} }))
   }
 
+  onImageSelectModeSwitchClick (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('force-image-select-method', { detail: {} }))
+  }
+
   onDeclineClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('challenge-declined', { detail: {} }))
@@ -1912,6 +1926,12 @@ class Main extends React.Component {
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
+      } else if (self.state.method === IMAGE_SELECTION_METHOD) {
+        finishStatusStyle.border = '3px solid green'
+        finishStatus = trn(userLanguage, 'Good, but letters selection mode is required to pass. Starting new game in ') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+        finishStatusBlock = <div style={finishStatusStyle}>
+          {finishStatus}
+        </div>
       } else if (Object.keys(self.state.rounds[0].solutions).length === 1) {
         // FIXME: Too dirty. Refactor!
         // Single player mode (train/progress)
@@ -1966,7 +1986,7 @@ class Main extends React.Component {
     const currentRoundNotEmpty = Object.keys(currentRound).length > 0
 
     let replyLetterItems = []
-    if (currentRoundNotEmpty && self.state.method === 'letters-selection') {
+    if (currentRoundNotEmpty && self.state.method === LETTERS_SELECTION_METHOD) {
       // New responsive implementation
       // FIXME: handle currentRound.question as string instead of list of words.
 
@@ -2042,7 +2062,7 @@ class Main extends React.Component {
 
     let pointsBlock
     let points = 0
-    if (isSolved && self.state.method === 'letters-selection') {
+    if (isSolved && self.state.method === LETTERS_SELECTION_METHOD) {
       if (currentRound.solutions[self.state.user.id].hints.length === 3) {
         points = 0
       } else {
@@ -2062,10 +2082,15 @@ class Main extends React.Component {
     const topicOptionItems = self.state.topics
       .map((topic) => <option key={topic.code} value={topic.code}>{topic.local_name}</option>)
 
-    let trainBlock
-    let contestBlock
     let challengeBlock
-    let exploreBlock
+
+    let buttonsBlock
+
+    let imageSelectModeSwitchButton
+
+    if (self.state.method === LETTERS_SELECTION_METHOD && self.state.uiState === UI_STATES.exploring) {
+      imageSelectModeSwitchButton = <button onClick={self.onImageSelectModeSwitchClick}>{trn(userLanguage, 'Images')}</button>
+    }
 
     if (self.state.challenge) {
       challengeBlock = (
@@ -2076,78 +2101,108 @@ class Main extends React.Component {
         </div>)
     }
 
+    const buttonStyle = { marginRight: '5px', float: 'left' }
+
     if (self.state.uiState === UI_STATES.inTrain) {
-      trainBlock = (
-        <button id='train' onClick={self.onTrainClick}>
-          {trn(userLanguage, 'Start train')}
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+            <button id='train' onClick={self.onTrainClick} style={ buttonStyle }>
+              {trn(userLanguage, 'Start train')}
+            </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.contesting) {
-      contestBlock = (
-        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.training) {
-      trainBlock = (
-        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.inTrain) {
-      trainBlock = (
-        <button id='train' onClick={self.onTrainClick}>
-          {trn(userLanguage, 'Start train')}
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+          <button id='train' onClick={self.onTrainClick} style={ buttonStyle }>
+            {trn(userLanguage, 'Start train')}
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.contestEnqueued) {
-      contestBlock = (
-        <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.exploreRequested) {
-      exploreBlock = (
-        <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+          <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.inExplore) {
-      exploreBlock = (
-        <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}
-        </button>)
       if (self.state.status !== 'skipped') {
-        contestBlock = (
-          <button id="skip" onClick={self.onSkipClick}>
-            {trn(userLanguage, 'Skip')}
-          </button>)
+        buttonsBlock = (
+          <div className="column">
+            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+              {trn(userLanguage, 'Leave')}
+            </button>
+            <button id="skip" onClick={self.onSkipClick} style={ buttonStyle }>
+              {trn(userLanguage, 'Skip')}
+            </button>
+          </div>)
+      } else {
+        buttonsBlock = (
+          <div className="column">
+            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+              {trn(userLanguage, 'Leave')}
+            </button>
+          </div>)
       }
     } else if (self.state.uiState === UI_STATES.exploring) {
-      exploreBlock = (
-        <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
-          {trn(userLanguage, 'Leave')}
-        </button>)
       if (self.state.status !== 'skipped') {
-        contestBlock = (
-          <button id="skip" onClick={self.onSkipClick}>
-            {trn(userLanguage, 'Skip')}
-          </button>)
+        buttonsBlock = (
+          <div className="column">
+            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+              {trn(userLanguage, 'Leave')}
+            </button>
+            {imageSelectModeSwitchButton}
+            <button id="skip" onClick={self.onSkipClick} style={ buttonStyle }>
+              {trn(userLanguage, 'Skip')}
+            </button>
+          </div>)
+      } else {
+        buttonsBlock = (
+          <div className="column">
+            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+              {trn(userLanguage, 'Leave')}
+            </button>
+            {imageSelectModeSwitchButton}
+          </div>)
       }
     } else {
-      trainBlock = (
-        <button id="train" onClick={self.onTrainClick}>
-          {trn(userLanguage, 'Train')}
-        </button>)
-      contestBlock = (
-        <button id="contest" onClick={self.onContestClick}>
-          {trn(userLanguage, 'Contest')}
-        </button>)
-      exploreBlock = (
-        <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Explore')}>
-          {trn(userLanguage, 'Explore')}
-        </button>)
+      buttonsBlock = (
+        <div className="column">
+          <button id="train" onClick={self.onTrainClick} style={ buttonStyle }>
+            {trn(userLanguage, 'Train')}
+          </button>
+          <button id="contest" onClick={self.onContestClick} style={ buttonStyle }>
+            {trn(userLanguage, 'Contest')}
+          </button>
+          <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Explore')} style={ buttonStyle }>
+            {trn(userLanguage, 'Explore')}
+          </button>
+        </div>)
     }
 
     // FIXME: Too dirty. Refactor (see the upper code.)
     if (self.state.finishStatusDisplayTimeout > 0) {
-      exploreBlock = null
-      contestBlock = null
-      trainBlock = null
+      buttonsBlock = null
     }
 
     let helpButton
@@ -2206,7 +2261,7 @@ class Main extends React.Component {
     }
 
     let timeoutBlock
-    if (self.state.lettersDisplayTimeout) {
+    if (self.state.method === LETTERS_SELECTION_METHOD && self.state.lettersDisplayTimeout) {
       timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
         &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>Think...</span>
       </h3>
@@ -2217,7 +2272,7 @@ class Main extends React.Component {
     let gameWidgetElems
     let gameColumn
     if (currentRoundNotEmpty) {
-      if (self.state.method === 'image-selection') {
+      if (self.state.method === IMAGE_SELECTION_METHOD) {
         let score
         let correctChoice
         if (isSolved) {
@@ -2238,7 +2293,7 @@ class Main extends React.Component {
         replyLetterItems = null
         splittedLettersItems = null
         gameColumn = <div className="column">{gameWidgetElems}</div>
-      } else if (self.state.method === 'letters-selection') {
+      } else if (self.state.method === LETTERS_SELECTION_METHOD) {
         gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} isSolved={isSolved}/>
         gameColumn = <div className="column image-wrapper">{roundDetails}{gameWidgetElems}</div>
       } else {
@@ -2290,25 +2345,36 @@ class Main extends React.Component {
     if (self.state.uiState === UI_STATES.inTrain || self.state.uiState === UI_STATES.training) {
       const disabled = self.state.uiState === UI_STATES.training ? 'disabled' : ''
 
-      methodSelectBox = <select id="method" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
-        {methodOptionItems}
-      </select>
+      methodSelectBox = (
+        <div className="column">
+          <select id="method" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.method} onChange={self.handleMethodChange}>
+          {methodOptionItems}
+          </select>
+        </div>)
 
-      levelSelectBox = <select id="level" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
-        {levelOptionItems}
-      </select>
+      levelSelectBox = (
+        <div className="column">
+          <select id="level" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.level} onChange={self.handleLevelChange}>
+          {levelOptionItems}
+          </select>
+        </div>)
 
-      topicSelectBox = <select id="topic" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
-        <option value="">---</option>
-        {topicOptionItems}
-      </select>
+      topicSelectBox = (
+        <div className="column">
+          <select id="topic" style={{ backgroundColor: '#282c34' }} disabled={disabled} value={self.state.user.topic} onChange={self.handleTopicChange}>
+          <option value="">---</option>
+          {topicOptionItems}
+          </select>
+        </div>)
     } else if (self.state.modeOpened === 'contest') {
       usernameInput = (
-        <input type="text" placeholder="Username"
-               value={self.state.user.name}
-               onChange={self.handleNameChange}
-               style={{ color: 'white' }}>
-        </input>)
+        <div>
+          <input type="text" placeholder="Username"
+                 value={self.state.user.name}
+                 onChange={self.handleNameChange}
+                 style={{ color: 'white' }}>
+          </input>
+        </div>)
     }
 
     if (self.state.mode === 'contest') {
@@ -2344,7 +2410,7 @@ class Main extends React.Component {
 
     let transitionBlock
 
-    if (!self.state.isDemoGame) {
+    if (!self.state.isDemoGame && self.state.method === LETTERS_SELECTION_METHOD) {
       transitionBlock = <TransitionWidget
         userLanguage={ userLanguage }
         currentGame={ firstUnsolvedGame }
@@ -2365,35 +2431,21 @@ class Main extends React.Component {
       <div className="container">
         {debugBlock}
         <br />
-        <div className="column">
-          {finishStatusBlock}
+        <div className="row">
+          <div className="column">
+            {finishStatusBlock}
+          </div>
         </div>
         <div className="row">
           <div className="column">
             {gameErrorBlock}
             {gameWarningBlock}
-            <div>
-              {usernameInput}
-            </div>
+            {usernameInput}
           </div>
-          <div className="column">
-            {methodSelectBox}
-          </div>
-          <div className="column">
-            {levelSelectBox}
-          </div>
-          <div className="column">
-            {topicSelectBox}
-          </div>
-          <div className="column">
-            {trainBlock}
-          </div>
-          <div className="column">
-            {contestBlock}
-          </div>
-          <div className="column">
-            {exploreBlock}
-          </div>
+          {methodSelectBox}
+          {levelSelectBox}
+          {topicSelectBox}
+          {buttonsBlock}
         </div>
         <div className="row">
           {finishedRoundsTable}
