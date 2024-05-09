@@ -5,6 +5,7 @@ import React from 'react'
 import './App.css'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import trn from './translations'
 
 const imageLoadTimeout = 0
 
@@ -52,172 +53,6 @@ const tableSizeMap = {
   20: [4, 5]
 } // :)
 
-const translations = {
-  en: {
-    'Image selection': 'Image selection',
-    'Letters selection': 'Letters selection',
-    'Report an issue': 'Report an issue',
-    'Tell again': 'Tell again',
-    'Game skipped. New game will start in': 'Game skipped. New game will start in',
-    'Amazing. New game will start in': 'Amazing. New game will start in',
-    Skip: 'Skip',
-    'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.',
-    Help: 'Help',
-    Contribute: 'Contribute',
-    Leave: 'Leave',
-    Contest: 'Contest',
-    'Find rival': 'Find rival',
-    'Start train': 'Start train',
-    Train: 'Train',
-    Amazing: 'Amazing',
-    'Amazing. New round will start in': 'Amazing. New round will start in',
-    'Well, but not enough. Try again in': 'Well, but not enough. Try again in',
-    'Very well. New round will start in': 'Very well. New round will start in',
-    seconds: 'seconds',
-    'Very well': 'Very well',
-    'Well done': 'Well done',
-    'So bad. You can do better!': 'So bad. You can do better!',
-    Explore: 'Explore',
-    'What?': 'What?',
-    'You won!': 'You won!',
-
-    // levels
-    Simple: 'Simple',
-    Normal: 'Normal',
-    Hard: 'Hard'
-  },
-  de: {
-    'Image selection': 'Auswahl des Bildes',
-    'Letters selection': 'Auswahl der Briefe',
-    'Report an issue': 'Ein Problem melden',
-    Contribute: 'Beitragen',
-    Leave: 'Verlassen',
-    Contest: 'Wettbewerb',
-    Train: 'Zug',
-    Skip: 'überspringen',
-    'Start contest': 'Rivalen finden',
-    'Start train': 'Zug starten',
-    Amazing: 'Erstaunlich',
-    'Very well': 'Sehr gut',
-    Well: 'Quelle',
-    'So bad. You can do better!': 'So schlecht. Das kannst du besser!',
-    Explore: 'Erkunden',
-    'What?': 'Wie?',
-    'You won!': 'Du hast gewonnen!',
-
-    // levels
-    Simple: 'Einfach',
-    Normal: 'Normal',
-    Hard: 'Hart'
-  },
-  ru: {
-    'Image selection': 'Подбор изображения',
-    'Letters selection': 'Подбор букв',
-    'Report an issue': 'Сообщить о проблеме',
-    Contribute: 'Поучаствовать',
-    Leave: 'Выйти',
-    Contest: 'Состязание',
-    Train: 'Тренировка',
-    Skip: 'Пропустить',
-    'Amazing. New game will start in': 'Отлично. Новая игра начнется через',
-    'Game skipped. New game will start in': 'Игра пропущена. Новая игра начнется через',
-    Help: 'Помощь',
-    'Start contest': 'Найти соперника',
-    'Start train': 'Начать тренировку',
-    Amazing: 'Великолепно',
-    'Amazing. New round will start in': 'Великолепно. Новый раунд начнется через',
-    'Well, but not enough. Try again in': 'Хорошо, но недостаточно. Попробуй еще раз через',
-    'Very well. New round will start in': 'Очень хорошо. Новый раунд начнется через',
-    seconds: 'секунд',
-    'Very well': 'Очень хорошо',
-    Well: 'Хорошо',
-    'So bad. You can do better!': 'Плохо. Ты можешь лучше!',
-    Explore: 'Прохождение',
-    'What?': 'Как?',
-    'You won!': 'Ты выиграл!',
-
-    // levels
-    Simple: 'Простой',
-    Normal: 'Средний',
-    Hard: 'Трудный'
-  },
-  os: {
-    'Image selection': 'Сурæт æвзарын',
-    'Letters selection': 'Дамгъæтæ æвзарын',
-    'Report an issue': 'Рæдыд фехъусын кæнын',
-    Contribute: 'Æмгуыстад',
-    Leave: 'Ацæуын',
-    Contest: 'Ерыс',
-    Train: 'Ахуыр',
-    'Start-contest': 'Ерыс райдайын',
-    'Start-train': 'Ахуыр райдайын',
-    Amazing: 'Иттæг хорз',
-    Skip: 'Фæуадзын',
-    'Very well': 'Тынг хорз',
-    Well: 'Хорз у',
-    'So bad. You can do better!': 'Æвзæр. Дæ бон хуæздæр у!',
-    Explore: 'Иртасæн',
-    'What?': 'Куыд?',
-    'You won!': 'Ды рамбылдтай!',
-
-    // levels
-    Simple: 'Хумæтæг',
-    Normal: 'Астæуккаг',
-    Hard: 'Зын'
-  },
-  dig: {
-    'Image selection': 'Сорæт æвзарун',
-    'Letters selection': 'Дамугътæ æвзарун',
-    'Report an issue': 'Рæдуд фегъосун кæнун',
-    Help: 'Агъаз',
-    Skip: 'Фæццох кæнун',
-    'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Кит: алфа верси. Уотæ гæнæн ес æма дæ прогресс байсафдзæнæй еу бон. Ниххатир мин йæ кæнæ.',
-    Contribute: 'Æгустадæ',
-    Leave: 'Рандæ ун',
-    Contest: 'Ерис',
-    Train: 'Ахур',
-    'Start contest': 'Ерис райдайун',
-    'Start train': 'Ахур райдайун',
-    Amazing: 'Хъæбæр хуарз',
-    'Very well': 'Хуарз',
-    Well: 'Бæззуй',
-    'So bad. You can do better!': 'Лæгъуз. Дæ бон хуæздæр æй!',
-    Explore: 'Æсгарун',
-    'What?': 'Куд?',
-    'You won!': 'Рамбулдтай!',
-
-    // levels
-    Simple: 'Еувазæг',
-    Normal: 'Уаггин',
-    Hard: 'Гъесгун'
-  },
-  fr: {
-    'Image selection': 'Sélection des images',
-    'Letters selection': 'Sélection de lettres',
-    'Report an issue': 'Signaler un problème',
-    Contribute: 'Contribuer',
-    Leave: 'Laisser',
-    Contest: 'Concours',
-    Train: 'Former',
-    Skip: 'Sauter',
-    'Start contest': 'Démarrer le concours',
-    'Start train': 'Démarrer le train',
-    Amazing: 'Incroyable',
-    'Very well': 'Très bien',
-    Well: 'Bien',
-    'So bad. You can do better!': 'Dommage. Tu peux faire mieux!',
-    Explore: 'Explorer',
-    'What?': 'Quoi?',
-    'You won!': 'Tu as gagné',
-    'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': "Avertissement: il s'agit d'une version alpha de l'application. Soyez prêt à vous perdre votre progression en mode d'exploration une fois. Désolé pour les désagréments.",
-
-    // levels
-    Simple: 'Simple',
-    Normal: 'Normale',
-    Hard: 'Dur'
-  }
-}
-
 const methods = [
   IMAGE_SELECTION_METHOD,
   LETTERS_SELECTION_METHOD
@@ -258,23 +93,6 @@ const finishStatusStyle = {
   backgroundColor: '#282c34',
   padding: '5px',
   borderRadius: '10px'
-}
-
-function trn (userLanguage, text) {
-  let searchText = text
-  if (searchText === IMAGE_SELECTION_METHOD) {
-    // select box options.
-    searchText = 'Image selection'
-  } else if (searchText === LETTERS_SELECTION_METHOD) {
-    searchText = 'Letters selection'
-  } else if (searchText === 'normal') {
-    searchText = 'Normal'
-  } else if (searchText === 'simple') {
-    searchText = 'Simple'
-  } else if (searchText === 'hard') {
-    searchText = 'Hard'
-  }
-  return translations[userLanguage][searchText] || (userLanguage + ': ' + searchText)
 }
 
 function getPlayersScores (players, finishedRounds) {
@@ -450,7 +268,7 @@ function FinishedRoundsTable (props) {
 
   if (props.finishedRounds.length > 0) {
     for (const round of props.finishedRounds.slice(-3)) {
-      const correctChoice = round.correct_choice || 1
+      const correctChoice = round.correct_choice
       const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
       imageRowElems.push(
         <td><img src={correctImage.src} style={{ width: '30%', height: 'auto' }} /></td>)
@@ -632,13 +450,16 @@ SelectLettersGameWidget.propTypes = {
 }
 
 function SelectLettersGameWidget (props) {
+  const round = props.currentRound
+  const correctChoice = round.correct_choice
+  const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
   if (props.isSolved) {
     return (
-      <img className="word-image word-image-solved" src={props.currentRound.img1.src}/>
+      <img className="word-image word-image-solved" src={correctImage.src}/>
     )
   } else {
     return (
-      <img className="word-image" src={props.currentRound.img1.src}/>
+      <img className="word-image" src={correctImage.src}/>
     )
   }
 }
@@ -817,7 +638,7 @@ class Main extends React.Component {
       modeOpened: null, // deprecated. Use uiState instead.
       rounds: [],
       replyMap: {}, // Question letters indexes clicked while replying.
-      replyLetters: [], // Letters user clicked while replying
+      replyLetters: [], // Letters user clicked while replying (or placeholders if no click)
       currentRound: null,
       status: null, // Status of the current game - new, skipped, solved
       totalHints: 0, // Amount of hints on that game.
@@ -896,7 +717,6 @@ class Main extends React.Component {
 
     const onMessage = function (event) {
       const message = JSON.parse(event.data)
-      // console.log('New message:', message)
       if (message.type === 'game') {
         // event.detail.state.rounds
         const messageTime = new Date()
@@ -1303,7 +1123,7 @@ class Main extends React.Component {
             newState.uiState = UI_STATES.inExplore
           }
         }
-        const forceImagesPreload = (self.state.currentRound !== newState.currentRound) || (self.state.method !== newState.method)
+        const roundOrMethodChanged = (self.state.currentRound !== newState.currentRound) || (self.state.method !== newState.method) || (self.state.isDemoGame !== newState.isDemoGame)
         if (newState.currentRound === -1) {
           newState.replyLetters = []
           newState.replyMap = {}
@@ -1317,7 +1137,7 @@ class Main extends React.Component {
               newState.uiState = UI_STATES.inExplore
             }
           }
-        } else if (forceImagesPreload) {
+        } else if (roundOrMethodChanged) {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
           const currentRound = newState.rounds[newState.currentRound - 1]
@@ -1690,8 +1510,6 @@ class Main extends React.Component {
             newState.mode = 'explore_requested'
             newState.modeOpened = 'explore'
             newState.uiState = UI_STATES.exploreRequested
-            newState.rounds = []
-            newState.currentRound = -1
             // We always send user in payload because server may loose initial state once (on
             // backend restart for example).
             self.sendMessage({ command: 'explore', payload: { user: newState.user } })
@@ -1817,6 +1635,7 @@ class Main extends React.Component {
 
   render () {
     const self = this
+    // console.log('Before render.', self.state)
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend +
