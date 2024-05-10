@@ -652,7 +652,7 @@ class Main extends React.Component {
       progress: {},
       finishStatusDisplayTimeout: 0,
       replyWaitingTimeout: 0,
-      recentReplyTime: Date.now(),
+      recentActionTime: Date.now(),
       autoplayEnabled: true,
       soundVolume: 50,
       voicePlayed: false,
@@ -850,10 +850,15 @@ class Main extends React.Component {
         currentRound = self.state.rounds[self.state.currentRound - 1]
       }
       const currentRoundIsEmpty = Object.keys(currentRound).length === 0
-      const secondsFromRecentInteraction = (Date.now() - self.state.recentReplyTime) / 1000
+      const secondsFromRecentInteraction = (Date.now() - self.state.recentActionTime) / 1000
       if (self.state.uiState === UI_STATES.inExplore) {
         if (secondsFromRecentInteraction < 60 && currentRoundIsEmpty) {
           self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+          self.setState(prevState => {
+            const newState = _.cloneDeep(prevState)
+            newState.recentActionTime = Date.now()
+            return newState
+          })
         } else {
           self.setState(prevState => {
             const newState = _.cloneDeep(prevState)
@@ -1036,7 +1041,7 @@ class Main extends React.Component {
 
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.recentReplyTime = Date.now()
+        newState.recentActionTime = Date.now()
         return newState
       })
     })
@@ -1132,7 +1137,7 @@ class Main extends React.Component {
           if (['explore', 'train'].includes(prevState.modeOpened) && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
             // WS message just after game finish.
             // WTF? It should be much simpler!
-            self.runFinishStatusTicker(6)
+            self.runFinishStatusTicker(4)
             if (prevState.uiState === UI_STATES.exploring) {
               newState.uiState = UI_STATES.inExplore
             }
@@ -1370,7 +1375,7 @@ class Main extends React.Component {
         const newState = _.cloneDeep(prevState)
         newState.status = 'skipped'
         newState.uiState = UI_STATES.skipRequested
-        self.runFinishStatusTicker(6)
+        self.runFinishStatusTicker(4)
         return newState
       })
     })
@@ -1494,7 +1499,7 @@ class Main extends React.Component {
         const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
         newState.replyLetters[wordIndex] = updatedReplyWordLetters
         newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
-        newState.recentReplyTime = Date.now()
+        newState.recentActionTime = Date.now()
 
         // If all letters entered send to server side.
         let containsQuestionMark = false
@@ -1731,7 +1736,7 @@ class Main extends React.Component {
         finishStatusStyle.border = '3px solid red'
         finishStatus = trn(
           userLanguage,
-          'Game skipped. Starting next game in {seconds} seconds.',
+          'Game skipped. Starting the next game in {seconds} seconds.',
           { seconds: self.state.finishStatusDisplayTimeout })
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
@@ -1765,7 +1770,7 @@ class Main extends React.Component {
             finishStatusStyle.border = '3px solid green'
             finishStatus = trn(
               userLanguage,
-              'Amazing. Next game will start in {seconds} seconds.',
+              'Amazing. The next game will start in {seconds} seconds.',
               { seconds: self.state.finishStatusDisplayTimeout })
           }
         } else {
