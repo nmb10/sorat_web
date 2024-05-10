@@ -1653,17 +1653,7 @@ class Main extends React.Component {
     const header = (
       <div className="row">
         <div className="column">
-          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" />
-        </div>
-        <div className="column">
-          <a style={{ float: 'right' }} href="https://github.com/nmb10/sorat_web/issues" title={versions}>
-            {trn(userLanguage, 'Report an issue')}
-          </a>
-        </div>
-        <div className="column">
-          <a style={{ float: 'left' }} href="https://github.com/nmb10/sorat_translations">
-            {trn(userLanguage, 'Contribute')}
-          </a>
+          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" title={versions}/>
         </div>
         <div className="column">
           <div>
@@ -1908,7 +1898,7 @@ class Main extends React.Component {
     let imageSelectModeSwitchButton
 
     if (self.state.method === LETTERS_SELECTION_METHOD && self.state.uiState === UI_STATES.exploring) {
-      imageSelectModeSwitchButton = <button onClick={self.onImageSelectModeSwitchClick}>{trn(userLanguage, 'Images')}</button>
+      imageSelectModeSwitchButton = <button onClick={self.onImageSelectModeSwitchClick}>{trn(userLanguage, 'Image selection')}</button>
     }
 
     if (self.state.challenge) {
