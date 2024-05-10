@@ -1647,7 +1647,7 @@ class Main extends React.Component {
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
 
     const volumeWidget = (
-      <input type="range" id="volume" name="volume" min="0" max="100" defaultValue={self.state.soundVolume} onChange={this.onVolumeChange}/>
+      <input type="range" style={{ float: 'left' }} id="volume" name="volume" min="0" max="100" defaultValue={self.state.soundVolume} onChange={this.onVolumeChange}/>
     )
 
     const header = (
@@ -1656,15 +1656,13 @@ class Main extends React.Component {
           <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" title={versions}/>
         </div>
         <div className="column">
-          <div>
-            <label htmlFor="autoplay-toggle-checkbox" title="Enable or disable autoplay">
-              Autoplay:
-              <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
-            </label>
-          </div>
-          <div>
-            {volumeWidget}
-          </div>
+          <label htmlFor="autoplay-toggle-checkbox" style={{ float: 'right' }} title={trn(userLanguage, 'Autoplay site sounds')}>
+            {trn(userLanguage, 'Autoplay')}
+            <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
+          </label>
+        </div>
+        <div className="column">
+          {volumeWidget}
         </div>
         <div className="column">
           <select id="language" style={{ backgroundColor: '#282c34' }} value={self.state.user.language} onChange={self.handleLanguageChange}>
@@ -1731,13 +1729,19 @@ class Main extends React.Component {
 
       if (self.state.status === 'skipped') {
         finishStatusStyle.border = '3px solid red'
-        finishStatus = trn(userLanguage, 'Game skipped. Starting next game in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+        finishStatus = trn(
+          userLanguage,
+          'Game skipped. Starting next game in {seconds} seconds.',
+          { seconds: self.state.finishStatusDisplayTimeout })
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
       } else if (self.state.method === IMAGE_SELECTION_METHOD) {
         finishStatusStyle.border = '3px solid green'
-        finishStatus = trn(userLanguage, 'Good, but letters selection mode is required to pass. Starting the same game in ') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+        finishStatus = trn(
+          userLanguage,
+          'Good, but letters selection mode is required to pass. Starting the same game in {seconds} seconds.',
+          { seconds: self.state.finishStatusDisplayTimeout })
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
@@ -1752,11 +1756,17 @@ class Main extends React.Component {
 
         if (self.state.uiState === UI_STATES.inExplore) {
           if (self.state.totalHints > 3) {
-            finishStatus = trn(userLanguage, 'Too many hints. Starting the same game in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatus = trn(
+              userLanguage,
+              'Too many hints. Starting the same game in {seconds} seconds.',
+              { seconds: self.state.finishStatusDisplayTimeout })
             finishStatusStyle.border = '3px solid red'
           } else {
             finishStatusStyle.border = '3px solid green'
-            finishStatus = trn(userLanguage, 'Amazing. Next game will start in') + ' ' + self.state.finishStatusDisplayTimeout + ' ' + trn(userLanguage, 'seconds.')
+            finishStatus = trn(
+              userLanguage,
+              'Amazing. Next game will start in {seconds} seconds.',
+              { seconds: self.state.finishStatusDisplayTimeout })
           }
         } else {
           if (scorePercent >= 98) {
@@ -2003,7 +2013,7 @@ class Main extends React.Component {
           <button id="contest" onClick={self.onContestClick} style={ buttonStyle }>
             {trn(userLanguage, 'Contest')}
           </button>
-          <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Explore')} style={ buttonStyle }>
+          <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Start new game in explore mode')} style={ buttonStyle }>
             {trn(userLanguage, 'Explore')}
           </button>
         </div>)
