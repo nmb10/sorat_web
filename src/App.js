@@ -27,6 +27,7 @@ const UI_STATES = {
   exploring: 'exploring', // Playing epxlore game.
   constesting: 'contesting', // Playing contest game.
   skipRequested: 'skipRequested',
+  skipped: 'skipped',
   contestEnqueued: 'contestEnqueued'
 }
 
@@ -245,6 +246,44 @@ function userScoreToRow (isCurrent, score) {
       {allScores}
     </tr>)
 };
+
+CurrentRoundTimeoutWidget.propTypes = {
+  user: PropTypes.object,
+  isSolved: PropTypes.bool,
+  isLettersSelection: PropTypes.bool,
+  currentRound: PropTypes.object
+}
+
+function CurrentRoundTimeoutWidget (props) {
+  // TODO: Too dirty, refactor.
+  if (!props.isSolved) {
+    return (
+      <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        {props.currentRound.timeout}
+      </h3>
+    )
+  } else if (props.currentRound.timeout <= 10 && !props.isSolved) {
+    return (
+      <h3 style={{ color: 'red', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        {props.currentRound.timeout}
+      </h3>
+    )
+  } else {
+    let pointsBlock
+    let points = 0
+    if (props.isSolved && props.isLettersSelection) {
+      if (props.currentRound.solutions[props.user.id].hints.length === 3) {
+        points = 0
+      } else {
+        points = '+' + (5 - props.currentRound.solutions[props.user.id].hints.length)
+      }
+      pointsBlock = <span style={{ color: 'green' }}>{points}</span>
+    }
+    return (<h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+      {pointsBlock}
+    </h3>)
+  }
+}
 
 FinishedRoundsTable.propTypes = {
   finishedRounds: PropTypes.array,
@@ -477,7 +516,12 @@ SelectImageGameWidget.propTypes = {
 function SelectImageGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
   const currentRoundIndex = props.currentRoundIndex
-  const localTermLetters = <div className="image-selection-letters">{ localTerm }</div>
+  const timeoutBlock = <CurrentRoundTimeoutWidget
+    isSolved={props.isSolved} currentRound={props.currentRound}
+    isLettersSelection={false} user={props.user}/>
+  const localTermLetters = <div className="image-selection-letters">
+    {timeoutBlock} { localTerm }
+  </div>
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
@@ -735,7 +779,8 @@ class Main extends React.Component {
                   status: message.payload.status,
                   totalHints: message.payload.total_hints,
                   gameLastMessageTime: messageTime
-                }
+                },
+                eventType: message.event_type
               }
             }))
       } else if (message.type === 'challenge') {
@@ -851,7 +896,7 @@ class Main extends React.Component {
       }
       const currentRoundIsEmpty = Object.keys(currentRound).length === 0
       const secondsFromRecentInteraction = (Date.now() - self.state.recentActionTime) / 1000
-      if (self.state.uiState === UI_STATES.inExplore) {
+      if (self.state.uiState === UI_STATES.skipped || self.state.uiState === UI_STATES.inExplore) {
         if (secondsFromRecentInteraction < 60 && currentRoundIsEmpty) {
           self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
           self.setState(prevState => {
@@ -1115,20 +1160,24 @@ class Main extends React.Component {
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
-        if (event.detail.state.mode === 'train') {
-          if (event.detail.state.currentRound > -1) {
-            newState.uiState = UI_STATES.training
-          } else {
-            newState.uiState = UI_STATES.inTrain
-          }
-        } else if (event.detail.state.mode === 'explore') {
-          if (event.detail.state.currentRound > -1) {
-            newState.uiState = UI_STATES.exploring
-          } else {
-            newState.uiState = UI_STATES.inExplore
-          }
+
+        if (event.detail.eventType === 'start' && event.detail.state.mode === 'train') {
+          newState.uiState = UI_STATES.training
+        } else if (event.detail.eventType === 'start' && event.detail.state.mode === 'explore') {
+          newState.uiState = UI_STATES.exploring
+        } else if (event.detail.eventType === 'train_leave') {
+          newState.uiState = UI_STATES.inTrain
+        } else if (event.detail.eventType === 'explore_leave') {
+          newState.uiState = UI_STATES.init
+          newState.mode = null
+          newState.modeOpened = null
+          newState.method = null
+        } else if (event.detail.eventType === 'explore_skip') {
+          newState.uiState = UI_STATES.skipped
         }
-        const roundOrMethodChanged = (self.state.currentRound !== newState.currentRound) || (self.state.method !== newState.method) || (self.state.isDemoGame !== newState.isDemoGame)
+
+        const roundOrMethodChanged = event.detail.eventType === 'round_changed' || event.detail.eventType === 'method_changed'
+
         if (newState.currentRound === -1) {
           newState.replyLetters = []
           newState.replyMap = {}
@@ -1373,7 +1422,6 @@ class Main extends React.Component {
       self.sendMessage({ command: 'skip', payload: {} })
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.status = 'skipped'
         newState.uiState = UI_STATES.skipRequested
         self.runFinishStatusTicker(4)
         return newState
@@ -1732,7 +1780,7 @@ class Main extends React.Component {
       const allPlayersScores = getPlayersScores(self.state.players, finishedRounds)
       const userScores = allPlayersScores[self.state.user.id]
 
-      if (self.state.status === 'skipped') {
+      if (self.state.uiState === UI_STATES.skipped) {
         finishStatusStyle.border = '3px solid red'
         finishStatus = trn(
           userLanguage,
@@ -1884,17 +1932,6 @@ class Main extends React.Component {
         </div>)
     }
 
-    let pointsBlock
-    let points = 0
-    if (isSolved && self.state.method === LETTERS_SELECTION_METHOD) {
-      if (currentRound.solutions[self.state.user.id].hints.length === 3) {
-        points = 0
-      } else {
-        points = '+' + (5 - currentRound.solutions[self.state.user.id].hints.length)
-      }
-      pointsBlock = <span style={{ color: 'green' }}>{points}</span>
-    }
-
     // const languages = ['dig','os','ru','en'];
     // FIXME: Move to server side.
     const methodOptionItems = methods
@@ -1930,10 +1967,14 @@ class Main extends React.Component {
     if (self.state.uiState === UI_STATES.inTrain) {
       buttonsBlock = (
         <div className="column">
-            <button id='train' onClick={self.onTrainClick} style={ buttonStyle }>
-              {trn(userLanguage, 'Start train')}
-            </button>
-        </div>)
+          <button id='train' onClick={self.onTrainClick} style={ buttonStyle }>
+            {trn(userLanguage, 'Start train')}
+          </button>
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}
+          </button>
+        </div>
+      )
     } else if (self.state.uiState === UI_STATES.contesting) {
       buttonsBlock = (
         <div className="column">
@@ -1969,25 +2010,23 @@ class Main extends React.Component {
             {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
           </button>
         </div>)
+    } else if (self.state.uiState === UI_STATES.skipped) {
+      buttonsBlock = (
+        <div className="column">
+          <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.inExplore) {
-      if (self.state.status !== 'skipped') {
-        buttonsBlock = (
-          <div className="column">
-            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-              {trn(userLanguage, 'Leave')}
-            </button>
-            <button id="skip" onClick={self.onSkipClick} style={ buttonStyle }>
-              {trn(userLanguage, 'Skip')}
-            </button>
-          </div>)
-      } else {
-        buttonsBlock = (
-          <div className="column">
-            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-              {trn(userLanguage, 'Leave')}
-            </button>
-          </div>)
-      }
+      buttonsBlock = (
+        <div className="column">
+          <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
+            {trn(userLanguage, 'Leave')}
+          </button>
+          <button id="skip" onClick={self.onSkipClick} style={ buttonStyle }>
+            {trn(userLanguage, 'Skip')}
+          </button>
+        </div>)
     } else if (self.state.uiState === UI_STATES.exploring) {
       if (self.state.status !== 'skipped') {
         buttonsBlock = (
@@ -2063,34 +2102,17 @@ class Main extends React.Component {
       }
     }
 
-    let currentRoundTimeoutBlock
-
-    if (self.state.isDemoGame) {
-      // Do not display counter for demo.
-      ;
-    } else if (!isSolved) {
-      currentRoundTimeoutBlock = (
-        <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-          {currentRound.timeout}
-        </h3>)
-    } else if (currentRound.timeout <= 10 && !isSolved) {
-      currentRoundTimeoutBlock = (
-        <h3 style={{ color: 'red', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-          {currentRound.timeout}
-        </h3>)
-    } else {
-      currentRoundTimeoutBlock = (<h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-        {pointsBlock}
-      </h3>)
-    }
-
     let timeoutBlock
-    if (self.state.method === LETTERS_SELECTION_METHOD && self.state.lettersDisplayTimeout) {
-      timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-        &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>Think...</span>
-      </h3>
-    } else {
-      timeoutBlock = currentRoundTimeoutBlock
+    if (self.state.method === LETTERS_SELECTION_METHOD) {
+      if (self.state.lettersDisplayTimeout) {
+        timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+          &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>Think...</span>
+        </h3>
+      } else {
+        timeoutBlock = <CurrentRoundTimeoutWidget
+          isSolved={isSolved} currentRound={currentRound}
+          isLettersSelection={self.state.method === LETTERS_SELECTION_METHOD} user={self.state.user}/>
+      }
     }
 
     let gameWidgetElems
