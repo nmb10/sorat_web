@@ -908,6 +908,7 @@ class Main extends React.Component {
           self.setState(prevState => {
             const newState = _.cloneDeep(prevState)
             newState.modeOpened = null
+            newState.uiState = UI_STATES.init
             return newState
           })
         }
@@ -1176,7 +1177,7 @@ class Main extends React.Component {
           newState.uiState = UI_STATES.skipped
         }
 
-        const roundOrMethodChanged = event.detail.eventType === 'round_changed' || event.detail.eventType === 'method_changed'
+        const roundOrMethodChanged = event.detail.eventType === 'round_changed' || event.detail.eventType === 'method_changed' || event.detail.eventType === 'start'
 
         if (newState.currentRound === -1) {
           newState.replyLetters = []
