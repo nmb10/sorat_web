@@ -1,0 +1,33 @@
+export const translations = {
+  Autoplay: 'Reproducción automática',
+  'Autoplay site sounds': 'Reproducción automática de sonidos',
+  'Start new game in explore mode.': 'Inicia una nueva partida en modo explorar.',
+  'Image selection': 'Selección de imágenes',
+  'Letters selection': 'Selección de cartas',
+  'Tell again': 'Cuéntalo otra vez',
+  'Game skipped. Starting the next game in {seconds} seconds.': 'Partida saltada. Comenzando la siguiente partida en {seconds} segundos.',
+  'Amazing. New game will start in {seconds} seconds.': 'Asombroso. El nuevo juego comenzará en {seconds} segundos.',
+  Skip: 'Saltar',
+  'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Advertencia: esta es la versión alfa de la aplicación. Por favor, prepárate para perder tu progreso en el modo explorar una vez. Disculpa las molestias.',
+  Help: 'Ayuda',
+  Leave: 'Deja',
+  Contest: 'Concurso',
+  'Find rival': 'Buscar rival',
+  'Start train': 'Tren de salida',
+  Train: 'Tren',
+  Amazing: 'Asombroso',
+  'Amazing. New round will start in {seconds} seconds.': 'Asombroso. La nueva ronda comenzará en {seconds} segundos.',
+  'Well, but not enough. Try again in {seconds} seconds.': 'Bien, pero no lo suficiente. Inténtalo de nuevo en {seconds} segundos.',
+  'Very well. New round will start in {seconds} seconds.': 'Muy bien. La nueva ronda comenzará en {seconds} segundos.',
+  'Very well.': 'Muy bien.',
+  'Well done.': 'Bien hecho.',
+  'So bad. You can do better!': 'Muy mal. ¡Puedes hacerlo mejor!',
+  Explore: 'Explore',
+  'What?': '¿Cómo?',
+  'You won!': '¡Has ganado!',
+
+  // levels
+  Simple: 'Simple',
+  Normal: 'Normal',
+  Hard: 'Duro'
+}

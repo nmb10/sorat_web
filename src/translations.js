@@ -4,6 +4,7 @@ import { translations as FrTranslations } from './locales/fr'
 import { translations as RuTranslations } from './locales/ru'
 import { translations as OsTranslations } from './locales/os'
 import { translations as DigTranslations } from './locales/dig'
+import { translations as EsTranslations } from './locales/es'
 
 const translations = {
   en: EnTranslations,
@@ -11,7 +12,8 @@ const translations = {
   fr: FrTranslations,
   ru: RuTranslations,
   os: OsTranslations,
-  dig: DigTranslations
+  dig: DigTranslations,
+  es: EsTranslations
 }
 
 const LETTERS_SELECTION_METHOD = 'letters-selection'
