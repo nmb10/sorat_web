@@ -5,7 +5,8 @@
         "os": "Нывтæм гæсгæ ахуыр кæн дзырдтæ. Хъаз иунæгæй æви иннæ хъазджытимæ.",
         "dig": "Соратмæ гæсгæ ахур кæнæ нихæстæ. Гъаз eунæгæй кенæ æндæр гъазгуттимæ.",
         "fr": "Enrichissez votre vocabulaire dans certains domaines en devinant des images. Devinez-les seul ou en mode concours avec des utilisateurs aléatoires du monde entier.",
-        "de": "Erweitern Sie Ihren Wortschatz in bestimmten Bereichen, indem Sie Bilder erraten. Errate sie allein oder im Wettbewerbsmodus mit zufälligen Benutzern aus der ganzen Welt."
+        "de": "Erweitern Sie Ihren Wortschatz in bestimmten Bereichen, indem Sie Bilder erraten. Errate sie allein oder im Wettbewerbsmodus mit zufälligen Benutzern aus der ganzen Welt.",
+        "es": "Enriquece tu vocabulario en un área determinada adivinando imágenes. Adivínalas solo o en modo concurso con usuarios aleatorios de todo el mundo."
     },
     "title": {
         "en": "Learn and practice english language by recognizing images",
@@ -13,7 +14,8 @@
         "os": "Ахур кæн æвзаг сурæт æвзарынæй",
         "dig": "Ахур кæнæ æвзаг сорæт æвзарунæй",
         "fr": "Pratiquez la langue française en reconnaissant des images",
-        "de": "Übe die deutsche Sprache durch das Erkennen von Bildern"
+        "de": "Übe die deutsche Sprache durch das Erkennen von Bildern",
+        "es": "Aprende y practica inglés reconociendo imágenes"
     },
     "noscript": {
         "en": "You need to enable JavaScript to run this app.",
@@ -21,7 +23,8 @@
         "os": "Скуысын кæн JavaScript цæмæй дзы ахъазæй.",
         "dig": "Аци гъазæни гъæуй JavaScript.",
         "fr": "Vous devez activer JavaScript pour utiliser cette application",
-        "de": "Sie müssen JavaScript aktivieren, um diese App auszuführen."
+        "de": "Sie müssen JavaScript aktivieren, um diese App auszuführen.",
+        "es": "Debe activar JavaScript para ejecutar esta aplicación."
     },
     "issue_report": {
         "en": "Report an issue",
@@ -29,6 +32,7 @@
         "os": "Рæдыд фехъусын кæнын",
         "dig": "Рæдуд фегъосун кæнун",
         "fr": "Signaler un problème",
-        "de": "Ein Problem melden"
+        "de": "Ein Problem melden",
+        "es": "Informar de un problema"
     }
 }
