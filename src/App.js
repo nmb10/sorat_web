@@ -1781,7 +1781,7 @@ class Main extends React.Component {
       const allPlayersScores = getPlayersScores(self.state.players, finishedRounds)
       const userScores = allPlayersScores[self.state.user.id]
 
-      if (self.state.uiState === UI_STATES.skipped) {
+      if (self.state.uiState === UI_STATES.skipped || self.state.uiState === UI_STATES.skipRequested) {
         finishStatusStyle.border = '3px solid red'
         finishStatus = trn(
           userLanguage,
