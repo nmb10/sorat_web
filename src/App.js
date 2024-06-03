@@ -1,5 +1,6 @@
 import spinner from './spinner1.png'
 import iconHelp from './icons8-help-50.png'
+import iconLeave from './icon-leave.png'
 
 import React from 'react'
 import './App.css'
@@ -475,7 +476,7 @@ function WordImageColumn (props) {
         {choicePointer}
       </div>
       {imagePointsBlock}
-      <img className="word-image"
+      <img className="word-image word-image-letters-selection"
            src={props.imageSrc}
            onClick={onImageClick}
            style={imageStyle} />
@@ -494,11 +495,11 @@ function SelectLettersGameWidget (props) {
   const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
   if (props.isSolved) {
     return (
-      <img className="word-image word-image-solved" src={correctImage.src}/>
+      <img className="word-image  word-image-letters-selection word-image-solved" src={correctImage.src}/>
     )
   } else {
     return (
-      <img className="word-image" src={correctImage.src}/>
+      <img className="word-image word-image-letters-selection" src={correctImage.src}/>
     )
   }
 }
@@ -1971,23 +1972,23 @@ class Main extends React.Component {
           <button id='train' onClick={self.onTrainClick} style={ buttonStyle }>
             {trn(userLanguage, 'Start train')}
           </button>
-          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+            <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
           </button>
         </div>
       )
     } else if (self.state.uiState === UI_STATES.contesting) {
       buttonsBlock = (
         <div className="column">
-          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+            <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
           </button>
         </div>)
     } else if (self.state.uiState === UI_STATES.training) {
       buttonsBlock = (
         <div className="column">
-          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+            <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
           </button>
         </div>)
     } else if (self.state.uiState === UI_STATES.inTrain) {
@@ -2000,29 +2001,31 @@ class Main extends React.Component {
     } else if (self.state.uiState === UI_STATES.contestEnqueued) {
       buttonsBlock = (
         <div className="column">
-          <button onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
+          <button onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+            <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
+            <img src={spinner} alt="Spinner" />
           </button>
         </div>)
     } else if (self.state.uiState === UI_STATES.exploreRequested) {
       buttonsBlock = (
         <div className="column">
-          <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}<img src={spinner} alt="Spinner" />
+          <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Explore')} style={ buttonStyle }>
+            {trn(userLanguage, 'Explore')}
+            <img src={spinner} alt="Spinner" />
           </button>
         </div>)
     } else if (self.state.uiState === UI_STATES.skipped) {
       buttonsBlock = (
         <div className="column">
-          <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}
+          <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+            <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
           </button>
         </div>)
     } else if (self.state.uiState === UI_STATES.inExplore) {
       buttonsBlock = (
         <div className="column">
-          <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-            {trn(userLanguage, 'Leave')}
+          <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+            <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
           </button>
           <button id="skip" onClick={self.onSkipClick} style={ buttonStyle }>
             {trn(userLanguage, 'Skip')}
@@ -2032,8 +2035,8 @@ class Main extends React.Component {
       if (self.state.status !== 'skipped') {
         buttonsBlock = (
           <div className="column">
-            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-              {trn(userLanguage, 'Leave')}
+            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+              <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
             </button>
             {imageSelectModeSwitchButton}
             <button id="skip" onClick={self.onSkipClick} style={ buttonStyle }>
@@ -2043,8 +2046,8 @@ class Main extends React.Component {
       } else {
         buttonsBlock = (
           <div className="column">
-            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
-              {trn(userLanguage, 'Leave')}
+            <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')}>
+              <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
             </button>
             {imageSelectModeSwitchButton}
           </div>)
