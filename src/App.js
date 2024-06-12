@@ -2049,9 +2049,6 @@ class Main extends React.Component {
     } else {
       buttonsBlock = (
         <div className="column">
-          <button id="contest" onClick={self.onContestClick} style={ buttonStyle }>
-            {trn(userLanguage, 'Contest')}
-          </button>
           <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Start new game in explore mode')} style={ buttonStyle }>
             {trn(userLanguage, 'Explore')}
           </button>
@@ -2261,6 +2258,12 @@ class Main extends React.Component {
         currentRoundNumber={ self.state.currentRound } />
     }
 
+    let statusLine
+    if (Object.keys(firstUnsolvedGame).length > 0 && Object.keys(secondUnsolvedGame).length > 0) {
+      statusLine = <div style={{ fontSize: '20px', color: 'orange' }}>
+        {'Solve ' + firstUnsolvedGame.topic.local_name + '#' + firstUnsolvedGame.topic_set + ' to reach to ' + secondUnsolvedGame.topic.local_name + '#' + secondUnsolvedGame.topic_set + '.'}
+      </div>
+    }
     return (
     <>
       <header className="App-header">
@@ -2281,12 +2284,19 @@ class Main extends React.Component {
           <div className="column">
             {gameErrorBlock}
             {gameWarningBlock}
-            {usernameInput}
           </div>
-          {methodSelectBox}
-          {levelSelectBox}
-          {topicSelectBox}
-          {buttonsBlock}
+        </div>
+        <div className="row">
+          <div className="column">
+            {statusLine}
+            {usernameInput}
+            {methodSelectBox}
+            {levelSelectBox}
+            {topicSelectBox}
+          </div>
+          <div className="column">
+            {buttonsBlock}
+          </div>
         </div>
         <div className="row">
           {finishedRoundsTable}
