@@ -25,6 +25,7 @@ export const translations = {
   Explore: 'Explore',
   'What?': 'What?',
   'You won!': 'You won!',
+  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
   Simple: 'Simple',

@@ -2260,8 +2260,18 @@ class Main extends React.Component {
 
     let statusLine
     if (Object.keys(firstUnsolvedGame).length > 0 && Object.keys(secondUnsolvedGame).length > 0) {
+      const variables = {
+        firstUnsolvedGameTopic: firstUnsolvedGame.topic.local_name,
+        firstUnsolvedGameTopicSet: firstUnsolvedGame.topic_set,
+        secondUnsolvedGameTopic: secondUnsolvedGame.topic.local_name,
+        secondUnsolvedGameTopicSet: secondUnsolvedGame.topic_set
+      }
+      const statusText = trn(
+        userLanguage,
+        'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+        variables)
       statusLine = <div style={{ fontSize: '20px', color: 'orange' }}>
-        {'Solve ' + firstUnsolvedGame.topic.local_name + '#' + firstUnsolvedGame.topic_set + ' to reach to ' + secondUnsolvedGame.topic.local_name + '#' + secondUnsolvedGame.topic_set + '.'}
+        {statusText}
       </div>
     }
     return (
