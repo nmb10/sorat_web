@@ -937,7 +937,11 @@ class Main extends React.Component {
           newState.stateReceived = true
           newState.rounds = json.rounds
           newState.isDemoGame = json.is_demo_game
-          newState.uiState = UI_STATES.demo
+          if (json.mode === 'explore') {
+            newState.uiState = UI_STATES.inExplore
+          } else if (json.is_demo_game) {
+            newState.uiState = UI_STATES.demo
+          }
           newState.currentRound = json.current_round
           const currentRoundObj = newState.rounds[newState.currentRound - 1]
           const word = currentRoundObj.question[0] // FIXME: Use string instead of list of strings
@@ -2242,8 +2246,8 @@ class Main extends React.Component {
     let secondUnsolvedGame = {}
     if (Object.keys(self.state.progress).length > 0) {
       // Progress exists.
-      firstUnsolvedGame = self.state.progress.first_unsolved_game
-      secondUnsolvedGame = self.state.progress.second_unsolved_game
+      firstUnsolvedGame = self.state.progress.first_unsolved_game || {}
+      secondUnsolvedGame = self.state.progress.second_unsolved_game || {}
     }
 
     let transitionBlock
