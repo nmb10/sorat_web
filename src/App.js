@@ -259,19 +259,7 @@ CurrentRoundTimeoutWidget.propTypes = {
 
 function CurrentRoundTimeoutWidget (props) {
   // TODO: Too dirty, refactor.
-  if (!props.isSolved) {
-    return (
-      <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-        {props.currentRound.timeout}
-      </h3>
-    )
-  } else if (props.currentRound.timeout <= 10 && !props.isSolved) {
-    return (
-      <h3 style={{ color: 'red', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-        {props.currentRound.timeout}
-      </h3>
-    )
-  } else {
+  if (props.isSolved) {
     let pointsBlock
     let points = 0
     if (props.isSolved && props.isLettersSelection) {
@@ -282,9 +270,21 @@ function CurrentRoundTimeoutWidget (props) {
       }
       pointsBlock = <span style={{ color: 'green' }}>{points}</span>
     }
-    return (<h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+    return (<h3 style={{ color: 'green', marginLeft: '-5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
       {pointsBlock}
     </h3>)
+  } else if (props.currentRound.timeout < 10) {
+    return (
+      <h3 style={{ color: 'red', marginLeft: '5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        {props.currentRound.timeout}
+      </h3>
+    )
+  } else {
+    return (
+      <h3 style={{ color: 'green', marginLeft: '-5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        {props.currentRound.timeout}
+      </h3>
+    )
   }
 }
 
@@ -2101,10 +2101,10 @@ class Main extends React.Component {
     let timeoutBlock
     if (self.state.method === LETTERS_SELECTION_METHOD) {
       if (self.state.lettersDisplayTimeout) {
-        timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-75px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+        timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
           &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>Think...</span>
         </h3>
-      } else {
+      } else if (!self.state.isDemoGame) {
         timeoutBlock = <CurrentRoundTimeoutWidget
           isSolved={isSolved} currentRound={currentRound}
           isLettersSelection={self.state.method === LETTERS_SELECTION_METHOD} user={self.state.user}/>
@@ -2319,21 +2319,19 @@ class Main extends React.Component {
           {gameColumn}
         </div>
         <div className="row">
-          <div className="column">
-            {transitionBlock}
-            {helpButton}&nbsp;
-            {voiceButton}
-          </div>
+          {transitionBlock}
+          {helpButton}&nbsp;
+          {voiceButton}
+          {replyLetterItems}
         </div>
         {challengeBlock}
         {contextBlock}
         <div className="row">
-          {replyLetterItems}
-        </div>
-        <div className="row">
-          {timeoutBlock}
-          <div id="letters">
-            {splittedLettersItems}
+          <div className="column">
+            {timeoutBlock}
+            <div id="letters" style={{ float: 'left' }}>
+              {splittedLettersItems}
+            </div>
           </div>
         </div>
         <div>
