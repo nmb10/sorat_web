@@ -403,6 +403,9 @@ function ProgressWidget (props) {
       gamesCollector = [props.games[i]]
     }
   }
+  if (gamesCollector.length > 0) {
+    splitted.push(gamesCollector)
+  }
 
   const rows = []
 
