@@ -25,6 +25,7 @@ export const translations = {
   Explore: 'Explore',
   'What?': '¿Cómo?',
   'You won!': '¡Has ganado!',
+  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Límite de pistas superado. Intenta resolver {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} de nuevo para llegar a {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
   Simple: 'Simple',
