@@ -2,6 +2,7 @@ import spinner from './spinner1.png'
 import iconHelp from './icons8-help-50.png'
 import iconLeave from './icon-leave.png'
 import iconSkip from './icon-skip.png'
+import iconVolume from './icon-volume.png'
 import iconSelectImage from './icon-select-image.png'
 
 import React from 'react'
@@ -97,6 +98,15 @@ const finishStatusStyle = {
   backgroundColor: '#282c34',
   padding: '5px',
   borderRadius: '10px'
+}
+
+function playSound (src, volume) {
+  const voice1 = new Audio(src)
+  voice1.volume = volume / 100.0
+  voice1.play()
+
+  document.getElementById('root').dispatchEvent(
+    new CustomEvent('voice.played', { detail: { src: src, soundVolume: volume } }))
 }
 
 function getPlayersScores (players, finishedRounds) {
@@ -516,7 +526,8 @@ SelectImageGameWidget.propTypes = {
   user: PropTypes.node.isRequired,
   correctChoice: PropTypes.number,
   isSolved: PropTypes.bool,
-  score: PropTypes.number
+  score: PropTypes.number,
+  soundVolume: PropTypes.number
 }
 
 function SelectImageGameWidget (props) {
@@ -525,7 +536,7 @@ function SelectImageGameWidget (props) {
   const timeoutBlock = <CurrentRoundTimeoutWidget
     isSolved={props.isSolved} currentRound={props.currentRound}
     isLettersSelection={false} user={props.user}/>
-  const localTermLetters = <div className="image-selection-letters">
+  const localTermLetters = <div className="image-selection-letters" style={{ float: 'left' }}>
     {timeoutBlock} { localTerm }
   </div>
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
@@ -555,6 +566,16 @@ function SelectImageGameWidget (props) {
   const score2 = props.correctChoice === 3 ? props.score : null
   const score3 = props.correctChoice === 4 ? props.score : null
 
+  let voiceButton
+  if (props.currentRound.voice_path && props.currentRound.voice_path.src) {
+    voiceButton = (
+      <button onClick={() => playSound(props.currentRound.voice_path.src, props.soundVolume)}
+              style={{ float: 'left', width: '70px', margin: '30px', padding: 0 }}>
+        <img src={iconVolume} style={{ padding: 0, height: '35px' }} />
+      </button>
+    )
+  }
+
   return (
     <table style={{ border: 'none', borderCollapse: 'collapse', cellspacing: 0, cellpadding: 0 }}>
       <tr>
@@ -567,7 +588,7 @@ function SelectImageGameWidget (props) {
       </tr>
       <tr>
         <td colSpan="2">
-          {localTermLetters}
+          {localTermLetters}{voiceButton}
         </td>
         <td></td>
       </tr>
@@ -1653,15 +1674,6 @@ class Main extends React.Component {
       new CustomEvent('explore-clicked', { detail: {} }))
   }
 
-  playSound (src, volume) {
-    const voice1 = new Audio(src)
-    voice1.volume = volume / 100.0
-    voice1.play()
-
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('voice.played', { detail: { src: src, soundVolume: volume } }))
-  }
-
   onAcceptClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('challenge-accepted', { detail: {} }))
@@ -2079,7 +2091,7 @@ class Main extends React.Component {
         helpButton = (
           <button onClick={self.getHelp}
                   title='(-1 to current game score)'
-                  style={{ float: 'left', width: '70px', maring: 0, padding: 0 }}>
+                  style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
             <img src={iconHelp} alt="{ trn(userLanguage, 'Help') }" style={{ maxHeight: '36px', float: 'left' }} />
             <div style={{ fontSize: '16px', float: 'left' }}>
               ({3 - currentRound.solutions[self.state.user.id].hints.length})
@@ -2133,7 +2145,8 @@ class Main extends React.Component {
           currentRoundIndex={self.state.currentRound - 1}
           correctChoice={correctChoice}
           isSolved={isSolved}
-          score={score} />
+          score={score}
+          soundVolume={self.state.soundVolume} />
         helpButton = null // FIXME: Find better solution.
         replyLetterItems = null
         splittedLettersItems = null
@@ -2227,16 +2240,16 @@ class Main extends React.Component {
     }
 
     if (currentRound.voice_path && currentRound.voice_path.src && self.state.autoplayEnabled && self.state.soundVolume > 0 && !self.state.voicePlayed) {
-      self.playSound(currentRound.voice_path.src, self.state.soundVolume)
+      playSound(currentRound.voice_path.src, self.state.soundVolume)
     }
 
     let voiceButton
     if (currentRound.voice_path && currentRound.voice_path.src) {
       voiceButton = (
-        <button onClick={() => self.playSound(currentRound.voice_path.src, self.state.soundVolume)}
+        <button onClick={() => playSound(currentRound.voice_path.src, self.state.soundVolume)}
                 title={trn(userLanguage, 'Tell again')}
-                style={{ fontSize: '20px', float: 'left', margin: '5px', width: '145px', height: '45px' }}>
-          {trn(userLanguage, 'What?')}
+                style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
+          <img src={iconVolume} style={{ padding: 0, height: '35px' }} />
         </button>
       )
     }
@@ -2273,13 +2286,24 @@ class Main extends React.Component {
         secondUnsolvedGameTopic: secondUnsolvedGame.topic.local_name,
         secondUnsolvedGameTopicSet: secondUnsolvedGame.topic_set
       }
-      const statusText = trn(
-        userLanguage,
-        'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
-        variables)
-      statusLine = <div style={{ fontSize: '20px', color: 'orange' }}>
-        {statusText}
-      </div>
+      let statusText
+      if (self.state.totalHints > 3) {
+        statusText = trn(
+          userLanguage,
+          'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+          variables)
+        statusLine = <div style={{ fontSize: '20px', color: 'red' }}>
+          {statusText}
+        </div>
+      } else {
+        statusText = trn(
+          userLanguage,
+          'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+          variables)
+        statusLine = <div style={{ fontSize: '20px', color: 'orange' }}>
+          {statusText}
+        </div>
+      }
     }
     return (
     <>
@@ -2324,8 +2348,8 @@ class Main extends React.Component {
         <div className="row">
           {transitionBlock}
           {helpButton}&nbsp;
-          {voiceButton}
           {replyLetterItems}
+          {voiceButton}
         </div>
         {challengeBlock}
         {contextBlock}
