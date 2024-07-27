@@ -5,6 +5,8 @@ export const translations = {
   'Image selection': 'Selección de imágenes',
   'Letters selection': 'Selección de cartas',
   'Tell again': 'Cuéntalo otra vez',
+  'Report an issue': 'Informar de un problema',
+  Contribute: 'Contribuir',
   'Game skipped. Starting the next game in {seconds} seconds.': 'Partida saltada. Comenzando la siguiente partida en {seconds} segundos.',
   'Amazing. New game will start in {seconds} seconds.': 'Asombroso. El nuevo juego comenzará en {seconds} segundos.',
   Skip: 'Saltar',
@@ -21,10 +23,12 @@ export const translations = {
   'Very well. New round will start in {seconds} seconds.': 'Muy bien. La nueva ronda comenzará en {seconds} segundos.',
   'Very well.': 'Muy bien.',
   'Well done.': 'Bien hecho.',
+  Well: 'Bien',
   'So bad. You can do better!': 'Muy mal. ¡Puedes hacerlo mejor!',
   Explore: 'Explore',
   'What?': '¿Cómo?',
   'You won!': '¡Has ganado!',
+  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Resuelve el {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet}  para llegar al {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}',
   'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Límite de pistas superado. Intenta resolver {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} de nuevo para llegar a {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
