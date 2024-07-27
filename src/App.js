@@ -2290,7 +2290,7 @@ class Main extends React.Component {
       if (self.state.totalHints > 3) {
         statusText = trn(
           userLanguage,
-          'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+          'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
           variables)
         statusLine = <div style={{ fontSize: '20px', color: 'red' }}>
           {statusText}
@@ -2298,7 +2298,7 @@ class Main extends React.Component {
       } else {
         statusText = trn(
           userLanguage,
-          'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+          'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
           variables)
         statusLine = <div style={{ fontSize: '20px', color: 'orange' }}>
           {statusText}

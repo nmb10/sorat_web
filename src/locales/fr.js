@@ -17,8 +17,8 @@ export const translations = {
   'What?': 'Quoi?',
   'You won!': 'Tu as gagné',
   'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': "Avertissement: il s'agit d'une version alpha de l'application. Soyez prêt à vous perdre votre progression en mode d'exploration une fois. Désolé pour les désagréments.",
-  'Autoplay': 'Jeu auto',
-  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Résolvez {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} pour atteindre {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+  Autoplay: 'Jeu auto',
+  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Résolvez {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} pour atteindre {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
   'Game skipped. Starting the next game in {seconds} seconds.': 'Jeu ignoré. Début de la partie suivante dans {seconds} secondes.',
 
   // levels

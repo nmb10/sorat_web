@@ -25,7 +25,7 @@ export const translations = {
   Explore: 'Æсгарун',
   'What?': 'Куд?',
   'You won!': 'Рамбулдтай!',
-  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach to {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Исихалæ {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} æма райдайдзæнæ {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Исихалæ {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} æма райдайдзæнæ {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
   Simple: 'Еувазæг',
