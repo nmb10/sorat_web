@@ -29,7 +29,7 @@ export const translations = {
   'What?': 'Quoi?',
   'You won!': 'Tu as gagné',
   'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Résolvez {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} pour atteindre {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
-  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Hints limit exceeded. Limite d'indices dépassée. Essayez de résoudre {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} à nouveau pour atteindre le {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Hints limit exceeded. Limite d\'indices dépassée. Essayez de résoudre {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} à nouveau pour atteindre le {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
   Simple: 'Simple',
