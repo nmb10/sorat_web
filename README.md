@@ -1,4 +1,4 @@
-# Web UI for [sorat.io](http://sorat.io) (image quiz app)
+# Web UI for [sorat.io](http://sorat.io) (image quiz game)
 Provides UI to guess word by image and word letters.
 
 # Getting Started with Create React App
