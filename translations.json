@@ -1,12 +1,12 @@
 {
     "description": {
-        "en": "Enrich your vocabulary in certain area by guessing images. Guess them alone or in contest mode with random users all other the world",
-        "ru": "Обогощайте свой словарный запас угадывая изображения. Отгадывайте в одиночестве или со случайными игроками со всего мира.",
-        "os": "Нывтæм гæсгæ ахуыр кæн дзырдтæ. Хъаз иунæгæй æви иннæ хъазджытимæ.",
-        "dig": "Соратмæ гæсгæ ахур кæнæ нихæстæ. Гъаз eунæгæй кенæ æндæр гъазгуттимæ.",
-        "fr": "Enrichissez votre vocabulaire dans certains domaines en devinant des images. Devinez-les seul ou en mode concours avec des utilisateurs aléatoires du monde entier.",
-        "de": "Erweitern Sie Ihren Wortschatz in bestimmten Bereichen, indem Sie Bilder erraten. Errate sie allein oder im Wettbewerbsmodus mit zufälligen Benutzern aus der ganzen Welt.",
-        "es": "Enriquece tu vocabulario en un área determinada adivinando imágenes. Adivínalas solo o en modo concurso con usuarios aleatorios de todo el mundo."
+        "en": "Enrich your vocabulary in certain area by guessing images. You can use two modes in this game - select appropriate image given a word or pick randomly shuffled letters given an image",
+        "ru": "Обогощайте свой словарный запас угадывая изображения.",
+        "os": "Нывтæм гæсгæ ахуыр кæн дзырдтæ.",
+        "dig": "Соратмæ гæсгæ ахур кæнæ нихæстæ.",
+        "fr": "Enrichissez votre vocabulaire dans certains domaines en devinant des images.",
+        "de": "Erweitern Sie Ihren Wortschatz in bestimmten Bereichen, indem Sie Bilder erraten.",
+        "es": "Enriquece tu vocabulario en un área determinada adivinando imágenes."
     },
     "title": {
         "en": "Learn and practice english language by recognizing images",
