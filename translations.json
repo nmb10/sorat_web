@@ -8,6 +8,15 @@
         "de": "Erweitern Sie Ihren Wortschatz in bestimmten Bereichen, indem Sie Bilder erraten.",
         "es": "Enriquece tu vocabulario en un área determinada adivinando imágenes."
     },
+    "keywords": {
+        "en": "image quiz, picture quiz, guess image, picture dictionary, image identity game",
+        "ru": "отгадывание изображений, игра с угадыванием слов",
+        "os": "",
+        "dig": "",
+        "fr": "",
+        "de": "",
+        "es": ""
+    },
     "title": {
         "en": "Learn and practice english language by recognizing images",
         "ru": "Изучайте язык угадывая изображения",
