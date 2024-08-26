@@ -43,5 +43,14 @@
         "fr": "Signaler un problème",
         "de": "Ein Problem melden",
         "es": "Informar de un problema"
+    },
+    "canonical_page": {
+        "en": "https://sorat.io",
+        "ru": "https://sorat.io/ru",
+        "os": "https://sorat.io/os",
+        "dig": "https://sorat.io/dig",
+        "fr": "https://sorat.io/fr",
+        "de": "https://sorat.io/de",
+        "es": "https://sorat.io/es"
     }
 }
