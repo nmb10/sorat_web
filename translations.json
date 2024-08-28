@@ -9,19 +9,19 @@
         "es": "Enriquece tu vocabulario en un área determinada adivinando imágenes."
     },
     "keywords": {
-        "en": "image quiz, picture quiz, guess image, picture dictionary, image identify game",
-        "ru": "отгадывание изображений, игра с угадыванием слов",
-        "os": "",
-        "dig": "",
-        "fr": "",
-        "de": "",
-        "es": ""
+        "en": "learn english, learn english kids, learn english words, image quiz, picture quiz, guess image, picture dictionary, image identify game",
+        "ru": "отгадывание изображений, игра с угадыванием слов, учить русские слова, учить слова на русском",
+        "os": "learn ossetian, learn ossetian kids, learn ossetian words, image quiz, picture quiz, guess image, picture dictionary, image identify game",
+        "dig": "learn digorian, learn digorian kids, learn digorian words, image quiz, picture quiz, guess image, picture dictionary, image identify game",
+        "fr": "learn french, learn french kids, learn french words, apprendre le français, apprendre le français aux enfants, apprendre des mots français, quiz image, quiz photo, deviner l'image, dictionnaire image, jeu d'identification d'image",
+        "de": "learn german, learn german kids, learn german words, deutsch lernen, deutsche kinder lernen, deutsche wörter lernen, bild quiz, bild quiz, bild erraten, bild wörterbuch, bild identifizieren spiel",
+        "es": "learn spanish, learn spanish kids, learn spanish words, aprender español, aprender español niños, aprender palabras en español, quiz imagen, quiz imagen, adivinar imagen, diccionario imagen, juego identificar imagen"
     },
     "title": {
         "en": "Learn and practice english language by recognizing images",
-        "ru": "Изучайте язык угадывая изображения",
-        "os": "Ахур кæн æвзаг сурæт æвзарынæй",
-        "dig": "Ахур кæнæ æвзаг сорæт æвзарунæй",
+        "ru": "Изучайте слова угадывая изображения",
+        "os": "Ахуыр кæн ныхæстæ сурæт æвзарынæй",
+        "dig": "Ахур кæнæ нихæстæ сорæт æвзарунæй",
         "fr": "Pratiquez la langue française en reconnaissant des images",
         "de": "Übe die deutsche Sprache durch das Erkennen von Bildern",
         "es": "Aprende y practica inglés reconociendo imágenes"
