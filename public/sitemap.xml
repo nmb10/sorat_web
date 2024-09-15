@@ -36,4 +36,39 @@
       <changefreq>always</changefreq>
       <priority>0.5</priority>
    </url>
+   <url>
+      <loc>https://sorat.io/en/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/ru/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/fr/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/de/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/os/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/dig/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
+   <url>
+      <loc>https://sorat.io/es/leaderboard</loc>
+      <changefreq>always</changefreq>
+      <priority>0.5</priority>
+   </url>
 </urlset>
