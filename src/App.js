@@ -2196,7 +2196,6 @@ class Main extends React.Component {
     let methodSelectBox
     let levelSelectBox
     let topicSelectBox
-    let usernameInput
     let finishedRoundsTable
 
     // if (self.state.modeOpened === 'train') {
@@ -2224,16 +2223,15 @@ class Main extends React.Component {
           {topicOptionItems}
           </select>
         </div>)
-    } else if (self.state.modeOpened === 'contest') {
-      usernameInput = (
-        <div>
-          <input type="text" placeholder="Username"
-                 value={self.state.user.name}
-                 onChange={self.handleNameChange}
-                 style={{ color: 'white' }}>
-          </input>
-        </div>)
     }
+    const usernameInput = (
+      <div>
+        <input type="text" placeholder="Username"
+               value={self.state.user.name}
+               onChange={self.handleNameChange}
+               style={{ color: 'white' }}>
+        </input>
+      </div>)
 
     if (self.state.mode === 'contest') {
       finishedRoundsTable = <FinishedRoundsTable players={self.state.players} user={self.state.user} finishedRounds={finishedRounds} rounds={self.state.rounds} />
@@ -2309,7 +2307,7 @@ class Main extends React.Component {
     <>
       <header className="App-header">
         <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
-          {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.')}
+          {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.')}
         </div>
         {header}
       </header>

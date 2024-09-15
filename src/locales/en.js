@@ -10,7 +10,7 @@ export const translations = {
   'Game skipped. Starting the next game in {seconds} seconds.': 'Game skipped. Starting the next game in {seconds} seconds.',
   'Amazing. New game will start in {seconds} seconds.': 'Amazing. New game will start in {seconds} seconds.',
   Skip: 'Skip',
-  'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.',
+  'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.': 'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.',
   Help: 'Help',
   Leave: 'Leave',
   Contest: 'Contest',
