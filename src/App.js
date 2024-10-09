@@ -1,7 +1,7 @@
 import spinner from './spinner1.png'
 import iconHelp from './icons8-help-50.png'
 import iconLeave from './icon-leave.png'
-import iconSkip from './icon-skip.png'
+// import iconSkip from './icon-skip.png'
 import iconVolume from './icon-volume.png'
 import iconSelectImage from './icon-select-image.png'
 
@@ -2040,9 +2040,11 @@ class Main extends React.Component {
           <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
             <img src={iconLeave} style={{ padding: 0, height: '35px' }} />
           </button>
+          {/*
           <button id="skip" onClick={self.onSkipClick} style={ buttonStyle } title={trn(userLanguage, 'Skip')}>
             <img src={iconSkip} style={{ padding: 0, height: '35px' }} />
           </button>
+          */}
         </div>)
     } else if (self.state.uiState === UI_STATES.exploring) {
       if (self.state.status !== 'skipped') {
@@ -2051,9 +2053,11 @@ class Main extends React.Component {
             <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
               <img src={iconLeave} style={{ padding: 0, height: '35px' }}/>
             </button>
+            {/*
             <button id="skip" onClick={self.onSkipClick} style={ buttonStyle } title={trn(userLanguage, 'Skip')}>
               <img src={iconSkip} style={{ padding: 0, height: '35px' }} />
             </button>
+            */}
             {imageSelectModeSwitchButton}
           </div>)
       } else {
