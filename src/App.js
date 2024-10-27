@@ -728,6 +728,8 @@ class Main extends React.Component {
       soundVolume: 50,
       voicePlayed: false,
       isDemoGame: false,
+      isSharedGame: false,
+      id: null, // Game id.
       lettersDisplayTimeout: 0,
       uiState: UI_STATES.init
     }
@@ -800,6 +802,7 @@ class Main extends React.Component {
                   method: message.payload.method,
                   mode: message.payload.mode,
                   isDemoGame: false, // no way to get demo game on state updated.
+                  isSharedGame: false,
                   players: message.payload.players,
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
@@ -945,8 +948,12 @@ class Main extends React.Component {
 
   componentDidMount () {
     const self = this
+    let share
+    if (location.hash.startsWith('#share=')) {
+      share = location.hash.split('#share=')[1]
+    }
 
-    fetch('/api/v1/state')
+    fetch('/api/v1/state?share=' + share)
       .then(response => response.json())
       .then(json => {
         self.setState(prevState => {
@@ -961,6 +968,8 @@ class Main extends React.Component {
           newState.stateReceived = true
           newState.rounds = json.rounds
           newState.isDemoGame = json.is_demo_game
+          newState.isSharedGame = json.is_shared_game
+          newState.id = json.id
           if (json.mode === 'explore') {
             newState.uiState = UI_STATES.inExplore
           } else if (json.is_demo_game) {
@@ -1189,6 +1198,8 @@ class Main extends React.Component {
         newState.status = event.detail.state.status
         newState.totalHints = event.detail.state.totalHints
         newState.isDemoGame = event.detail.state.isDemoGame
+        newState.isSharedGame = event.detail.state.isSharedGame
+        newState.id = event.detail.state.id
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
@@ -1592,16 +1603,57 @@ class Main extends React.Component {
         }
         if (!containsQuestionMark) {
           if (prevState.uiState === UI_STATES.demo) {
+            // FIXME: send using API.
+            const reply = {
+              letters: newState.replyLetters,
+              language: newState.user.language
+            }
+
+            // FIXME: pass language
+            // language: newState.user.language,
+            const requestOptions = {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(reply)
+            }
+            fetch('/api/v1/shares/' + newState.id, requestOptions)
+              .then(response => response.json())
+              .then(data => {
+                console.log('Response received.', data)
+                document.getElementById('root').dispatchEvent(
+                  new CustomEvent(
+                    'state.update',
+                    {
+                      detail: {
+                        state: {
+                          method: data.method,
+                          mode: data.mode,
+                          isDemoGame: data.is_demo_game,
+                          isSharedGame: data.is_shared_game,
+                          players: data.players,
+                          rounds: data.rounds,
+                          currentRound: data.current_round,
+                          status: data.status,
+                          totalHints: data.total_hints
+                          // gameLastMessageTime: messageTime
+                        }
+                      }
+                    }))
+              })
+            /*
             newState.mode = 'explore_requested'
             newState.modeOpened = 'explore'
             newState.uiState = UI_STATES.exploreRequested
             // We always send user in payload because server may loose initial state once (on
             // backend restart for example).
             self.sendMessage({ command: 'explore', payload: { user: newState.user } })
+            */
           } else {
             self.sendMessage({
               command: 'reply',
-              payload: newState.replyLetters
+              payload: {
+                letters: newState.replyLetters
+              }
             })
           }
         }
@@ -1618,6 +1670,41 @@ class Main extends React.Component {
   handleMethodChange (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('method-changed', { detail: { method: event.target.value } }))
+  }
+
+  handleShareUrlCopyButtonClick (shareUrl) {
+    navigator.clipboard.writeText(shareUrl).then(
+      function () {
+        console.log('Async: Copying to clipboard was successful!')
+      },
+      function (err) {
+        console.error('Async: Could not copy text: ', err)
+      })
+  }
+
+  handleShareButtonClick (event) {
+    var text = 'Example text to appear on clipboard'
+
+    const share = {}
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(share)
+    }
+    fetch('/api/v1/shares', requestOptions)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Response received.', data)
+      })
+
+    navigator.clipboard.writeText(text).then(
+      function () {
+        console.log('Async: Copying to clipboard was successful!')
+      },
+      function (err) {
+        console.error('Async: Could not copy text: ', err)
+      })
   }
 
   handleLevelChange (event) {
@@ -1711,7 +1798,7 @@ class Main extends React.Component {
 
   render () {
     const self = this
-    // console.log('Before render.', self.state)
+    console.log('Before render.', self.state)
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend +
@@ -1879,6 +1966,8 @@ class Main extends React.Component {
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
     const currentRoundNotEmpty = Object.keys(currentRound).length > 0
+    console.log('IsSolved', isSolved)
+    console.log('currentRound', currentRound)
 
     let replyLetterItems = []
     if (currentRoundNotEmpty && self.state.method === LETTERS_SELECTION_METHOD) {
@@ -1887,7 +1976,13 @@ class Main extends React.Component {
 
       const attempts = currentRound.solutions[self.state.user.id].attempts
 
-      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
+      const displayReply = true
+      if (displayReply) {
+        // shared game is solved.
+        replyLetterItems = replyLettersToRow(currentRound.local_term, isSolved, attempts)
+      } else {
+        // FIXME: replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
+      }
       const splittedLetters = [[]]
       const words = currentRound.question[0]
       for (let letterIndex = 0; letterIndex < words.length; ++letterIndex) {
@@ -1898,10 +1993,15 @@ class Main extends React.Component {
         }
       }
 
-      const replyMap = self.state.replyMap || {}
+      // FIXME:
+      // const replyMap = self.state.replyMap || {}
+      const replyMap = { '0,0': '0,6', '0,1': '0,3', '0,2': '0,5', '0,3': '0,1', '0,4': '0,0', '0,5': '0,4' }
+      console.log('replyMap', replyMap)
+      console.log('!!!', currentRound.local_term)
       const chosenQueryIndexes = Object.values(replyMap)
 
       const questionLettersTables = []
+      console.log('Slitted letters', splittedLetters)
 
       for (let i = 0; i < splittedLetters.length; ++i) {
         questionLettersTables.push(questionLettersToTable(
@@ -1914,7 +2014,7 @@ class Main extends React.Component {
       splittedLettersItems = (
         <table>
           <tr>
-            {letterItems1}
+            ---{letterItems1}
           </tr>
         </table>
       )
@@ -2255,6 +2355,39 @@ class Main extends React.Component {
         </button>
       )
     }
+    let shareButton
+    const shareUrl = 'http://localhost:8085/dig#share=2f97fcb4-c5b6-4469-8635-dbeaf3eab8c4'
+    const shareBlock = (
+      <div>
+        <ul>
+          <li>
+            Url: <a href={shareUrl}>here</a>
+            <button onClick={() => self.handleShareUrlCopyButtonClick(shareUrl)}
+                    title={trn(userLanguage, 'Copy share URL')}
+                    style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
+              <img src={iconVolume} style={{ padding: 0, height: '35px' }} />
+        </button>
+          </li>
+          <li>
+            Image: <img src="https://sorat.io/static/images/animals/donkey/image1.jpg" />
+          </li>
+          <li>
+            <a href="#">Reddit:</a>
+            [reddit!](https://reddit.com)
+          </li>
+        </ul>
+      </div>
+    )
+    const test = true
+    if (test) {
+      shareButton = (
+        <button onClick={self.handleShareButtonClick}
+                title={trn(userLanguage, 'Share')}
+                style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
+          <img src={iconVolume} style={{ padding: 0, height: '35px' }} />
+        </button>
+      )
+    }
     let debugBlock = null
     if (window.location.hash === '#debug=1') {
       debugBlock = <div>{Date.now() + ': ' + 'asdfsd'}</div>
@@ -2346,6 +2479,8 @@ class Main extends React.Component {
         </div>
         <div className="row">
           {gameColumn}
+          {shareButton}
+          {shareBlock}
         </div>
         <div className="row">
           {transitionBlock}
