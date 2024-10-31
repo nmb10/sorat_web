@@ -359,7 +359,7 @@ TransitionWidget.propTypes = {
 }
 
 function TransitionWidget (props) {
-  // Displays transition between current and next rounds.
+  // Displays information about transition to the next rounds.
 
   if (props.mode === 'explore' && props.currentRoundNumber >= 0 && props.currentGame && props.currentGame.topic) {
     const diff = 3 - props.totalHints
@@ -711,7 +711,7 @@ class Main extends React.Component {
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying (or placeholders if no click)
       currentRound: null,
-      status: null, // Status of the current game - new, skipped, solved
+      status: null, // Status of the current game - new, skipped, failed, solved (in progress mode)
       totalHints: 0, // Amount of hints on that game.
       players: {}, // current round players.
       preloadedImages: {},
@@ -2095,23 +2095,17 @@ class Main extends React.Component {
         helpButton = (
           <button onClick={self.getHelp}
                   title='(-1 to current game score)'
-                  style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
+                  style={{ float: 'left', width: '40px', margin: 0, padding: 0 }}>
             <img src={iconHelp} alt="{ trn(userLanguage, 'Help') }" style={{ maxHeight: '36px', float: 'left' }} />
-            <div style={{ fontSize: '16px', float: 'left' }}>
-              ({3 - currentRound.solutions[self.state.user.id].hints.length})
-            </div>
           </button>
         )
       } else {
         helpButton = (
           <button disabled="disabled"
                   title='(-1 to current game score)'
-                  style={{ float: 'left', width: '70px', maring: 0, padding: 0 }}>
+                  style={{ float: 'left', width: '40px', maring: 0, padding: 0 }}>
             <img src={iconHelp} alt="{ trn(userLanguage, 'Help') }"
                  style={{ maxHeight: '36px', float: 'left' }} />
-            <div style={{ fontSize: '16px', float: 'left' }}>
-              (0)
-            </div>
           </button>
         )
       }
@@ -2293,6 +2287,14 @@ class Main extends React.Component {
         statusText = trn(
           userLanguage,
           'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+          variables)
+        statusLine = <div style={{ fontSize: '20px', color: 'red' }}>
+          {statusText}
+        </div>
+      } else if (self.state.status === 'failed') {
+        statusText = trn(
+          userLanguage,
+          'At least one word not solved. The next game will not be available.',
           variables)
         statusLine = <div style={{ fontSize: '20px', color: 'red' }}>
           {statusText}

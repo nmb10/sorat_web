@@ -1,5 +1,6 @@
 export const translations = {
   Autoplay: 'Autoplay',
+  'At least one word not solved. The next game will not be available.': 'At least one word not solved. The next game will not be available.',
   'Autoplay site sounds': 'Autoplay site sounds',
   'Start new game in explore mode.': 'Start new game in explore mode.',
   'Image selection': 'Image selection',
