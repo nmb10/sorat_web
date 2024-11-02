@@ -2275,7 +2275,7 @@ class Main extends React.Component {
     }
 
     let statusLine
-    if (Object.keys(firstUnsolvedGame).length > 0 && Object.keys(secondUnsolvedGame).length > 0) {
+    if (Object.keys(firstUnsolvedGame).length > 0 && Object.keys(secondUnsolvedGame).length > 0 && self.state.currentRound !== -1) {
       const variables = {
         firstUnsolvedGameTopic: firstUnsolvedGame.topic.local_name,
         firstUnsolvedGameTopicSet: firstUnsolvedGame.topic_set,
