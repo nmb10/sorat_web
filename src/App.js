@@ -1399,10 +1399,11 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener('language-changed', function (event) {
       if (event.detail.language === 'en') {
-        document.location.pathname = '/'
+        window.history.pushState('/', 'Title', '/')
       } else {
-        document.location.pathname = '/' + event.detail.language
+        window.history.pushState('/' + event.detail.language, 'Title', '/' + event.detail.language)
       }
+      window.location.reload(true)
     })
 
     document.getElementById('root').addEventListener('name-changed', function (event) {
