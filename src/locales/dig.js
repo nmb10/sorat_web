@@ -11,7 +11,7 @@ export const translations = {
   'Game skipped. Starting the next game in {seconds} seconds.': 'Гъазт фæццох кодтай. Нæуæг гъазт райдайдзæнæй {seconds} секунди фæстæ.',
   'Amazing. New game will start in {seconds} seconds.': 'Хъæбæр хуарз. Нæуæг гъазт райдайдзæнæй {seconds} секунди фæстæ.',
   Skip: 'Фæццох кæнун',
-  'Warning: this is alpha version of the app. Please be ready to lose you progress in explore mode once. Sorry for inconvenience.': 'Кит: алфа верси. Уотæ гæнæн ес æма дæ прогресс байсафдзæнæй еу бон. Ниххатир мин йæ кæнæ.',
+  'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.': 'Кит: алфа верси. Уотæ гæнæн ес æма дæ прогресс байсафдзæнæй еу бон. Ниххатир мин йæ кæнæ.',
   Help: 'Агъаз',
   Leave: 'Рандæ ун',
   Contest: 'Ерис',
