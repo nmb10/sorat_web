@@ -3,6 +3,7 @@ import iconHelp from './icons8-help-50.png'
 import iconLeave from './icon-leave.png'
 // import iconSkip from './icon-skip.png'
 import iconVolume from './icon-volume.png'
+import iconShare from './icon-share.png'
 import iconSelectImage from './icon-select-image.png'
 
 import React from 'react'
@@ -109,6 +110,16 @@ function playSound (src, volume) {
     new CustomEvent('voice.played', { detail: { src: src, soundVolume: volume } }))
 }
 
+function copyToClipboard (text) {
+  navigator.clipboard.writeText(text).then(
+    function () {
+      console.log('Async: Copying to clipboard was successful!')
+    },
+    function (err) {
+      console.error('Async: Could not copy text: ', err)
+    })
+}
+
 function getPlayersScores (players, finishedRounds) {
   const scores = {}
   if (finishedRounds.length === 0) {
@@ -212,7 +223,7 @@ function replyLettersToRow (words, isSolved, attempts) {
   const replyLetters = []
   let inReplyWords = false
   for (let i = 0; i < attempts.length; ++i) {
-    if (attempts[i].reply.includes(words)) {
+    if (attempts[i].reply.letters.includes(words)) {
       inReplyWords = true
       break
     }
@@ -259,6 +270,47 @@ function userScoreToRow (isCurrent, score) {
       {allScores}
     </tr>)
 };
+
+ShareElementWidget.propTypes = {
+  shareGame: PropTypes.object,
+  userLanguage: PropTypes.string
+}
+
+function ShareElementWidget (props) {
+  const round = props.shareGame.rounds[0]
+  const shareUrl = document.location.protocol + '//' + document.location.host + props.shareGame.url
+  const question = round.question.join(' ')
+  const title = trn(props.userLanguage, 'Are you able to solve ') + ' ' + ' "' + question + '"?'
+  const redditURL = encodeURI('https://www.reddit.com/submit?url=' + shareUrl + '&title=' + title + '&type=LINK')
+
+  // const correctChoice = round.correct_choice
+  // const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
+  // const imageURL = document.location.protocol + '//' + document.location.host + correctImage.src
+  return (
+    <div>
+      <div style={{ clear: 'both' }}>
+        <button onClick={() => copyToClipboard(title)}
+                title={trn(props.userLanguage, 'Copy title')}
+                style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
+          {trn(props.userLanguage, 'Copy title')}
+        </button>
+        <h4 style={{ float: 'left' }}>&nbsp;&nbsp; {title}</h4>
+      </div>
+      <div style={{ clear: 'both' }}>
+        <button onClick={() => copyToClipboard(shareUrl)}
+                title={trn(props.userLanguage, 'Copy share URL')}
+                style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
+          {trn(props.userLanguage, 'Copy share URL')}
+        </button>
+      </div>
+      <div style={{ clear: 'both' }}>
+        <a href={redditURL} target='_blank' rel='noreferrer' title='Create reddit post'>
+          <img style={{ width: '32px' }} src="https://www.redditstatic.com/shreddit/assets/favicon/64x64.png" />
+        </a>
+      </div>
+    </div>
+  )
+}
 
 CurrentRoundTimeoutWidget.propTypes = {
   user: PropTypes.object,
@@ -695,7 +747,7 @@ class Main extends React.Component {
       user: {
         name: null,
         id: null,
-        language: document.location.pathname.replaceAll('/', '') || 'en', // selected language
+        language: null,
         method: IMAGE_SELECTION_METHOD, // user choice [select-image or select-image or select-letters]
         level: 'normal', // user choice [simple/normal/hard]
         topic: null // selected topic.
@@ -728,8 +780,13 @@ class Main extends React.Component {
       soundVolume: 50,
       voicePlayed: false,
       isDemoGame: false,
+      isSharedGame: false,
+      url: null, // Game url (in case of shared game.)
+      id: null, // Game id.
       lettersDisplayTimeout: 0,
-      uiState: UI_STATES.init
+      uiState: UI_STATES.init,
+      isLoaded: false,
+      showSuggestion: false
     }
 
     this.nameUpdateTimeout = null
@@ -800,6 +857,8 @@ class Main extends React.Component {
                   method: message.payload.method,
                   mode: message.payload.mode,
                   isDemoGame: false, // no way to get demo game on state updated.
+                  isSharedGame: false,
+                  url: null,
                   players: message.payload.players,
                   rounds: message.payload.rounds,
                   currentRound: message.payload.current_round,
@@ -945,8 +1004,22 @@ class Main extends React.Component {
 
   componentDidMount () {
     const self = this
+    let shareId
+    let url
+    const pathParts = location.pathname.split('/')
+    if (pathParts.length === 3 && pathParts.includes('share')) {
+      // English share (without language in path)
+      shareId = pathParts[2]
+      url = '/api/v1/state?share=' + shareId
+    } else if (pathParts.length === 4 && pathParts.includes('share')) {
+      // Other languages share.
+      shareId = pathParts[3]
+      url = '/api/v1/state?share=' + shareId
+    } else {
+      url = '/api/v1/state'
+    }
 
-    fetch('/api/v1/state')
+    fetch(url)
       .then(response => response.json())
       .then(json => {
         self.setState(prevState => {
@@ -961,6 +1034,10 @@ class Main extends React.Component {
           newState.stateReceived = true
           newState.rounds = json.rounds
           newState.isDemoGame = json.is_demo_game
+          newState.isSharedGame = json.is_shared_game
+          newState.url = json.url
+          newState.id = json.id
+          newState.isLoaded = true
           if (json.mode === 'explore') {
             newState.uiState = UI_STATES.inExplore
           } else if (json.is_demo_game) {
@@ -1188,7 +1265,11 @@ class Main extends React.Component {
         newState.currentRound = event.detail.state.currentRound
         newState.status = event.detail.state.status
         newState.totalHints = event.detail.state.totalHints
+        newState.showSuggestion = event.detail.state.showSuggestion
         newState.isDemoGame = event.detail.state.isDemoGame
+        newState.isSharedGame = event.detail.state.isSharedGame
+        newState.url = event.detail.state.url
+        newState.id = event.detail.state.id
         newState.mode = event.detail.state.mode
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
@@ -1196,6 +1277,14 @@ class Main extends React.Component {
         if (event.detail.eventType === 'start' && event.detail.state.mode === 'train') {
           newState.uiState = UI_STATES.training
         } else if (event.detail.eventType === 'start' && event.detail.state.mode === 'explore') {
+          let indexUrl
+          const userLanguage = newState.user.language
+          if (userLanguage === 'en') {
+            indexUrl = document.location.protocol + '//' + document.location.host
+          } else {
+            indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
+          }
+          window.open(indexUrl, '_self')
           newState.uiState = UI_STATES.exploring
         } else if (event.detail.eventType === 'train_leave') {
           newState.uiState = UI_STATES.inTrain
@@ -1358,6 +1447,20 @@ class Main extends React.Component {
             newState.currentRound = data.currentRound
             return newState
           })
+        })
+    })
+
+    document.getElementById('root').addEventListener('share-create', function (event) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}) // it will create share from current round.
+      }
+      fetch('/api/v1/shares', requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          const shareURL = document.location.protocol + '//' + document.location.host + data.url
+          window.open(shareURL, '_blank')
         })
     })
 
@@ -1593,16 +1696,61 @@ class Main extends React.Component {
         }
         if (!containsQuestionMark) {
           if (prevState.uiState === UI_STATES.demo) {
+            // FIXME: send using API.
+            const reply = {
+              letters: newState.replyLetters,
+              language: newState.user.language
+            }
+
+            // FIXME: pass language
+            // language: newState.user.language,
+            const requestOptions = {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(reply)
+            }
+            fetch('/api/v1/shares/' + newState.id, requestOptions)
+              .then(response => response.json())
+              .then(data => {
+                if (Object.values(data.rounds[0].solutions)[0].is_solved && window.ConfettiPage) {
+                  window.ConfettiPage.play()
+                }
+                document.getElementById('root').dispatchEvent(
+                  new CustomEvent(
+                    'state.update',
+                    {
+                      detail: {
+                        state: {
+                          method: data.method,
+                          mode: data.mode,
+                          isDemoGame: data.is_demo_game,
+                          isSharedGame: data.is_shared_game,
+                          url: data.url,
+                          players: data.players,
+                          rounds: data.rounds,
+                          currentRound: data.current_round,
+                          status: data.status,
+                          totalHints: data.total_hints,
+                          showSuggestion: true
+                          // gameLastMessageTime: messageTime
+                        }
+                      }
+                    }))
+              })
+            /*
             newState.mode = 'explore_requested'
             newState.modeOpened = 'explore'
             newState.uiState = UI_STATES.exploreRequested
             // We always send user in payload because server may loose initial state once (on
             // backend restart for example).
             self.sendMessage({ command: 'explore', payload: { user: newState.user } })
+            */
           } else {
             self.sendMessage({
               command: 'reply',
-              payload: newState.replyLetters
+              payload: {
+                letters: newState.replyLetters
+              }
             })
           }
         }
@@ -1619,6 +1767,11 @@ class Main extends React.Component {
   handleMethodChange (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('method-changed', { detail: { method: event.target.value } }))
+  }
+
+  handleCreateShareButtonClick (event) {
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('share-create', {}))
   }
 
   handleLevelChange (event) {
@@ -1713,6 +1866,18 @@ class Main extends React.Component {
   render () {
     const self = this
     // console.log('Before render.', self.state)
+    // First of all hide landing preview (used to generate previews for messengers)
+
+    if (window.location.hash === '#debug=1') {
+      document.getElementById('share-landing-preview-block').style.display = 'block'
+    } else {
+      document.getElementById('share-landing-preview-block').style.display = 'none'
+    }
+
+    if (!self.state.isLoaded) {
+      // No data from api yet.
+      return null
+    }
     const userLanguage = self.state.user.language || 'en'
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend +
@@ -1723,30 +1888,65 @@ class Main extends React.Component {
     const languageOptionItems = self.state.languages
       .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
 
-    const volumeWidget = (
-      <input type="range" style={{ float: 'left' }} id="volume" name="volume" min="0" max="100" defaultValue={self.state.soundVolume} onChange={this.onVolumeChange}/>
-    )
+    // Parts not visible on shared game.
+    let volumeColumn, autoplayColumn, usernameInput,
+      languageColumn, warningRow
 
-    const header = (
-      <div className="row">
-        <div className="column">
-          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" title={versions}/>
-        </div>
+    if (!self.state.isSharedGame) {
+      autoplayColumn = (
         <div className="column">
           <label htmlFor="autoplay-toggle-checkbox" style={{ float: 'right' }} title={trn(userLanguage, 'Autoplay site sounds')}>
             {trn(userLanguage, 'Autoplay')}
             <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
           </label>
         </div>
+      )
+
+      volumeColumn = (
         <div className="column">
-          {volumeWidget}
+          <input type="range"
+                 style={{ float: 'left' }}
+                 id="volume"
+                 name="volume" min="0" max="100"
+                 defaultValue={self.state.soundVolume}
+                 onChange={this.onVolumeChange}/>
         </div>
+      )
+
+      usernameInput = (
+        <div>
+          <input type="text" placeholder="Username"
+                 value={self.state.user.name}
+                 onChange={self.handleNameChange}
+                 style={{ color: 'white' }}>
+          </input>
+        </div>
+      )
+
+      languageColumn = (
         <div className="column">
           <select id="language" style={{ backgroundColor: '#282c34' }} value={self.state.user.language} onChange={self.handleLanguageChange}>
             <option value="">---</option>
             {languageOptionItems}
           </select>
         </div>
+      )
+
+      warningRow = (
+        <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
+          {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.')}
+        </div>
+      )
+    }
+
+    const header = (
+      <div className="row">
+        <div className="column">
+          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" title={versions}/>
+        </div>
+        {autoplayColumn}
+        {volumeColumn}
+        {languageColumn}
       </div>)
 
     if (self.state.connection === 'closed') {
@@ -1887,8 +2087,8 @@ class Main extends React.Component {
       // FIXME: handle currentRound.question as string instead of list of words.
 
       const attempts = currentRound.solutions[self.state.user.id].attempts
-
       replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
+
       const splittedLetters = [[]]
       const words = currentRound.question[0]
       for (let letterIndex = 0; letterIndex < words.length; ++letterIndex) {
@@ -1900,6 +2100,7 @@ class Main extends React.Component {
       }
 
       const replyMap = self.state.replyMap || {}
+      // const replyMap = { '0,0': '0,6', '0,1': '0,3', '0,2': '0,5', '0,3': '0,1', '0,4': '0,0', '0,5': '0,4' }
       const chosenQueryIndexes = Object.values(replyMap)
 
       const questionLettersTables = []
@@ -2041,6 +2242,12 @@ class Main extends React.Component {
           <button id="leave" onClick={self.leave} title={trn(userLanguage, 'Leave')} style={ buttonStyle }>
             <img src={iconLeave} style={{ padding: 0, height: '35px' }} />
           </button>
+
+          <button onClick={self.handleCreateShareButtonClick}
+                  title={trn(userLanguage, 'Create share')}
+                  style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
+            <img src={iconShare} style={{ padding: 0, height: '35px' }} />
+          </button>
           {/*
           <button id="skip" onClick={self.onSkipClick} style={ buttonStyle } title={trn(userLanguage, 'Skip')}>
             <img src={iconSkip} style={{ padding: 0, height: '35px' }} />
@@ -2060,7 +2267,13 @@ class Main extends React.Component {
             </button>
             */}
             {imageSelectModeSwitchButton}
-          </div>)
+            <button onClick={self.handleCreateShareButtonClick}
+                    title={trn(userLanguage, 'Create share')}
+                    style={{ float: 'left', width: '70px', margin: 0, padding: 0 }}>
+              <img src={iconShare} style={{ padding: 0, height: '35px' }} />
+            </button>
+          </div>
+        )
       } else {
         buttonsBlock = (
           <div className="column">
@@ -2070,7 +2283,7 @@ class Main extends React.Component {
             {imageSelectModeSwitchButton}
           </div>)
       }
-    } else {
+    } else if (!self.state.isSharedGame) {
       buttonsBlock = (
         <div className="column">
           <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Start new game in explore mode')} style={ buttonStyle }>
@@ -2123,6 +2336,39 @@ class Main extends React.Component {
           isSolved={isSolved} currentRound={currentRound}
           isLettersSelection={self.state.method === LETTERS_SELECTION_METHOD} user={self.state.user}/>
       }
+    }
+
+    let suggestionBlock
+
+    /*
+    const reload = function (url) {
+      window.history.pushState(url)
+      window.location.reload(true)
+      window.open(url, '_self')
+    }
+    */
+
+    const redirectToIndex = function () {
+      self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+
+      // let indexUrl
+      // if (userLanguage === 'en') {
+      //  indexUrl = document.location.protocol + '//' + document.location.host
+      // } else {
+      //  indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
+      // }
+      // setTimeout(reload, 1000, [indexUrl])
+    }
+    if (self.state.showSuggestion) {
+      suggestionBlock = (
+        <div className="row">
+          <div className="column">
+            <button style={{ float: 'left', margin: '5px' }} onClick={ redirectToIndex }>
+            If you want to solve more words click here.
+            </button>
+          </div>
+        </div>
+      )
     }
 
     let gameWidgetElems
@@ -2223,14 +2469,6 @@ class Main extends React.Component {
           </select>
         </div>)
     }
-    const usernameInput = (
-      <div>
-        <input type="text" placeholder="Username"
-               value={self.state.user.name}
-               onChange={self.handleNameChange}
-               style={{ color: 'white' }}>
-        </input>
-      </div>)
 
     if (self.state.mode === 'contest') {
       finishedRoundsTable = <FinishedRoundsTable players={self.state.players} user={self.state.user} finishedRounds={finishedRounds} rounds={self.state.rounds} />
@@ -2249,6 +2487,11 @@ class Main extends React.Component {
           <img src={iconVolume} style={{ padding: 0, height: '35px' }} />
         </button>
       )
+    }
+    let shareBlock
+
+    if (self.state.isSharedGame) {
+      shareBlock = <ShareElementWidget userLanguage={userLanguage} shareGame={self.state}/>
     }
     let debugBlock = null
     if (window.location.hash === '#debug=1') {
@@ -2313,9 +2556,7 @@ class Main extends React.Component {
     return (
     <>
       <header className="App-header">
-        <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
-          {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.')}
-        </div>
+        {warningRow}
         {header}
       </header>
       <div className="container">
@@ -2348,6 +2589,9 @@ class Main extends React.Component {
           {finishedRoundsTable}
         </div>
         <div className="row">
+          {shareBlock}
+        </div>
+        <div className="row">
           {gameColumn}
         </div>
         <div className="row">
@@ -2358,6 +2602,7 @@ class Main extends React.Component {
         </div>
         {challengeBlock}
         {contextBlock}
+        {suggestionBlock}
         <div className="row">
           <div className="column">
             {timeoutBlock}

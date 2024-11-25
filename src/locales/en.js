@@ -1,4 +1,5 @@
 export const translations = {
+  'Too many hints. The next game will not be available.': 'Too many hints. The next game will not be available.',
   Autoplay: 'Autoplay',
   'At least one word not solved. The next game will not be available.': 'At least one word not solved. The next game will not be available.',
   'Autoplay site sounds': 'Autoplay site sounds',

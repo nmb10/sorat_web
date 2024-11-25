@@ -1,4 +1,5 @@
 export const translations = {
+  'Too many hints. The next game will not be available.': 'FIXME: Too many hints. The next game will not be available.',
   Autoplay: 'Autoplay',
   'Autoplay site sounds': 'Autoplay site sounds',
   'Start new game in explore mode.': 'Нæуæг æсгарун гъазт райдайæн.',
@@ -28,7 +29,7 @@ export const translations = {
   'What?': 'Куд?',
   'You won!': 'Рамбулдтай!',
   'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Исихалæ {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} æма райдайдзæнæ {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
-  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'FIXME: Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
   Simple: 'Еувазæг',
