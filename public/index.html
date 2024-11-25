@@ -36,102 +36,110 @@
     -->
     <title>{{ title }} | Sorat App</title>
     <style>
-        @media (min-width: 321px) {
-          .image-wrapper {
-            height: 200px;
-          }
-          .word-image-image-selection {
-            height: 120px;
-          }
-          .word-image-letters-selection {
-            height: 200px;
-          }
-          .choice-points {
-            font-size: 100px;
-          }
-          .beginner-letters {
-            font-size: 45px;
-          }
-          .question-letter-button {
-            font-size: 30px;
-            width: 45px;
-            height: 45px;
-          }
-          .reply-letter {
-            font-size: 30px;
-            float: left;
-            margin: 0;
-            width: 45px;
-            height: 45px;
-            padding: 0;
-            text-align: center;
-          }
-        }
-        @media (min-width: 768px) {
-          .image-wrapper {
-            height: 350px;
-          }
-          .word-image-image-selection {
-            height: 350px;
-          }
-          .word-image-letters-selection {
-            height: 350px;
-          }
-          .choice-points {
-            font-size: 150px;
-          }
-          .beginner-letters {
-            font-size: 85px;
-          }
-          .question-letter-button {
-            font-size: 40px;
-            width: 60px;
-            height: 60px;
-          }
-          .reply-letter {
-            font-size: 40px;
-            float: left;
-            margin: 0;
-            width: 60px;
-            height: 60px;
-            padding: 0;
-            text-align: center;
-          }
-        }
-
-        .question-letter-button {
-          float: left;
-          margin-left: 5px;
-          padding: 0;
-        }
-        .word-image {
-            padding: 5px;
-            float: left;
-            object-fit: cover;
-        }
+      @media (min-width: 321px) {
         .image-wrapper {
-            overflow: auto;
+          height: 200px;
+        }
+        .word-image-image-selection {
+          height: 120px;
+        }
+        .word-image-letters-selection {
+          height: 200px;
         }
         .choice-points {
-            max-width: 300px;
-            position: absolute;
-            float: left;
-            left: 0px;
-            top: 0px;
-            text-shadow: 3px 3px 4px black
+          font-size: 100px;
         }
-        .invalid-choice-points {
-            color: red;
+        .beginner-letters {
+          font-size: 45px;
         }
-        .valid-choice-points {
-            color: green;
+        .question-letter-button {
+          font-size: 30px;
+          width: 45px;
+          height: 45px;
         }
-  </style>
+        .reply-letter {
+          font-size: 30px;
+          float: left;
+          margin: 0;
+          width: 45px;
+          height: 45px;
+          padding: 0;
+          text-align: center;
+        }
+      }
+      @media (min-width: 768px) {
+        .image-wrapper {
+          height: 350px;
+        }
+        .word-image-image-selection {
+          height: 350px;
+        }
+        .word-image-letters-selection {
+          height: 350px;
+        }
+        .choice-points {
+          font-size: 150px;
+        }
+        .beginner-letters {
+          font-size: 85px;
+        }
+        .question-letter-button {
+          font-size: 40px;
+          width: 60px;
+          height: 60px;
+        }
+        .reply-letter {
+          font-size: 40px;
+          float: left;
+          margin: 0;
+          width: 60px;
+          height: 60px;
+          padding: 0;
+          text-align: center;
+        }
+      }
+
+      .question-letter-button {
+        float: left;
+        margin-left: 5px;
+        padding: 0;
+      }
+      .word-image {
+          padding: 5px;
+          float: left;
+          object-fit: cover;
+      }
+      .image-wrapper {
+          overflow: auto;
+      }
+      .choice-points {
+          max-width: 300px;
+          position: absolute;
+          float: left;
+          left: 0px;
+          top: 0px;
+          text-shadow: 3px 3px 4px black
+      }
+      .invalid-choice-points {
+          color: red;
+      }
+      .valid-choice-points {
+          color: green;
+      }
+    </style>
   </head>
   <body>
-    <noscript>{{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">Report an issue</a></noscript>
-    <div id="root"></div>
-    <!--
+    <noscript>
+        {{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">
+        Report an issue</a>
+    </noscript>
+    <div id="share-landing-preview-block">
+        { share_landing_preview_block }
+    </div>
+    <div id="root" style="min-height:556px">
+    </div>
+  </div>
+  <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
 
@@ -140,7 +148,7 @@
 
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+  -->
 
     <footer style="padding: 5px; background-color: #282c34; margin: 0 auto; max-width: 112.0rem; text-align: center;">
       <div>
@@ -162,12 +170,13 @@
         Thanks:&nbsp;
         <a href="https://www.wikipedia.org">wikipedia</a>&nbsp;|&nbsp;
         <a href="https://duckduckgo.com">duckduckgo</a>&nbsp;|&nbsp;
-        <a href="https://freetts.com/">freetts&nbsp;|&nbsp;
+        <a href="https://freetts.com/">freetts</a>&nbsp;|&nbsp;
         <a href="https://www.deepl.com">deepl</a>
       </div>
       <div>
         Developed and maintained by <a href="https://github.com/nmb10">k.biasti</a>&nbsp;-&nbsp;2022-2024
       </div>
     </footer>
+    { confetti_block }
   </body>
 </html>
