@@ -4,6 +4,7 @@ import iconLeave from './icon-leave.png'
 // import iconSkip from './icon-skip.png'
 import iconVolume from './icon-volume.png'
 import iconShare from './icon-share.png'
+import logo from './logo.png'
 import iconSelectImage from './icon-select-image.png'
 
 import React from 'react'
@@ -294,7 +295,6 @@ function ShareElementWidget (props) {
                 style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
           {trn(props.userLanguage, 'Copy title')}
         </button>
-        <h4 style={{ float: 'left' }}>&nbsp;&nbsp; {title}</h4>
       </div>
       <div style={{ clear: 'both' }}>
         <button onClick={() => copyToClipboard(shareUrl)}
@@ -1010,11 +1010,11 @@ class Main extends React.Component {
     if (pathParts.length === 3 && pathParts.includes('share')) {
       // English share (without language in path)
       shareId = pathParts[2]
-      url = '/api/v1/state?share=' + shareId
+      url = '/api/v1/state?share=' + shareId + '&language=en'
     } else if (pathParts.length === 4 && pathParts.includes('share')) {
       // Other languages share.
       shareId = pathParts[3]
-      url = '/api/v1/state?share=' + shareId
+      url = '/api/v1/state?share=' + shareId + '&language=' + pathParts[1]
     } else {
       url = '/api/v1/state'
     }
@@ -1936,7 +1936,7 @@ class Main extends React.Component {
     const header = (
       <div className="row">
         <div className="column">
-          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" title={versions}/>
+          <img style={{ float: 'left', padding: '5px' }} src={ logo } alt="Logo" title={versions}/>
         </div>
         {autoplayColumn}
         {volumeColumn}
@@ -2473,7 +2473,7 @@ class Main extends React.Component {
     }
 
     let voiceButton
-    if (currentRound.voice_path && currentRound.voice_path.src) {
+    if (currentRound.voice_path && currentRound.voice_path.src && !self.state.isSharedGame) {
       voiceButton = (
         <button onClick={() => playSound(currentRound.voice_path.src, self.state.soundVolume)}
                 title={trn(userLanguage, 'Tell again')}
