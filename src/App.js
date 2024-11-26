@@ -1868,12 +1868,6 @@ class Main extends React.Component {
     // console.log('Before render.', self.state)
     // First of all hide landing preview (used to generate previews for messengers)
 
-    if (window.location.hash === '#debug=1') {
-      document.getElementById('share-landing-preview-block').style.display = 'block'
-    } else {
-      document.getElementById('share-landing-preview-block').style.display = 'none'
-    }
-
     if (!self.state.isLoaded) {
       // No data from api yet.
       return null
@@ -1942,7 +1936,7 @@ class Main extends React.Component {
     const header = (
       <div className="row">
         <div className="column">
-          <img style={{ float: 'left', padding: '5px' }} src="/logo.png" alt="Logo" title={versions}/>
+          <img style={{ float: 'left', padding: '5px' }} src="https://sorat.io/logo.png" alt="Logo" title={versions}/>
         </div>
         {autoplayColumn}
         {volumeColumn}

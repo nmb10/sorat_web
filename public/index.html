@@ -13,6 +13,19 @@
     />
     <meta name="keywords" content="{{ keywords }}" />
     <meta name="p:domain_verify" content="0385b0a63e568e303bca600da4fad16f"/>
+    {% if og_image_url %}
+      <meta property="og:image" content="{{ og_image_url }}" />
+    {% endif %}
+    {% if og_title %}
+      <meta property="og:title" content="{{ og_title }}" />
+    {% endif %}
+    {% if og_description %}
+      <meta property="og:description" content="{{ og_description }}" />
+    {% endif %}
+    {% if og_locale %}
+      <meta property="og:locale" content="{{ og_locale }}" />
+    {% endif %}
+    <meta property="og:site_name" content="sorat.io" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.png" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="canonical" href="{{ canonical_page }}" />
@@ -133,9 +146,6 @@
         {{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">
         Report an issue</a>
     </noscript>
-    <div id="share-landing-preview-block">
-        { share_landing_preview_block }
-    </div>
     <div id="root" style="min-height:556px">
     </div>
   </div>
@@ -177,6 +187,8 @@
         Developed and maintained by <a href="https://github.com/nmb10">k.biasti</a>&nbsp;-&nbsp;2022-2024
       </div>
     </footer>
-    { confetti_block }
+    {% if load_confetti %}
+      <script src="https://run.confettipage.com/here.js" data-confetticode="U2FsdGVkX1+dh43hFgkikl4lgm30/giXPlLkXrDEutMb/9XyE302/vrb1Qb4p47fsCfJKKVFGxQQUJ5/+D3bntoUTyOnCh2JEdE5ieFZiFr6TO76sKtfc3nv59hwKBcjmDWcsUHLODbr6DOBb3TpHJLGHwF3U8mIM4P5hFHlTygPHs8aZTwuwJ/Pc/xBQW4F6ZjmhIjGWKLAlQ7AMEGSvQNVJaT5GngXxHDkTMPnYfHEtTqoXfYKqJgwigNOhc8IfuRYnfLD8ZJYxsAlDc1t0Y/GN8GkUAq9/8L2JuoNVNWuNnG7VIPmof+6jYnHScXRx6LFW/YBTft+exsDlsQRNQ0t7H3v+58NgU7N4Tojbq2LQEyRpQctkiIIBUgKKiseE5xpcb38koKY0JUapV0txCwYOz8Gn1njukSDxu8pcDgodeAfkyYC1qlgyROvrykljXBv8HDo+oKPoCgI4lvyy06G3AF6zTrxUox9XWaaV8WVByjL1NSNslJ4fNYj2NjgvQUZU+QTVAeVfv7lWzORMqyLpVBB8XWSNB1WJch4qBYZN0aj61N20TYYgB/EoggU83AbOkXiMmfwOb8HA27m2oXqYGSB1LbKAwqsyFtl5FcF7k6BGdOTPYgQr7Fqecj86rjuLLyJPnGv2Ar6fKe2WmWJz1Dp6Cwmi7sDOzjm80M=" data-trigger="custom"></script>
+    {% endif %}
   </body>
 </html>
