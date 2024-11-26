@@ -1697,13 +1697,20 @@ class Main extends React.Component {
         if (!containsQuestionMark) {
           if (prevState.uiState === UI_STATES.demo) {
             // FIXME: send using API.
+            const pathParts = location.pathname.split('/')
+            let shareLanguage
+            if (pathParts.length === 4) {
+              // Other languages share.
+              shareLanguage = pathParts[1]
+            } else {
+              // English share (without language in path)
+              shareLanguage = 'en'
+            }
             const reply = {
               letters: newState.replyLetters,
-              language: newState.user.language
+              language: shareLanguage
             }
 
-            // FIXME: pass language
-            // language: newState.user.language,
             const requestOptions = {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
