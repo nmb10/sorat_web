@@ -220,7 +220,7 @@ function pair (wordIndex, letterIndex) {
   return wordIndex + ',' + letterIndex
 }
 
-function replyLettersToRow (words, isSolved, attempts, isSharedGame) {
+function replyLettersToRow (words, isSolved, attempts, isSharedGame, sharedGameIsChecked) {
   const replyLetters = []
   let inReplyWords = false
   for (let i = 0; i < attempts.length; ++i) {
@@ -231,7 +231,7 @@ function replyLettersToRow (words, isSolved, attempts, isSharedGame) {
   }
 
   let isWrongReply = false
-  if (isSharedGame && !isSolved && !words.includes('?')) {
+  if (isSharedGame && !isSolved && sharedGameIsChecked) {
     isWrongReply = true
   } else if (!isSolved && inReplyWords) {
     isWrongReply = true
@@ -787,6 +787,7 @@ class Main extends React.Component {
       voicePlayed: false,
       isDemoGame: false,
       isSharedGame: false,
+      sharedGameIsChecked: false, // if current round checked on server side or not.
       ownerId: false, // owner (creator) of the game.
       url: null, // Game url (in case of shared game.)
       id: null, // Game id.
@@ -1274,6 +1275,7 @@ class Main extends React.Component {
         newState.totalHints = event.detail.state.totalHints
         newState.isDemoGame = event.detail.state.isDemoGame
         newState.isSharedGame = event.detail.state.isSharedGame
+        newState.sharedGameIsChecked = event.detail.state.sharedGameIsChecked
         newState.ownerId = event.detail.state.ownerId
         newState.url = event.detail.state.url
         newState.id = event.detail.state.id
@@ -1675,6 +1677,7 @@ class Main extends React.Component {
 
         // Drop removed indexes.
         newState.replyMap[pair(replyWordIndex, replyLetterIndex)] = null
+        newState.sharedGameIsChecked = false
         return newState
       })
     })
@@ -1739,6 +1742,7 @@ class Main extends React.Component {
                           mode: data.mode,
                           isDemoGame: data.is_demo_game,
                           isSharedGame: data.is_shared_game,
+                          sharedGameIsChecked: true,
                           ownerId: data.owner_id,
                           url: data.url,
                           id: data.id,
@@ -2100,7 +2104,7 @@ class Main extends React.Component {
       const attempts = currentRound.solutions[self.state.user.id].attempts
       replyLetterItems = replyLettersToRow(
         self.state.replyLetters[0], isSolved, attempts,
-        self.state.isSharedGame)
+        self.state.isSharedGame, self.state.sharedGameIsChecked)
 
       const splittedLetters = [[]]
       const words = currentRound.question[0]
