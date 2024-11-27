@@ -295,17 +295,16 @@ function ShareElementWidget (props) {
                 style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
           {trn(props.userLanguage, 'Copy title')}
         </button>
-      </div>
-      <div style={{ clear: 'both' }}>
         <button onClick={() => copyToClipboard(shareUrl)}
                 title={trn(props.userLanguage, 'Copy share URL')}
-                style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
+                style={{ float: 'left', marginLeft: '5px', paddingLeft: '5px', paddingRight: '5px' }}>
           {trn(props.userLanguage, 'Copy share URL')}
         </button>
       </div>
       <div style={{ clear: 'both' }}>
         <a href={redditURL} target='_blank' rel='noreferrer' title='Create reddit post'>
-          <img style={{ width: '32px' }} src="https://www.redditstatic.com/shreddit/assets/favicon/64x64.png" />
+          <img style={{ float: 'left', width: '32px' }}
+               src="https://www.redditstatic.com/shreddit/assets/favicon/64x64.png" />
         </a>
       </div>
     </div>
@@ -781,6 +780,7 @@ class Main extends React.Component {
       voicePlayed: false,
       isDemoGame: false,
       isSharedGame: false,
+      ownerId: false, // owner (creator) of the game.
       url: null, // Game url (in case of shared game.)
       id: null, // Game id.
       lettersDisplayTimeout: 0,
@@ -1035,6 +1035,7 @@ class Main extends React.Component {
           newState.rounds = json.rounds
           newState.isDemoGame = json.is_demo_game
           newState.isSharedGame = json.is_shared_game
+          newState.ownerId = json.owner_id
           newState.url = json.url
           newState.id = json.id
           newState.isLoaded = true
@@ -1268,6 +1269,7 @@ class Main extends React.Component {
         newState.showSuggestion = event.detail.state.showSuggestion
         newState.isDemoGame = event.detail.state.isDemoGame
         newState.isSharedGame = event.detail.state.isSharedGame
+        newState.ownerId = event.detail.state.ownerId
         newState.url = event.detail.state.url
         newState.id = event.detail.state.id
         newState.mode = event.detail.state.mode
@@ -1696,7 +1698,7 @@ class Main extends React.Component {
         }
         if (!containsQuestionMark) {
           if (prevState.uiState === UI_STATES.demo) {
-            // FIXME: send using API.
+            // FIXME: take share language from state
             const pathParts = location.pathname.split('/')
             let shareLanguage
             if (pathParts.length === 4) {
@@ -1732,6 +1734,7 @@ class Main extends React.Component {
                           mode: data.mode,
                           isDemoGame: data.is_demo_game,
                           isSharedGame: data.is_shared_game,
+                          ownerId: data.owner_id,
                           url: data.url,
                           players: data.players,
                           rounds: data.rounds,
@@ -2349,22 +2352,15 @@ class Main extends React.Component {
     }
     */
 
-    const redirectToIndex = function () {
+    const startExploreGame = function () {
       self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
-
-      // let indexUrl
-      // if (userLanguage === 'en') {
-      //  indexUrl = document.location.protocol + '//' + document.location.host
-      // } else {
-      //  indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
-      // }
-      // setTimeout(reload, 1000, [indexUrl])
     }
+
     if (self.state.showSuggestion) {
       suggestionBlock = (
         <div className="row">
           <div className="column">
-            <button style={{ float: 'left', margin: '5px' }} onClick={ redirectToIndex }>
+            <button style={{ float: 'left', margin: '5px' }} onClick={ startExploreGame }>
             If you want to solve more words click here.
             </button>
           </div>
@@ -2491,9 +2487,10 @@ class Main extends React.Component {
     }
     let shareBlock
 
-    if (self.state.isSharedGame) {
+    if (self.state.isSharedGame && (self.state.user.id === self.state.ownerId)) {
       shareBlock = <ShareElementWidget userLanguage={userLanguage} shareGame={self.state}/>
     }
+
     let debugBlock = null
     if (window.location.hash === '#debug=1') {
       debugBlock = <div>{Date.now() + ': ' + 'asdfsd'}</div>
