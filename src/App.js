@@ -220,7 +220,7 @@ function pair (wordIndex, letterIndex) {
   return wordIndex + ',' + letterIndex
 }
 
-function replyLettersToRow (words, isSolved, attempts) {
+function replyLettersToRow (words, isSolved, attempts, isSharedGame) {
   const replyLetters = []
   let inReplyWords = false
   for (let i = 0; i < attempts.length; ++i) {
@@ -230,7 +230,12 @@ function replyLettersToRow (words, isSolved, attempts) {
     }
   }
 
-  const isWrongReply = !isSolved && inReplyWords
+  let isWrongReply = false
+  if (isSharedGame && !isSolved && !words.includes('?')) {
+    isWrongReply = true
+  } else if (!isSolved && inReplyWords) {
+    isWrongReply = true
+  }
 
   for (let j = 0; j < words.length; ++j) {
     replyLetters.push(
@@ -708,7 +713,6 @@ function ReplyLetter (props) {
   };
 
   const letterStyle = {}
-
   if (props.letter !== ' ') {
     letterStyle.border = 'solid gray 2px'
   }
@@ -723,9 +727,12 @@ function ReplyLetter (props) {
   }
 
   return (
-        <div className="reply-letter" title="Remove letter" style={ letterStyle } onClick={onRemoveClick}>
-          {props.letter}
-        </div>
+    <div className="reply-letter"
+         title="Remove letter"
+         style={ letterStyle }
+         onClick={onRemoveClick}>
+      {props.letter}
+    </div>
   )
 };
 
@@ -785,8 +792,7 @@ class Main extends React.Component {
       id: null, // Game id.
       lettersDisplayTimeout: 0,
       uiState: UI_STATES.init,
-      isLoaded: false,
-      showSuggestion: false
+      isLoaded: false
     }
 
     this.nameUpdateTimeout = null
@@ -1266,7 +1272,6 @@ class Main extends React.Component {
         newState.currentRound = event.detail.state.currentRound
         newState.status = event.detail.state.status
         newState.totalHints = event.detail.state.totalHints
-        newState.showSuggestion = event.detail.state.showSuggestion
         newState.isDemoGame = event.detail.state.isDemoGame
         newState.isSharedGame = event.detail.state.isSharedGame
         newState.ownerId = event.detail.state.ownerId
@@ -1736,12 +1741,12 @@ class Main extends React.Component {
                           isSharedGame: data.is_shared_game,
                           ownerId: data.owner_id,
                           url: data.url,
+                          id: data.id,
                           players: data.players,
                           rounds: data.rounds,
                           currentRound: data.current_round,
                           status: data.status,
-                          totalHints: data.total_hints,
-                          showSuggestion: true
+                          totalHints: data.total_hints
                           // gameLastMessageTime: messageTime
                         }
                       }
@@ -2093,7 +2098,9 @@ class Main extends React.Component {
       // FIXME: handle currentRound.question as string instead of list of words.
 
       const attempts = currentRound.solutions[self.state.user.id].attempts
-      replyLetterItems = replyLettersToRow(self.state.replyLetters[0], isSolved, attempts)
+      replyLetterItems = replyLettersToRow(
+        self.state.replyLetters[0], isSolved, attempts,
+        self.state.isSharedGame)
 
       const splittedLetters = [[]]
       const words = currentRound.question[0]
@@ -2358,7 +2365,7 @@ class Main extends React.Component {
       self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
     }
 
-    if (self.state.showSuggestion) {
+    if (self.state.isSharedGame) {
       suggestionBlock = (
         <div className="row">
           <div className="column">
