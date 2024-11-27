@@ -2075,9 +2075,11 @@ class Main extends React.Component {
     let currentRound = {}
 
     if (self.state.isDemoGame) {
+      // for share game solving means there is at least one user who solved.
       if (self.state.uiState === UI_STATES.demo) {
         currentRound = self.state.rounds[self.state.currentRound - 1]
-        isSolved = currentRound.solutions[self.state.user.id].is_solved
+        isSolved = Object.values(currentRound.solutions)
+          .some((userSolution) => userSolution.is_solved)
       }
     } else if (self.state.currentRound && self.state.currentRound !== -1) {
       currentRound = self.state.rounds[self.state.currentRound - 1]
