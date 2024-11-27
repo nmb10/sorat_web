@@ -782,7 +782,7 @@ class Main extends React.Component {
       finishStatusDisplayTimeout: 0,
       replyWaitingTimeout: 0,
       recentActionTime: Date.now(),
-      autoplayEnabled: true,
+      autoplayEnabled: document.cookie.includes('autoplay=1'),
       soundVolume: 50,
       voicePlayed: false,
       isDemoGame: false,
@@ -1535,6 +1535,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = true
+        document.cookie = 'autoplay=1'
         return newState
       })
     })
@@ -1543,6 +1544,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = false
+        document.cookie = 'autoplay=0'
         return newState
       })
     })
