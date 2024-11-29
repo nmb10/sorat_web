@@ -511,12 +511,12 @@ function TopicElems (props) {
     if (props.sets[i].status === 'solved') {
       rows.push(
         <div style={{ border: '4px green solid', float: 'left', margin: '3px' }}>
-          <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + 1}&nbsp;</a>
+          <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
         </div>)
     } else if (props.sets[i].status === 'skipped') {
       rows.push(
         <div style={{ border: '4px orange solid', float: 'left', margin: '3px' }}>
-          <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + 1}&nbsp;</a>
+          <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
         </div>)
     } else {
       if (debugMode()) {
