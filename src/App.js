@@ -102,6 +102,18 @@ const finishStatusStyle = {
   borderRadius: '10px'
 }
 
+function debugMode () {
+  return document.cookie.includes('debug=1')
+}
+
+function sendExploreStartEvent (event, topicSet) {
+  event.preventDefault()
+  document.getElementById('root').dispatchEvent(
+    new CustomEvent(
+      'explore-start',
+      { detail: { topicSet: topicSet } }))
+}
+
 function playSound (src, volume) {
   const voice1 = new Audio(src)
   voice1.volume = volume / 100.0
@@ -443,14 +455,11 @@ function TransitionWidget (props) {
 };
 
 ProgressWidget.propTypes = {
-  games: PropTypes.array
+  games: PropTypes.array,
+  initialCounter: PropTypes.number
 }
 
 function ProgressWidget (props) {
-  /* example of finishedRounds
-  * FIXME: Add example.
-  */
-
   let topicPivot = ''
   let gamesCollector = []
   const splitted = []
@@ -474,9 +483,10 @@ function ProgressWidget (props) {
   }
 
   const rows = []
-
+  let counter = props.initialCounter
   for (let i = 0; i < splitted.length; ++i) {
-    rows.push(<TopicElems sets={ splitted[i] } />)
+    rows.push(<TopicElems sets={ splitted[i] } setsCounter={ counter } />)
+    counter += splitted[i].length
   }
 
   return (
@@ -487,7 +497,8 @@ function ProgressWidget (props) {
 };
 
 TopicElems.propTypes = {
-  sets: PropTypes.array
+  sets: PropTypes.array,
+  setsCounter: PropTypes.number
 }
 
 function TopicElems (props) {
@@ -498,11 +509,28 @@ function TopicElems (props) {
   for (let i = 0; i < props.sets.length; ++i) {
     topicLocalName = props.sets[i].topic.local_name
     if (props.sets[i].status === 'solved') {
-      rows.push(<div style={{ border: '4px green solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
+      rows.push(
+        <div style={{ border: '4px green solid', float: 'left', margin: '3px' }}>
+          <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + 1}&nbsp;</a>
+        </div>)
     } else if (props.sets[i].status === 'skipped') {
-      rows.push(<div style={{ border: '4px orange solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
+      rows.push(
+        <div style={{ border: '4px orange solid', float: 'left', margin: '3px' }}>
+          <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + 1}&nbsp;</a>
+        </div>)
     } else {
-      rows.push(<div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>&nbsp;&nbsp;</div>)
+      if (debugMode()) {
+        // Show start game links for unsolved games.
+        rows.push(
+          <div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>
+            <a href="#" title='Try that set' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
+         </div>)
+      } else {
+        rows.push(
+          <div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>
+            &nbsp;{props.setsCounter + i}&nbsp;
+         </div>)
+      }
     }
   }
 
@@ -1592,7 +1620,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('explore-clicked', function (event) {
+    document.getElementById('root').addEventListener('explore-start', function (event) {
       // FIXME:
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1601,7 +1629,13 @@ class Main extends React.Component {
         newState.uiState = UI_STATES.exploreRequested
         // We always send user in payload because server may loose initial state once (on
         // backend restart for example).
-        self.sendMessage({ command: 'explore', payload: { user: newState.user } })
+        self.sendMessage({
+          command: 'explore',
+          payload: {
+            user: newState.user,
+            topic_set: event.detail.topicSet
+          }
+        })
         return newState
       })
     })
@@ -1846,7 +1880,7 @@ class Main extends React.Component {
 
   onExploreClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('explore-clicked', { detail: {} }))
+      new CustomEvent('explore-start', { detail: {} }))
   }
 
   onAcceptClick (event) {
@@ -2417,7 +2451,8 @@ class Main extends React.Component {
     }
 
     let progressRows = ''
-    if (self.state.modeOpened === 'explore' && self.state.progress.simple) {
+    // if (self.state.modeOpened === 'explore' && self.state.progress.simple) {
+    if (self.state.progress.simple) {
       progressRows = (
         <table>
           <tbody>
@@ -2426,7 +2461,7 @@ class Main extends React.Component {
                 {trn(userLanguage, 'Simple')}
               </td>
               <td>
-                <ProgressWidget games={self.state.progress.simple || []} />
+                <ProgressWidget games={self.state.progress.simple || []} initialCounter={ 1 }/>
               </td>
             </tr>
             <tr>
@@ -2434,7 +2469,7 @@ class Main extends React.Component {
                 {trn(userLanguage, 'Normal')}
               </td>
               <td>
-                <ProgressWidget games={self.state.progress.normal || []} />
+                <ProgressWidget games={self.state.progress.normal || []} initialCounter={ (self.state.progress.simple || []).length + 1 } />
               </td>
             </tr>
             <tr>
@@ -2442,7 +2477,7 @@ class Main extends React.Component {
                 {trn(userLanguage, 'Hard')}
               </td>
               <td>
-                <ProgressWidget games={self.state.progress.hard || []} />
+                <ProgressWidget games={self.state.progress.hard || []} initialCounter={(self.state.progress.simple || []).length + (self.state.progress.normal || []).length + 1 } />
               </td>
             </tr>
           </tbody>
@@ -2507,7 +2542,7 @@ class Main extends React.Component {
     }
 
     let debugBlock = null
-    if (window.location.hash === '#debug=1') {
+    if (debugMode()) {
       debugBlock = <div>{Date.now() + ': ' + 'asdfsd'}</div>
     }
 
