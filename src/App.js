@@ -102,6 +102,20 @@ const finishStatusStyle = {
   borderRadius: '10px'
 }
 
+function setCookie (name, value) {
+  document.cookie = name + '=' + value
+}
+
+function getCookies () {
+  const ret = {}
+  let key, value
+  for (const cookie of document.cookie.split('; ')) {
+    [key, value] = cookie.split('=')
+    ret[key] = value
+  }
+  return ret
+}
+
 function debugMode () {
   return document.cookie.includes('debug=1')
 }
@@ -810,8 +824,8 @@ class Main extends React.Component {
       finishStatusDisplayTimeout: 0,
       replyWaitingTimeout: 0,
       recentActionTime: Date.now(),
-      autoplayEnabled: document.cookie.includes('autoplay=1'),
-      soundVolume: 50,
+      autoplayEnabled: !document.cookie.includes('autoplay=0'),
+      soundVolume: parseInt(getCookies().volume || 40),
       voicePlayed: false,
       isDemoGame: false,
       isSharedGame: false,
@@ -1563,7 +1577,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = true
-        document.cookie = 'autoplay=1'
+        setCookie('autoplay', '1')
         return newState
       })
     })
@@ -1572,7 +1586,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = false
-        document.cookie = 'autoplay=0'
+        setCookie('autoplay', '0')
         return newState
       })
     })
@@ -1695,6 +1709,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.soundVolume = event.detail.volume
+        setCookie('volume', newState.soundVolume)
         return newState
       })
     })
