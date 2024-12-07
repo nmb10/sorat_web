@@ -524,24 +524,24 @@ function TopicElems (props) {
     topicLocalName = props.sets[i].topic.local_name
     if (props.sets[i].status === 'solved') {
       rows.push(
-        <div style={{ border: '4px green solid', float: 'left', margin: '3px' }}>
+        <div style={{ border: '4px solid green', float: 'left', margin: '3px' }}>
           <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
         </div>)
     } else if (props.sets[i].status === 'skipped') {
       rows.push(
-        <div style={{ border: '4px orange solid', float: 'left', margin: '3px' }}>
+        <div style={{ border: '4px solid orange', float: 'left', margin: '3px' }}>
           <a href="#" title='Try that set again' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
         </div>)
     } else {
       if (debugMode()) {
         // Show start game links for unsolved games.
         rows.push(
-          <div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>
+          <div style={{ border: '4px solid gray', float: 'left', margin: '3px' }}>
             <a href="#" title='Try that set' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
          </div>)
       } else {
         rows.push(
-          <div style={{ border: '4px gray solid', float: 'left', margin: '3px' }}>
+          <div style={{ border: '4px solid gray', float: 'left', margin: '3px' }}>
             &nbsp;{props.setsCounter + i}&nbsp;
          </div>)
       }
