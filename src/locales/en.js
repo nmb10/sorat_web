@@ -9,6 +9,7 @@ export const translations = {
   'Tell again': 'Tell again',
   'Report an issue': 'Report an issue',
   Contribute: 'Contribute',
+  'Amazing. The next game will start in {seconds} seconds.': 'Amazing. The next game will start in {seconds} seconds.',
   'Game skipped. Starting the next game in {seconds} seconds.': 'Game skipped. Starting the next game in {seconds} seconds.',
   'Amazing. New game will start in {seconds} seconds.': 'Amazing. New game will start in {seconds} seconds.',
   Skip: 'Skip',
