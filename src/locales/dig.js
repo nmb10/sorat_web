@@ -30,7 +30,7 @@ export const translations = {
   'What?': 'Куд?',
   'You won!': 'Рамболдтай!',
   'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Исихалæ {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} æма райдайдзæнæ {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
-  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': Агъазти лимит фæцæй. Исихалæ {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+  'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Агъазти лимит фæцæй. Исихалæ {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
   Simple: 'Еувазæг',

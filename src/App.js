@@ -246,9 +246,10 @@ function pair (wordIndex, letterIndex) {
   return wordIndex + ',' + letterIndex
 }
 
-function replyLettersToRow (words, isSolved, attempts, isSharedGame, sharedGameIsChecked) {
+function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame, sharedGameIsChecked) {
   const replyLetters = []
   let inReplyWords = false
+
   for (let i = 0; i < attempts.length; ++i) {
     if (attempts[i].reply.letters.includes(words)) {
       inReplyWords = true
@@ -1758,63 +1759,97 @@ class Main extends React.Component {
         if (!containsQuestionMark) {
           if (prevState.uiState === UI_STATES.demo) {
             // FIXME: take share language from state
-            const pathParts = location.pathname.split('/')
-            let shareLanguage
-            if (pathParts.length === 4) {
-              // Other languages share.
-              shareLanguage = pathParts[1]
-            } else {
-              // English share (without language in path)
-              shareLanguage = 'en'
-            }
-            const reply = {
-              letters: newState.replyLetters,
-              language: shareLanguage
-            }
+            if (prevState.isSharedGame) {
+              // Ask server side.
+              const pathParts = location.pathname.split('/')
+              let shareLanguage
+              if (pathParts.length === 4) {
+                // Other languages share.
+                shareLanguage = pathParts[1]
+              } else {
+                // English share (without language in path)
+                shareLanguage = 'en'
+              }
+              const reply = {
+                letters: newState.replyLetters,
+                language: shareLanguage
+              }
 
-            const requestOptions = {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(reply)
-            }
-            fetch('/api/v1/shares/' + newState.id, requestOptions)
-              .then(response => response.json())
-              .then(data => {
-                if (Object.values(data.rounds[0].solutions)[0].is_solved && window.ConfettiPage) {
+              const requestOptions = {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reply)
+              }
+              fetch('/api/v1/shares/' + newState.id, requestOptions)
+                .then(response => response.json())
+                .then(data => {
+                  if (Object.values(data.rounds[0].solutions)[0].is_solved && window.ConfettiPage) {
+                    window.ConfettiPage.play()
+                  }
+                  document.getElementById('root').dispatchEvent(
+                    new CustomEvent(
+                      'state.update',
+                      {
+                        detail: {
+                          state: {
+                            method: data.method,
+                            mode: data.mode,
+                            isDemoGame: data.is_demo_game,
+                            isSharedGame: data.is_shared_game,
+                            sharedGameIsChecked: true,
+                            ownerId: data.owner_id,
+                            url: data.url,
+                            id: data.id,
+                            players: data.players,
+                            rounds: data.rounds,
+                            currentRound: data.current_round,
+                            status: data.status,
+                            totalHints: data.total_hints
+                            // gameLastMessageTime: messageTime
+                          }
+                        }
+                      }))
+                })
+              /*
+              newState.mode = 'explore_requested'
+              newState.modeOpened = 'explore'
+              newState.uiState = UI_STATES.exploreRequested
+              // We always send user in payload because server may loose initial state once (on
+              // backend restart for example).
+              self.sendMessage({ command: 'explore', payload: { user: newState.user } })
+              */
+            } else {
+              // compare on client side.
+              const replyLetters = newState.replyLetters[0]
+              const localTerm = newState.rounds[0].local_term
+
+              if (replyLetters === localTerm) {
+                newState.status = 'solved'
+                newState.rounds[0].solutions[newState.user.id].attempts = [
+                  {
+                    time: 'FIXME:',
+                    reply: {
+                      letters: replyLetters
+                    }
+                  }
+                ]
+                newState.rounds[0].solutions[newState.user.id].is_solved = true
+                if (window.ConfettiPage) {
                   window.ConfettiPage.play()
                 }
-                document.getElementById('root').dispatchEvent(
-                  new CustomEvent(
-                    'state.update',
-                    {
-                      detail: {
-                        state: {
-                          method: data.method,
-                          mode: data.mode,
-                          isDemoGame: data.is_demo_game,
-                          isSharedGame: data.is_shared_game,
-                          sharedGameIsChecked: true,
-                          ownerId: data.owner_id,
-                          url: data.url,
-                          id: data.id,
-                          players: data.players,
-                          rounds: data.rounds,
-                          currentRound: data.current_round,
-                          status: data.status,
-                          totalHints: data.total_hints
-                          // gameLastMessageTime: messageTime
-                        }
-                      }
-                    }))
-              })
-            /*
-            newState.mode = 'explore_requested'
-            newState.modeOpened = 'explore'
-            newState.uiState = UI_STATES.exploreRequested
-            // We always send user in payload because server may loose initial state once (on
-            // backend restart for example).
-            self.sendMessage({ command: 'explore', payload: { user: newState.user } })
-            */
+              } else {
+                newState.status = 'failed'
+                newState.rounds[0].solutions[newState.user.id].attempts = [
+                  {
+                    time: 'FIXME:',
+                    reply: {
+                      letters: replyLetters
+                    }
+                  }
+                ]
+                newState.rounds[0].solutions[newState.user.id].is_solved = false
+              }
+            }
           } else {
             self.sendMessage({
               command: 'reply',
@@ -2155,7 +2190,8 @@ class Main extends React.Component {
       const attempts = currentRound.solutions[self.state.user.id].attempts
       replyLetterItems = replyLettersToRow(
         self.state.replyLetters[0], isSolved, attempts,
-        self.state.isSharedGame, self.state.sharedGameIsChecked)
+        self.state.isDemoGame, self.state.isSharedGame,
+        self.state.sharedGameIsChecked)
 
       const splittedLetters = [[]]
       const words = currentRound.question[0]
@@ -2420,7 +2456,7 @@ class Main extends React.Component {
       self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
     }
 
-    if (self.state.isSharedGame) {
+    if (self.state.isSharedGame || self.state.isDemoGame) {
       suggestionBlock = (
         <div className="row">
           <div className="column">
