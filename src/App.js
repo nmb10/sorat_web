@@ -1090,7 +1090,11 @@ class Main extends React.Component {
           newState.id = json.id
           newState.isLoaded = true
           if (json.mode === 'explore') {
-            newState.uiState = UI_STATES.inExplore
+            if (json.rounds.length > 0) {
+              newState.uiState = UI_STATES.exploring
+            } else {
+              newState.uiState = UI_STATES.inExplore
+            }
           } else if (json.is_demo_game) {
             newState.uiState = UI_STATES.demo
           }
@@ -1329,14 +1333,17 @@ class Main extends React.Component {
         if (event.detail.eventType === 'start' && event.detail.state.mode === 'train') {
           newState.uiState = UI_STATES.training
         } else if (event.detail.eventType === 'start' && event.detail.state.mode === 'explore') {
-          let indexUrl
-          const userLanguage = newState.user.language
-          if (userLanguage === 'en') {
-            indexUrl = document.location.protocol + '//' + document.location.host
-          } else {
-            indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
+          if (event.detail.state.isSharedGame) {
+            // This is for start from share page.
+            let indexUrl
+            const userLanguage = newState.user.language
+            if (userLanguage === 'en') {
+              indexUrl = document.location.protocol + '//' + document.location.host
+            } else {
+              indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
+            }
+            window.open(indexUrl, '_self')
           }
-          window.open(indexUrl, '_self')
           newState.uiState = UI_STATES.exploring
         } else if (event.detail.eventType === 'train_leave') {
           newState.uiState = UI_STATES.inTrain
