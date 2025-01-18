@@ -106,6 +106,16 @@ function setCookie (name, value) {
   document.cookie = name + '=' + value
 }
 
+function toIndex (userLanguage) {
+  let indexUrl
+  if (userLanguage === 'en') {
+    indexUrl = document.location.protocol + '//' + document.location.host
+  } else {
+    indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
+  }
+  window.open(indexUrl, '_self')
+}
+
 function getCookies () {
   const ret = {}
   let key, value
@@ -1333,17 +1343,6 @@ class Main extends React.Component {
         if (event.detail.eventType === 'start' && event.detail.state.mode === 'train') {
           newState.uiState = UI_STATES.training
         } else if (event.detail.eventType === 'start' && event.detail.state.mode === 'explore') {
-          if (event.detail.state.isSharedGame) {
-            // This is for start from share page.
-            let indexUrl
-            const userLanguage = newState.user.language
-            if (userLanguage === 'en') {
-              indexUrl = document.location.protocol + '//' + document.location.host
-            } else {
-              indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
-            }
-            window.open(indexUrl, '_self')
-          }
           newState.uiState = UI_STATES.exploring
         } else if (event.detail.eventType === 'train_leave') {
           newState.uiState = UI_STATES.inTrain
@@ -2461,6 +2460,10 @@ class Main extends React.Component {
 
     const startExploreGame = function () {
       self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+      if (self.state.isSharedGame) {
+        // This is for start from share page.
+        setTimeout(toIndex, 500, self.state.user.language)
+      }
     }
 
     if (self.state.isSharedGame || self.state.isDemoGame) {
