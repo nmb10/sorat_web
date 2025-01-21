@@ -30,7 +30,7 @@ const UI_STATES = {
   exploreRequested: 'exploreRequested',
   leaveRequested: 'leaveRequested',
   training: 'training', // Playing train game.
-  exploring: 'exploring', // Playing epxlore game.
+  exploring: 'exploring', // Playing explore game.
   constesting: 'contesting', // Playing contest game.
   skipRequested: 'skipRequested',
   skipped: 'skipped',
@@ -187,13 +187,12 @@ function getPlayersScores (players, finishedRounds) {
   return scores
 }
 
-function preloadImage (roundIndex, imageIndex, imageMap) {
-  // FIXME: Deprecated. Drop it.
+function preloadImage (imageMap) {
   const resolve = function (img1) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
         'image.load',
-        { detail: { roundIndex: roundIndex, imageIndex: imageIndex, img: img1, imageMap: imageMap } }))
+        { detail: { img: img1, imageMap: imageMap } }))
   }
   const reject = function (img1) {
     console.log('Image rejected: ', img1)
@@ -213,6 +212,15 @@ function preloadImage (roundIndex, imageIndex, imageMap) {
     reject(imageMap.src)
   }
   img.src = imageMap.src
+}
+
+function preloadImages (images) {
+  return new Promise((resolve, reject) => {
+    for (const imageMap of images) {
+      preloadImage(imageMap)
+      resolve(true)
+    }
+  })
 }
 
 function questionLettersToTable (questionLetters, chosenQueryIndexes, lettersDisplayTimeout) {
@@ -572,14 +580,12 @@ WordImageColumn.propTypes = {
   imageChoice: PropTypes.node.isRequired,
   userChoices: PropTypes.node.isRequired,
   isCorrectChoice: PropTypes.bool,
-  choicePointer: PropTypes.number,
   isSolved: PropTypes.bool,
   score: PropTypes.number
 }
 
 function WordImageColumn (props) {
   let onImageClick, imagePointsBlock
-  const choicePointer = props.choicePointer ? '#' + props.choicePointer : null
   const imageStyle = {} // Do not write here display settings. Otherwise use index.html@media
   // const imageStyle = { objectFit: 'cover', height: '400px', width: '300px', scroll: 'auto' }
   if (props.isCorrectChoice) {
@@ -596,9 +602,6 @@ function WordImageColumn (props) {
 
   return (
     <div style={{ position: 'relative' }}>
-      <div style={{ fontSize: '34px' }}>
-        {choicePointer}
-      </div>
       {imagePointsBlock}
       <img className="word-image word-image-letters-selection"
            src={props.imageSrc}
@@ -641,7 +644,6 @@ SelectImageGameWidget.propTypes = {
 
 function SelectImageGameWidget (props) {
   const localTerm = props.currentRound.local_term || ''
-  const currentRoundIndex = props.currentRoundIndex
   const timeoutBlock = <CurrentRoundTimeoutWidget
     isSolved={props.isSolved} currentRound={props.currentRound}
     isLettersSelection={false} user={props.user}/>
@@ -651,24 +653,10 @@ function SelectImageGameWidget (props) {
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
-  let src0, src1, src2, src3
-  let pointer0, pointer1, pointer2, pointer3
-  if (props.preloadedImages[currentRoundIndex] === undefined) {
-    src0 = spinner
-    src1 = spinner
-    src2 = spinner
-    src3 = spinner
-  } else {
-    src0 = props.preloadedImages[currentRoundIndex][0] === undefined ? spinner : props.preloadedImages[currentRoundIndex][0].img.src
-    src1 = props.preloadedImages[currentRoundIndex][1] === undefined ? spinner : props.preloadedImages[currentRoundIndex][1].img.src
-    src2 = props.preloadedImages[currentRoundIndex][2] === undefined ? spinner : props.preloadedImages[currentRoundIndex][2].img.src
-    src3 = props.preloadedImages[currentRoundIndex][3] === undefined ? spinner : props.preloadedImages[currentRoundIndex][3].img.src
-
-    pointer0 = props.preloadedImages[currentRoundIndex][0] === undefined ? null : props.preloadedImages[currentRoundIndex][0].pointer
-    pointer1 = props.preloadedImages[currentRoundIndex][1] === undefined ? null : props.preloadedImages[currentRoundIndex][1].pointer
-    pointer2 = props.preloadedImages[currentRoundIndex][2] === undefined ? null : props.preloadedImages[currentRoundIndex][2].pointer
-    pointer3 = props.preloadedImages[currentRoundIndex][3] === undefined ? null : props.preloadedImages[currentRoundIndex][3].pointer
-  }
+  const src0 = props.preloadedImages[props.currentRound.img1.src] || spinner
+  const src1 = props.preloadedImages[props.currentRound.img2.src] || spinner
+  const src2 = props.preloadedImages[props.currentRound.img3.src] || spinner
+  const src3 = props.preloadedImages[props.currentRound.img4.src] || spinner
 
   const score0 = props.correctChoice === 1 ? props.score : null
   const score1 = props.correctChoice === 2 ? props.score : null
@@ -689,10 +677,10 @@ function SelectImageGameWidget (props) {
     <table style={{ border: 'none', borderCollapse: 'collapse', cellspacing: 0, cellpadding: 0 }}>
       <tr>
         <td style={{ verticalAlign: 'top' }}>
-          <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} choicePointer={pointer0}/>
+          <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} />
         </td>
         <td style={{ verticalAlign: 'top' }}>
-          <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} choicePointer={pointer1}/>
+          <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} />
         </td>
       </tr>
       <tr>
@@ -703,10 +691,10 @@ function SelectImageGameWidget (props) {
       </tr>
       <tr>
         <td style={{ verticalAlign: 'top', borderBottom: 'none' }}>
-          <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} choicePointer={pointer2}/>
+          <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} />
         </td>
         <td style={{ verticalAlign: 'top', borderBottom: 'none' }}>
-          <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} choicePointer={pointer3}/>
+          <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} />
         </td>
       </tr>
     </table>
@@ -1268,13 +1256,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('image.load', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        if (newState.preloadedImages[event.detail.roundIndex] === undefined) {
-          newState.preloadedImages[event.detail.roundIndex] = {}
-        }
-        newState.preloadedImages[event.detail.roundIndex][event.detail.imageIndex] = {
-          img: event.detail.img,
-          pointer: event.detail.imageMap.pointer
-        }
+        newState.preloadedImages[URL.parse(event.detail.img.src).pathname] = event.detail.img.src
         return newState
       })
     })
@@ -1374,61 +1356,75 @@ class Main extends React.Component {
           // Round changed. Show ? for every letter of the question.
           newState.voicePlayed = false
           const currentRound = newState.rounds[newState.currentRound - 1]
-          if (newState.preloadedImages[newState.currentRound - 1] === undefined) {
-            if (currentRound.img1 !== null) {
-              preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+          const nextRound = newState.rounds[newState.currentRound]
+
+          if (newState.method === LETTERS_SELECTION_METHOD) {
+            // roundIndex, imageIndex, imageMap
+            let currentRoundImagePreload, nextRoundImagePreload
+            const correctChoice = currentRound.correct_choice
+            const correctImage = [null, currentRound.img1, currentRound.img2, currentRound.img3, currentRound.img4][correctChoice]
+
+            if (!(correctImage.src in newState.preloadedImages)) {
+              currentRoundImagePreload = correctImage
             }
-            if (currentRound.img2 !== null) {
-              preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+
+            if (nextRound === undefined) {
+              ;
+            } else {
+              const nextRoundCorrectChoice = nextRound.correct_choice
+              const nextRoundCorrectImage = [null, nextRound.img1, nextRound.img2, nextRound.img3, nextRound.img4][nextRoundCorrectChoice]
+              if (!(nextRoundCorrectImage.src in newState.preloadedImages)) {
+                nextRoundImagePreload = nextRoundCorrectImage
+              }
             }
-            if (currentRound.img3 !== null) {
-              preloadImage(newState.currentRound - 1, 2, currentRound.img3)
-            }
-            if (currentRound.img4 !== null) {
-              preloadImage(newState.currentRound - 1, 3, currentRound.img4)
+
+            if (currentRoundImagePreload && nextRoundImagePreload) {
+              preloadImages([currentRoundImagePreload])
+                .then(() => {
+                  return preloadImages([nextRoundImagePreload])
+                })
+            } else if (currentRoundImagePreload) {
+              preloadImages([currentRoundImagePreload])
+            } else if (nextRoundImagePreload) {
+              preloadImages([nextRoundImagePreload])
             }
           } else {
-            if (newState.preloadedImages[newState.currentRound - 1][0] === undefined) {
-              // TODO: Clean that hell.
-              if (currentRound.img1 !== null) {
-                preloadImage(newState.currentRound - 1, 0, currentRound.img1)
+            // method == IMAGE_SELECTION_METHOD
+            const currentRoundImagesToPreload = []
+            const visited = []
+
+            // Find current round images not loaded yet.
+            for (const img of [currentRound.img1, currentRound.img2, currentRound.img3, currentRound.img4]) {
+              if (!(img.src in newState.preloadedImages) && !visited.includes(img.src)) {
+                currentRoundImagesToPreload.push(img)
+                visited.push(img.src)
               }
             }
-            if (newState.preloadedImages[newState.currentRound - 1][1] === undefined) {
-              if (currentRound.img2 !== null) {
-                preloadImage(newState.currentRound - 1, 1, currentRound.img2)
+
+            // Find next round images not loaded yet.
+            const nextRoundImagesToPreload = []
+
+            if (nextRound) {
+              for (const img of [nextRound.img1, nextRound.img2, nextRound.img3, nextRound.img4]) {
+                if (!(img.src in newState.preloadedImages) && !visited.includes(img.src)) {
+                  nextRoundImagesToPreload.push(img)
+                  visited.push(img.src)
+                }
               }
             }
-            if (newState.preloadedImages[newState.currentRound - 1][2] === undefined) {
-              if (currentRound.img3 !== null) {
-                preloadImage(newState.currentRound - 1, 2, currentRound.img3)
-              }
-            }
-            if (newState.preloadedImages[newState.currentRound - 1][3] === undefined) {
-              if (currentRound.img4 !== null) {
-                preloadImage(newState.currentRound - 1, 3, currentRound.img4)
-              }
+
+            if (currentRoundImagesToPreload.length > 0 && nextRoundImagesToPreload > 0) {
+              preloadImages(currentRoundImagesToPreload)
+                .then(() => {
+                  return preloadImages(nextRoundImagesToPreload)
+                })
+            } else if (currentRoundImagesToPreload.length > 0) {
+              preloadImages(currentRoundImagesToPreload)
+            } else if (nextRoundImagesToPreload.length > 0) {
+              preloadImages(nextRoundImagesToPreload)
             }
           }
 
-          const nextRound = newState.rounds[newState.currentRound]
-          if (nextRound === undefined) {
-            ;
-          } else {
-            // preload next round images.
-            if (nextRound.img1 !== null) {
-              preloadImage(newState.currentRound, 0, nextRound.img1)
-            }
-            if (nextRound.img2 !== null) {
-              preloadImage(newState.currentRound, 1, nextRound.img2)
-            }
-            if (nextRound.img3 !== null) {
-              preloadImage(newState.currentRound, 2, nextRound.img3)
-            }
-            if (nextRound.img4 !== null) {
-              preloadImage(newState.currentRound, 3, nextRound.img4)
-            }
-          }
           const word = currentRound.question[0] // FIXME: Use string instead of list of strings
           const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
