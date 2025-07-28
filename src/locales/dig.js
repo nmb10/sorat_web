@@ -1,6 +1,9 @@
 export const translations = {
   'Too many hints. The next game will not be available.': 'Æгæр берæ хатти агъаз райстай. Нæуæг гъазт нæ райдадзæнæ.',
+  'FIXME:Too many hints. Starting the same game in {seconds} seconds.': 'Too many hints. Starting the same game in {seconds} seconds.',
+  'FIXME:Good, but letters selection mode is required to pass. Starting the same game in {seconds} seconds.': 'FIXME:Good, but letters selection mode is required to pass. Starting the same game in {seconds} seconds.',
   Autoplay: 'Autoplay',
+  'FIXME:At least one word not solved. The next game will not be available.': '',
   'Autoplay site sounds': 'Autoplay site sounds',
   'Start new game in explore mode.': 'Нæуæг æсгарун гъазт райдайун.',
   'Image selection': 'Сорæт æвзарун',

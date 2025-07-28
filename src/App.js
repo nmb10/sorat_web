@@ -12,6 +12,10 @@ import './App.css'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import trn from './translations'
+// import * as events from './events'
+import { handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE } from './events'
+import CustomSetComponent from './CustomSetComponent'
+import TranscribeWordComponent from './TranscribeWordComponent'
 
 const imageLoadTimeout = 0
 
@@ -36,6 +40,14 @@ const UI_STATES = {
   skipped: 'skipped',
   contestEnqueued: 'contestEnqueued'
 }
+
+/*
+const CUSTOM_SETS_UI_STATES = {
+  add: 'add',
+  edit: 'edit',
+  list: 'list'
+}
+*/
 
 const tableSizeMap = {
   1: [1, 1],
@@ -327,11 +339,11 @@ ShareElementWidget.propTypes = {
   userLanguage: PropTypes.string
 }
 
-function ShareElementWidget (props) {
-  const round = props.shareGame.rounds[0]
-  const shareUrl = document.location.protocol + '//' + document.location.host + props.shareGame.url
+function ShareElementWidget ({ shareGame, userLanguage }) {
+  const round = shareGame.rounds[0]
+  const shareUrl = document.location.protocol + '//' + document.location.host + shareGame.url
   const question = round.question.join(' ')
-  const title = trn(props.userLanguage, 'Are you able to solve ') + ' ' + ' "' + question + '"?'
+  const title = trn(userLanguage, 'Are you able to solve ') + ' ' + ' "' + question + '"?'
   const redditURL = encodeURI('https://www.reddit.com/submit?url=' + shareUrl + '&title=' + title + '&type=LINK')
 
   // const correctChoice = round.correct_choice
@@ -341,14 +353,14 @@ function ShareElementWidget (props) {
     <div>
       <div style={{ clear: 'both' }}>
         <button onClick={() => copyToClipboard(title)}
-                title={trn(props.userLanguage, 'Copy title')}
+                title={trn(userLanguage, 'Copy title')}
                 style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
-          {trn(props.userLanguage, 'Copy title')}
+          {trn(userLanguage, 'Copy title')}
         </button>
         <button onClick={() => copyToClipboard(shareUrl)}
-                title={trn(props.userLanguage, 'Copy share URL')}
+                title={trn(userLanguage, 'Copy share URL')}
                 style={{ float: 'left', marginLeft: '5px', paddingLeft: '5px', paddingRight: '5px' }}>
-          {trn(props.userLanguage, 'Copy share URL')}
+          {trn(userLanguage, 'Copy share URL')}
         </button>
       </div>
       <div style={{ clear: 'both' }}>
@@ -653,15 +665,15 @@ function SelectImageGameWidget (props) {
   const userChoices = props.currentRound.solutions[props.user.id].attempts.map(
     (attemptMap) => attemptMap.reply.userChoice)
 
-  const src0 = props.preloadedImages[props.currentRound.img1.src] || spinner
-  const src1 = props.preloadedImages[props.currentRound.img2.src] || spinner
-  const src2 = props.preloadedImages[props.currentRound.img3.src] || spinner
-  const src3 = props.preloadedImages[props.currentRound.img4.src] || spinner
+  const src1 = props.preloadedImages[props.currentRound.img1.src] || spinner
+  const src2 = props.preloadedImages[props.currentRound.img2.src] || spinner
+  const src3 = props.preloadedImages[props.currentRound.img3.src] || spinner
+  const src4 = props.preloadedImages[props.currentRound.img4.src] || spinner
 
-  const score0 = props.correctChoice === 1 ? props.score : null
-  const score1 = props.correctChoice === 2 ? props.score : null
-  const score2 = props.correctChoice === 3 ? props.score : null
-  const score3 = props.correctChoice === 4 ? props.score : null
+  const score1 = props.correctChoice === 1 ? props.score : null
+  const score2 = props.correctChoice === 2 ? props.score : null
+  const score3 = props.correctChoice === 3 ? props.score : null
+  const score4 = props.correctChoice === 4 ? props.score : null
 
   let voiceButton
   if (props.currentRound.voice_path && props.currentRound.voice_path.src) {
@@ -677,10 +689,10 @@ function SelectImageGameWidget (props) {
     <table style={{ border: 'none', borderCollapse: 'collapse', cellspacing: 0, cellpadding: 0 }}>
       <tr>
         <td style={{ verticalAlign: 'top' }}>
-          <WordImageColumn imageSrc={src0} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score0} isSolved={props.isSolved} />
+          <WordImageColumn imageSrc={src1} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score1} isSolved={props.isSolved} />
         </td>
         <td style={{ verticalAlign: 'top' }}>
-          <WordImageColumn imageSrc={src1} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score1} isSolved={props.isSolved} />
+          <WordImageColumn imageSrc={src2} imageChoice={2} userChoices={userChoices} isCorrectChoice={props.correctChoice === 2} score={score2} isSolved={props.isSolved} />
         </td>
       </tr>
       <tr>
@@ -691,10 +703,10 @@ function SelectImageGameWidget (props) {
       </tr>
       <tr>
         <td style={{ verticalAlign: 'top', borderBottom: 'none' }}>
-          <WordImageColumn imageSrc={src2} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score2} isSolved={props.isSolved} />
+          <WordImageColumn imageSrc={src3} imageChoice={3} userChoices={userChoices} isCorrectChoice={props.correctChoice === 3} score={score3} isSolved={props.isSolved} />
         </td>
         <td style={{ verticalAlign: 'top', borderBottom: 'none' }}>
-          <WordImageColumn imageSrc={src3} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score3} isSolved={props.isSolved} />
+          <WordImageColumn imageSrc={src4} imageChoice={4} userChoices={userChoices} isCorrectChoice={props.correctChoice === 4} score={score4} isSolved={props.isSolved} />
         </td>
       </tr>
     </table>
@@ -771,7 +783,7 @@ function ReplyLetter (props) {
     <div className="reply-letter"
          title="Remove letter"
          style={ letterStyle }
-         onClick={onRemoveClick}>
+         onClick={ onRemoveClick }>
       {props.letter}
     </div>
   )
@@ -799,6 +811,7 @@ class Main extends React.Component {
         level: 'normal', // user choice [simple/normal/hard]
         topic: null // selected topic.
       },
+      setName: 'main', // selected set of games name (main, custom, etc)
       challenge: null,
       connection: '',
       languages: [], // all languages.
@@ -807,6 +820,7 @@ class Main extends React.Component {
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
       modeOpened: null, // deprecated. Use uiState instead.
       rounds: [],
+      transcription: null,
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying (or placeholders if no click)
       currentRound: null,
@@ -834,7 +848,22 @@ class Main extends React.Component {
       id: null, // Game id.
       lettersDisplayTimeout: 0,
       uiState: UI_STATES.init,
-      isLoaded: false
+      isLoaded: false,
+      customSet: {
+        display: false,
+        games: [],
+        editableGame: {
+          display: false,
+          index: null,
+          language: null,
+          topic: {
+            local_name: '',
+            code: ''
+          },
+          // term, local_term, ?, ?, level, meaning, image, sound
+          words: Array(20).fill(['', '', '', '', '', '', '', ''])
+        }
+      }
     }
 
     this.nameUpdateTimeout = null
@@ -854,6 +883,9 @@ class Main extends React.Component {
     this.runCurrentRoundTimeoutTicker = this.runCurrentRoundTimeoutTicker.bind(this)
     this.onAutoplayToggleClick = this.onAutoplayToggleClick.bind(this)
     this.onVolumeChange = this.onVolumeChange.bind(this)
+    this.processReply = this.processReply.bind(this)
+    this.handleCustomSetDisplay = this.handleCustomSetDisplay.bind(this)
+    this.sendMessage = this.sendMessage.bind(this)
   }
 
   sendMessageWhenOpened (message) {
@@ -866,6 +898,121 @@ class Main extends React.Component {
       }
     } else {
       setTimeout(self.sendMessageWhenOpened, 500, message)
+    }
+  }
+
+  processReply (prevState, newState) {
+    const self = this
+    let containsQuestionMark = false
+    for (let i = 0; i < newState.replyLetters.length; ++i) {
+      const word = newState.replyLetters[i]
+      if (word.includes('?')) {
+        containsQuestionMark = true
+        break
+      }
+    }
+    if (!containsQuestionMark) {
+      if (prevState.uiState === UI_STATES.demo) {
+        // FIXME: take share language from state
+        if (prevState.isSharedGame) {
+          // Ask server side.
+          const pathParts = location.pathname.split('/')
+          let shareLanguage
+          if (pathParts.length === 4) {
+            // Other languages share.
+            shareLanguage = pathParts[1]
+          } else {
+            // English share (without language in path)
+            shareLanguage = 'en'
+          }
+          const reply = {
+            letters: newState.replyLetters,
+            language: shareLanguage
+          }
+
+          const requestOptions = {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reply)
+          }
+          fetch('/api/v1/shares/' + newState.id, requestOptions)
+            .then(response => response.json())
+            .then(data => {
+              if (Object.values(data.rounds[0].solutions)[0].is_solved && window.ConfettiPage) {
+                window.ConfettiPage.play()
+              }
+              document.getElementById('root').dispatchEvent(
+                new CustomEvent(
+                  'state.update',
+                  {
+                    detail: {
+                      state: {
+                        method: data.method,
+                        mode: data.mode,
+                        isDemoGame: data.is_demo_game,
+                        isSharedGame: data.is_shared_game,
+                        sharedGameIsChecked: true,
+                        ownerId: data.owner_id,
+                        url: data.url,
+                        id: data.id,
+                        players: data.players,
+                        rounds: data.rounds,
+                        currentRound: data.current_round,
+                        status: data.status,
+                        totalHints: data.total_hints
+                        // gameLastMessageTime: messageTime
+                      }
+                    }
+                  }))
+            })
+          /*
+          newState.mode = 'explore_requested'
+          newState.modeOpened = 'explore'
+          newState.uiState = UI_STATES.exploreRequested
+          // We always send user in payload because server may loose initial state once (on
+          // backend restart for example).
+          self.sendMessage({ command: 'explore', payload: { user: newState.user } })
+          */
+        } else {
+          // compare on client side.
+          const replyLetters = newState.replyLetters[0]
+          const localTerm = newState.rounds[0].local_term
+
+          if (replyLetters === localTerm) {
+            newState.status = 'solved'
+            newState.rounds[0].solutions[newState.user.id].attempts = [
+              {
+                time: 'FIXME:',
+                reply: {
+                  letters: replyLetters
+                }
+              }
+            ]
+            newState.rounds[0].solutions[newState.user.id].is_solved = true
+            if (window.ConfettiPage) {
+              window.ConfettiPage.play()
+            }
+          } else {
+            newState.status = 'failed'
+            newState.rounds[0].solutions[newState.user.id].attempts = [
+              {
+                time: 'FIXME:',
+                reply: {
+                  letters: replyLetters
+                }
+              }
+            ]
+            newState.rounds[0].solutions[newState.user.id].is_solved = false
+          }
+        }
+      } else {
+        self.sendMessage({
+          command: 'reply',
+          payload: {
+            letters: newState.replyLetters
+          }
+        })
+      }
     }
   }
 
@@ -1063,6 +1210,8 @@ class Main extends React.Component {
       // Other languages share.
       shareId = pathParts[3]
       url = '/api/v1/state?share=' + shareId + '&language=' + pathParts[1]
+    } else if (pathParts.length === 3 && pathParts.includes('custom')) {
+      url = '/api/v1/state?custom=1&language=' + pathParts[1]
     } else {
       url = '/api/v1/state'
     }
@@ -1087,6 +1236,7 @@ class Main extends React.Component {
           newState.url = json.url
           newState.id = json.id
           newState.isLoaded = true
+          newState.setName = 'custom'
           if (json.mode === 'explore') {
             if (json.rounds.length > 0) {
               newState.uiState = UI_STATES.exploring
@@ -1231,6 +1381,101 @@ class Main extends React.Component {
       })
     })
 
+    handle(CUSTOM_GAME_WORD_CHANGE, (index, word) =>
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.customSet.editableGame.words[index] = word
+        return newState
+      })
+    )
+
+    handle(CUSTOM_GAME_TOPIC_CHANGE, (newTitle) => {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.customSet.editableGame.topic.local_name = newTitle
+        newState.customSet.editableGame.topic.code = newTitle
+        return newState
+      })
+    })
+
+    handle(CUSTOM_SET_SHOW, () => {
+      const requestOptions = {}
+      fetch('/api/v1/sets?language=' + self.state.user.language, requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          self.setState(prevState => {
+            const newState = _.cloneDeep(prevState)
+            newState.customSet.display = true
+            newState.customSet.games = data.custom
+            return newState
+          })
+        })
+    })
+
+    handle(CUSTOM_SET_HIDE, () => {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.customSet.display = false
+        return newState
+      })
+    })
+
+    handle(CUSTOM_GAME_EDIT, (game, index) => {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        // newState.customSet.display = false
+        newState.customSet.editableGame.display = true
+        newState.customSet.editableGame.topic.local_name = game.topic.local_name
+        newState.customSet.editableGame.topic.code = game.topic.code
+        newState.customSet.editableGame.index = index
+
+        // Convert game rounds to set words.
+        const words = []
+        let img
+        let round
+        for (let i = 0; i < 20; i++) {
+          round = game.rounds[i]
+          if (round === undefined) {
+            words.push(['', '', '', '', '', '', '', ''])
+          } else {
+            img = [null, round.img1, round.img2, round.img3, round.img4][round.correct_choice]
+            words.push([round.term, round.local_term, '', '', game.level, round.meaning, img.src, round.voice_path.src])
+            words.push()
+          }
+        }
+        newState.customSet.editableGame.words = words
+        return newState
+      })
+    })
+
+    handle(CUSTOM_GAME_SAVE, (startToSolve) => {
+      if (startToSolve) {
+        console.log('Save and redirect.', self.state.customSet.editableGame)
+      } else {
+        console.log('Save only.', self.state.customSet.editableGame)
+      }
+      const gameToSave = self.state.customSet.editableGame
+      gameToSave.language = self.state.user.language
+
+      // Drop all empty words.
+      gameToSave.words = gameToSave.words.filter((word) => word[0].length > 0)
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gameToSave)
+      }
+      fetch('/api/v1/sets', requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          dispatch(CUSTOM_SET_SHOW, [])
+          self.setState(prevState => {
+            const newState = _.cloneDeep(prevState)
+            newState.customSet.editableGame.display = false
+            return newState
+          })
+        })
+    })
+
     document.getElementById('root').addEventListener('voice.played', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1256,7 +1501,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('image.load', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.preloadedImages[URL.parse(event.detail.img.src).pathname] = event.detail.img.src
+        newState.preloadedImages[decodeURIComponent(URL.parse(event.detail.img.src).pathname)] = event.detail.img.src
         return newState
       })
     })
@@ -1650,7 +1895,8 @@ class Main extends React.Component {
           command: 'explore',
           payload: {
             user: newState.user,
-            topic_set: event.detail.topicSet
+            topic_set: event.detail.topicSet,
+            set_name: event.detail.setName
           }
         })
         return newState
@@ -1736,6 +1982,20 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('transcription.done', function (event) {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        if (event.detail.exactMatch) {
+          newState.replyLetters[0] = event.detail.exactMatch
+          newState.transcription = event.detail.exactMatch
+        } else {
+          newState.transcription = event.detail.noMatch
+        }
+        self.processReply(prevState, newState)
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('question-letter.click', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1750,117 +2010,8 @@ class Main extends React.Component {
         newState.recentActionTime = Date.now()
 
         // If all letters entered send to server side.
-        let containsQuestionMark = false
-        for (let i = 0; i < newState.replyLetters.length; ++i) {
-          const word = newState.replyLetters[i]
-          if (word.includes('?')) {
-            containsQuestionMark = true
-            break
-          }
-        }
-        if (!containsQuestionMark) {
-          if (prevState.uiState === UI_STATES.demo) {
-            // FIXME: take share language from state
-            if (prevState.isSharedGame) {
-              // Ask server side.
-              const pathParts = location.pathname.split('/')
-              let shareLanguage
-              if (pathParts.length === 4) {
-                // Other languages share.
-                shareLanguage = pathParts[1]
-              } else {
-                // English share (without language in path)
-                shareLanguage = 'en'
-              }
-              const reply = {
-                letters: newState.replyLetters,
-                language: shareLanguage
-              }
-
-              const requestOptions = {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(reply)
-              }
-              fetch('/api/v1/shares/' + newState.id, requestOptions)
-                .then(response => response.json())
-                .then(data => {
-                  if (Object.values(data.rounds[0].solutions)[0].is_solved && window.ConfettiPage) {
-                    window.ConfettiPage.play()
-                  }
-                  document.getElementById('root').dispatchEvent(
-                    new CustomEvent(
-                      'state.update',
-                      {
-                        detail: {
-                          state: {
-                            method: data.method,
-                            mode: data.mode,
-                            isDemoGame: data.is_demo_game,
-                            isSharedGame: data.is_shared_game,
-                            sharedGameIsChecked: true,
-                            ownerId: data.owner_id,
-                            url: data.url,
-                            id: data.id,
-                            players: data.players,
-                            rounds: data.rounds,
-                            currentRound: data.current_round,
-                            status: data.status,
-                            totalHints: data.total_hints
-                            // gameLastMessageTime: messageTime
-                          }
-                        }
-                      }))
-                })
-              /*
-              newState.mode = 'explore_requested'
-              newState.modeOpened = 'explore'
-              newState.uiState = UI_STATES.exploreRequested
-              // We always send user in payload because server may loose initial state once (on
-              // backend restart for example).
-              self.sendMessage({ command: 'explore', payload: { user: newState.user } })
-              */
-            } else {
-              // compare on client side.
-              const replyLetters = newState.replyLetters[0]
-              const localTerm = newState.rounds[0].local_term
-
-              if (replyLetters === localTerm) {
-                newState.status = 'solved'
-                newState.rounds[0].solutions[newState.user.id].attempts = [
-                  {
-                    time: 'FIXME:',
-                    reply: {
-                      letters: replyLetters
-                    }
-                  }
-                ]
-                newState.rounds[0].solutions[newState.user.id].is_solved = true
-                if (window.ConfettiPage) {
-                  window.ConfettiPage.play()
-                }
-              } else {
-                newState.status = 'failed'
-                newState.rounds[0].solutions[newState.user.id].attempts = [
-                  {
-                    time: 'FIXME:',
-                    reply: {
-                      letters: replyLetters
-                    }
-                  }
-                ]
-                newState.rounds[0].solutions[newState.user.id].is_solved = false
-              }
-            }
-          } else {
-            self.sendMessage({
-              command: 'reply',
-              payload: {
-                letters: newState.replyLetters
-              }
-            })
-          }
-        }
+        self.processReply(prevState, newState)
+        console.log('!!!!!', self)
         return newState
       })
     })
@@ -1884,6 +2035,14 @@ class Main extends React.Component {
   handleLevelChange (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('level-changed', { detail: { level: event.target.value } }))
+  }
+
+  handleCustomSetDisplay (event) {
+    if (this.state.customSet.display) {
+      dispatch(CUSTOM_SET_HIDE, [])
+    } else {
+      dispatch(CUSTOM_SET_SHOW, [])
+    }
   }
 
   handleLanguageChange (event) {
@@ -1932,7 +2091,7 @@ class Main extends React.Component {
 
   onExploreClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('explore-start', { detail: {} }))
+      new CustomEvent('explore-start', { detail: { setName: this.state.setName } }))
   }
 
   onAcceptClick (event) {
@@ -1979,7 +2138,19 @@ class Main extends React.Component {
       // No data from api yet.
       return null
     }
+
     const userLanguage = self.state.user.language || 'en'
+
+    let customSetWidget
+    // console.log(self.state.customSet.games)
+    if (self.state.customSet.display) {
+      customSetWidget = <CustomSetComponent
+        games={self.state.customSet.games}
+        topicTitle={self.state.customSet.editableGame.topic.local_name}
+        words={self.state.customSet.editableGame.words}
+        language={userLanguage}
+        displayGame={self.state.customSet.editableGame.display} />
+    }
     const versions = 'Backend: ' + self.state.versions.backend +
       ', Frontend: ' + self.state.versions.frontend +
       ', Translations: ' + self.state.versions.translations +
@@ -1991,7 +2162,7 @@ class Main extends React.Component {
 
     // Parts not visible on shared game.
     let volumeColumn, autoplayColumn, usernameInput,
-      languageColumn, warningRow
+      languageColumn, warningRow, customSetColumn
 
     if (!self.state.isSharedGame) {
       autoplayColumn = (
@@ -2033,6 +2204,12 @@ class Main extends React.Component {
         </div>
       )
 
+      customSetColumn = (
+        <div className="column">
+          <a href="#" onClick={self.handleCustomSetDisplay}>My set</a>
+        </div>
+      )
+
       warningRow = (
         <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
           {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.')}
@@ -2048,6 +2225,7 @@ class Main extends React.Component {
         {autoplayColumn}
         {volumeColumn}
         {languageColumn}
+        {customSetColumn}
       </div>)
 
     if (self.state.connection === 'closed') {
@@ -2540,6 +2718,21 @@ class Main extends React.Component {
           </tbody>
         </table>
       )
+    } else if (self.state.progress.custom) {
+      progressRows = (
+        <table>
+          <tbody>
+            <tr>
+              <td style={{ verticalAlign: 'top' }}>
+                {trn(userLanguage, 'Custom')}
+              </td>
+              <td>
+                <ProgressWidget games={self.state.progress.custom || []} initialCounter={ 1 }/>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )
     }
 
     let methodSelectBox
@@ -2592,6 +2785,13 @@ class Main extends React.Component {
         </button>
       )
     }
+
+    let transcribeWord
+
+    if (currentRoundNotEmpty && currentRound.question.length > 0) {
+      transcribeWord = <TranscribeWordComponent language={self.state.user.language} wordLetters={currentRound.question[0]}/>
+    }
+
     let shareBlock
 
     if (self.state.isSharedGame && (self.state.user.id === self.state.ownerId)) {
@@ -2658,6 +2858,12 @@ class Main extends React.Component {
         </div>
       }
     }
+
+    let meaning
+    if (currentRound.meaning) {
+      meaning = 'Meaning: ' + currentRound.meaning
+    }
+
     return (
     <>
       <header className="App-header">
@@ -2666,6 +2872,7 @@ class Main extends React.Component {
       </header>
       <div className="container">
         {debugBlock}
+        {customSetWidget}
         <br />
         <div className="row">
           <div className="column">
@@ -2700,10 +2907,15 @@ class Main extends React.Component {
           {gameColumn}
         </div>
         <div className="row">
+          {meaning}
+        </div>
+        <div className="row">
           {transitionBlock}
           {helpButton}&nbsp;
+          {self.state.transcription}
           {replyLetterItems}
           {voiceButton}
+          {transcribeWord}
         </div>
         {challengeBlock}
         {contextBlock}
