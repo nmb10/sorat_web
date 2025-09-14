@@ -8,6 +8,7 @@ import logo from './logo.png'
 import iconSelectImage from './icon-select-image.png'
 
 import React from 'react'
+
 import './App.css'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -393,18 +394,36 @@ function CurrentRoundTimeoutWidget (props) {
       }
       pointsBlock = <span style={{ color: 'green' }}>{points}</span>
     }
-    return (<h3 style={{ color: 'green', marginLeft: '-5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+    return (<h3 style={{ color: 'green', marginLeft: '10px', textShadow: '1px 1px 1px #000', fontSize: '125px', float: 'left', position: 'absolute' }}>
       {pointsBlock}
     </h3>)
   } else if (props.currentRound.timeout < 10) {
     return (
-      <h3 style={{ color: 'red', marginLeft: '5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+      <h3 style={{
+        color: 'red',
+        marginLeft: '5px',
+        textShadow: '10px 10px 2px black, 0 0 1em blue, 0 0 0.2em blue',
+        position: 'absolute',
+        // textShadow: '2px 2px 2px #000',
+        fontSize: '125px',
+        float: 'left'
+      }}>
         {props.currentRound.timeout}
       </h3>
     )
   } else {
     return (
-      <h3 style={{ color: 'green', marginLeft: '-5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
+      <h3 style={{
+        color: 'green',
+        marginLeft: '10px',
+        float: 'left',
+        // textShadow: '3px 3px 3px #000',
+        textShadow: '5px 5px 2px black, 0 0 1em black, 0 0 0.2em black',
+        fontSize: '125px',
+        // float: 'right',
+        opacity: 0.8,
+        position: 'absolute'
+      }}>
         {props.currentRound.timeout}
       </h3>
     )
@@ -634,11 +653,11 @@ function SelectLettersGameWidget (props) {
   const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
   if (props.isSolved) {
     return (
-      <img className="word-image  word-image-letters-selection word-image-solved" src={correctImage.src}/>
+      <img id="select-letters-image" className="word-image  word-image-letters-selection word-image-solved" src={correctImage.src}/>
     )
   } else {
     return (
-      <img className="word-image word-image-letters-selection" src={correctImage.src}/>
+      <img id="select-letters-image" className="word-image word-image-letters-selection" src={correctImage.src}/>
     )
   }
 }
@@ -697,7 +716,7 @@ function SelectImageGameWidget (props) {
       </tr>
       <tr>
         <td colSpan="2">
-          {localTermLetters}{voiceButton}
+          {voiceButton} {localTermLetters}
         </td>
         <td></td>
       </tr>
@@ -1673,6 +1692,7 @@ class Main extends React.Component {
           const word = currentRound.question[0] // FIXME: Use string instead of list of strings
           const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
+          newState.transcription = null
           newState.replyLetters = [replyLetters.join('')]
           if (newState.method === LETTERS_SELECTION_METHOD) {
             self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
@@ -1982,6 +2002,14 @@ class Main extends React.Component {
       })
     })
 
+    document.getElementById('root').addEventListener('recording.start', function (event) {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.transcription = null
+        return newState
+      })
+    })
+
     document.getElementById('root').addEventListener('transcription.done', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -2011,7 +2039,6 @@ class Main extends React.Component {
 
         // If all letters entered send to server side.
         self.processReply(prevState, newState)
-        console.log('!!!!!', self)
         return newState
       })
     })
@@ -2612,8 +2639,8 @@ class Main extends React.Component {
     let timeoutBlock
     if (self.state.method === LETTERS_SELECTION_METHOD) {
       if (self.state.lettersDisplayTimeout) {
-        timeoutBlock = <h3 style={{ color: 'green', marginLeft: '-5px', textShadow: '2px 2px 2px #000', fontSize: '65px', float: 'left' }}>
-          &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>Think...</span>
+        timeoutBlock = <h3 style={{ position: 'absolute', color: 'green', marginLeft: '10px', textShadow: '2px 2px 2px #000', fontSize: '125px', float: 'left' }}>
+          &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>...</span>
         </h3>
       } else if (!self.state.isDemoGame) {
         timeoutBlock = <CurrentRoundTimeoutWidget
@@ -2776,7 +2803,7 @@ class Main extends React.Component {
     }
 
     let voiceButton
-    if (currentRound.voice_path && currentRound.voice_path.src && !self.state.isSharedGame) {
+    if (currentRound.voice_path && currentRound.voice_path.src && self.state.method !== IMAGE_SELECTION_METHOD) {
       voiceButton = (
         <button onClick={() => playSound(currentRound.voice_path.src, self.state.soundVolume)}
                 title={trn(userLanguage, 'Tell again')}
@@ -2788,7 +2815,7 @@ class Main extends React.Component {
 
     let transcribeWord
 
-    if (currentRoundNotEmpty && currentRound.question.length > 0) {
+    if (currentRoundNotEmpty && currentRound.question.length > 0 && self.state.method !== IMAGE_SELECTION_METHOD && !self.state.isDemoGame) {
       transcribeWord = <TranscribeWordComponent language={self.state.user.language} wordLetters={currentRound.question[0]}/>
     }
 
@@ -2904,25 +2931,39 @@ class Main extends React.Component {
           {shareBlock}
         </div>
         <div className="row">
+          {timeoutBlock}
           {gameColumn}
         </div>
         <div className="row">
           {meaning}
         </div>
         <div className="row">
-          {transitionBlock}
-          {helpButton}&nbsp;
-          {self.state.transcription}
-          {replyLetterItems}
-          {voiceButton}
-          {transcribeWord}
+          <table style={{ padding: 0, margin: 0 }}>
+            <tr>
+              <td style={{ padding: '2px', borderBottom: 0, width: '75px' }}>
+                {transitionBlock}
+                {helpButton}&nbsp;
+                {voiceButton}
+              </td>
+              <td style={{ padding: '2px', borderBottom: 0 }}>
+                {replyLetterItems}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '2px', borderBottom: 0 }}>
+                {transcribeWord}
+              </td>
+              <td style={{ padding: '2px', borderBottom: 0 }}>
+                {self.state.transcription}
+              </td>
+            </tr>
+          </table>
         </div>
         {challengeBlock}
         {contextBlock}
         {suggestionBlock}
         <div className="row">
           <div className="column">
-            {timeoutBlock}
             <div id="letters" style={{ float: 'left' }}>
               {splittedLettersItems}
             </div>

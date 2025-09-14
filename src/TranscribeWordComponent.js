@@ -1,12 +1,8 @@
-// import React, { useState, useCallback } from 'react'
-import React, { useState, useRef, useEffect } from 'react'
-// import React, { useState, useRef, useEffect } from 'react'
-// import _ from 'lodash'
-// import trn from './translations'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
-import iconShare from './icon-share.png'
 import spinner from './spinner1.png'
-// import { dispatch, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE } from './events'
+import iconMicrophoneOff from './icon-microphone-off.png'
+import iconMicrophoneOn from './icon-microphone-on.png'
 
 // Initialize recording state
 let mediaRecorder = null
@@ -118,7 +114,6 @@ async function uploadAudio (language, wordLetters) {
       let noMatch
       for (const result of data.results) {
         sortedResult = sorted(result)
-
         if (sortedResult === wordLettersSorted) {
           // Exact match. Looks like transcription was success.
           exactMatch = result
@@ -143,25 +138,31 @@ TranscribeWordComponent.propTypes = {
 function TranscribeWordComponent ({ language, wordLetters }) {
   const [status, setStatus] = useState('transcription-finished')
 
-  const intervalRef = useRef(null)
+  const recordingRef = useRef(false)
+  const wordLettersRef = useRef(null)
+  wordLettersRef.current = wordLetters
 
   const startHold = () => {
-    if (intervalRef.isRecording) {
+    if (recordingRef.current) {
       return
     }
     startRecording()
+    document.getElementById('root').dispatchEvent(
+      new CustomEvent('recording.start', { detail: {} }))
     setStatus('recording-started')
-    intervalRef.isRecording = true
+    recordingRef.current = true
   }
 
-  const endHold = () => {
-    if (intervalRef.isRecording) {
-      intervalRef.isRecording = false
+  const endHold = useCallback(() => {
+    if (recordingRef.current) {
+      recordingRef.current = false
       stopRecording()
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent('recording.stop', { detail: {} }))
       setStatus('recording-stopped')
-      setTimeout(uploadAudio, 100, language, wordLetters)
+      setTimeout(uploadAudio, 100, language, wordLettersRef.current)
     }
-  }
+  }, [wordLetters])
 
   useEffect(() => {
     // Cleanup on component unmount
@@ -219,9 +220,11 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     spinnerElem = <img src={spinner} alt="Spinner" />
   }
 
-  let isRecordingElem
+  let microphoneIcon
   if (status === 'recording-started') {
-    isRecordingElem = <span style={{ color: 'red', fontSize: '30px' }}>!</span>
+    microphoneIcon = iconMicrophoneOn
+  } else {
+    microphoneIcon = iconMicrophoneOff
   }
 
   /*
@@ -233,9 +236,9 @@ function TranscribeWordComponent ({ language, wordLetters }) {
       onMouseDown={startHold}
       onMouseUp={endHold}
       onMouseLeave={endHold}
+      style={{ padding: '0 16px' }}
       title="Hold this button or hold whitespace button when ready to tell">
-      <img src={iconShare} style={{ padding: 0, height: '35px' }} />
-      {isRecordingElem}
+      <img src={microphoneIcon} style={{ padding: 0, height: '35px' }} />
       {spinnerElem}
     </button>
   )
