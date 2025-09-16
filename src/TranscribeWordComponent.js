@@ -38,7 +38,8 @@ async function startRecording () {
     mediaRecorder.start(3000) // 100ms chunks
     return stream
   } catch (error) {
-    console.error('Error starting recording:', error)
+    alert('Error starting recording: ' + error)
+    // console.error('Error starting recording:', error)
     throw error
   }
 }
@@ -98,8 +99,8 @@ async function uploadAudio (language, wordLetters) {
     headers: { 'Content-Type': 'application/json' },
     body: jsonString
   }
-  const url = 'http://127.0.0.1:8000/items/' // python app
-  // const url = "/api/v1/issues"  // erlang app
+  // const url = 'http://127.0.0.1:8000/items/' // python app
+  const url = '/api/v1/transcription' // erlang app
 
   document.getElementById('root').dispatchEvent(
     new CustomEvent('transcription.start', { detail: {} }))
@@ -227,19 +228,18 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     microphoneIcon = iconMicrophoneOff
   }
 
-  /*
-      onTouchStart={startHold}
-      onTouchEnd={endHold}
-  */
   return (
     <button
       onMouseDown={startHold}
       onMouseUp={endHold}
       onMouseLeave={endHold}
+      onTouchStart={startHold}
+      onTouchEnd={endHold}
       style={{ padding: '0 16px' }}
       title="Hold this button or hold whitespace button when ready to tell">
       <img src={microphoneIcon} style={{ padding: 0, height: '35px' }} />
       {spinnerElem}
+      !!!!!!
     </button>
   )
 }
