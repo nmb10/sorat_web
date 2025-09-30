@@ -1,15 +1,83 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+@media (min-width: 321px) {
+  .image-wrapper {
+    height: 200px;
+  }
+  .word-image-image-selection {
+    height: 120px;
+  }
+  .word-image-letters-selection {
+    height: 200px;
+  }
+  .choice-points {
+    font-size: 100px;
+  }
+  .beginner-letters {
+    font-size: 45px;
+  }
+  .question-letter-button {
+    font-size: 30px;
+    width: 45px;
+    height: 45px;
+  }
+  .reply-letter {
+    font-size: 30px;
+    float: left;
+    margin: 0;
+    width: 45px;
+    height: 45px;
+    padding: 0;
+    text-align: center;
+  }
+  .timeout {
+    font-size: 79px;
+  }
+  .solved-mark {
+    font-size: 150px;
+  }
+}
+
+@media (min-width: 768px) {
+  .image-wrapper {
+    height: 350px;
+  }
+  .word-image-image-selection {
+    height: 350px;
+  }
+  .word-image-letters-selection {
+    height: 350px;
+  }
+  .choice-points {
+    font-size: 150px;
+  }
+  .beginner-letters {
+    font-size: 85px;
+  }
+  .question-letter-button {
+    font-size: 40px;
+    width: 60px;
+    height: 60px;
+  }
+  .reply-letter {
+    font-size: 40px;
+    float: left;
+    margin: 0;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    text-align: center;
+  }
+  .timeout {
+    font-size: 99px;
+  }
+  .solved-mark {
+    font-size: 300px;
   }
 }
 
@@ -52,42 +120,108 @@ body {
 }
 
 .reply-letter a {
-    float: right;
-    margin-top: -10px;
-    font-size: 30px;
+  float: right;
+  margin-top: -10px;
+  font-size: 30px;
 }
 
 .user-total-score {
-    font-size:30px;
+  font-size:30px;
 }
 
 #reply-buttons .button-small {
-    font-size:1em;
-    margin:0;
-    padding:0.1em;
-    height:2em;
-    width:2em;
+  font-size:1em;
+  margin:0;
+  padding:0.1em;
+  height:2em;
+  width:2em;
 }
 #reply-buttons table td{
-    margin:0;
-    padding:0;
-    /*display: inline-block;*/
-    word-wrap: break-word;
-    border-bottom: 0;
+  margin:0;
+  padding:0;
+  /*display: inline-block;*/
+  word-wrap: break-word;
+  border-bottom: 0;
 }
 
 #reply-buttons td span {
-    font-size:40px;
-    margin:0;
-    padding:0.1em;
-    height:4em;
-    width:4em;
+  font-size:40px;
+  margin:0;
+  padding:0.1em;
+  height:4em;
+  width:4em;
 }
 
 select {
-    color: white;
+  color: white;
 }
 
 .image-selection-letters {
-    font-size: 55px;
+  font-size: 55px;
+}
+
+.timeout {
+  position: absolute;
+  left: 142px;
+  text-shadow: 3px 3px 2px black, 0 0 1em blue, 0 0 0.2em blue;
+  top: -20px
+}
+
+.timeout-green {
+  color: green;
+}
+
+.timeout-red {
+  color: green;
+}
+
+.solved-mark {
+  position: absolute;
+  left: 100px;
+  top: 14px;
+  text-shadow: 2px 2px 2px #000;
+  color: green
+}
+
+.question-letter-button {
+  float: left;
+  margin-left: 5px;
+  padding: 0;
+}
+
+.word-image {
+  padding: 5px;
+  float: left;
+  object-fit: cover;
+}
+
+.image-wrapper {
+  overflow: auto;
+}
+
+.choice-points {
+  max-width: 300px;
+  position: absolute;
+  float: left;
+  left: 0px;
+  top: 0px;
+  text-shadow: 3px 3px 4px black
+}
+
+.invalid-choice-points {
+  color: red;
+}
+
+.valid-choice-points {
+  color: green;
+}
+
+#transcription {
+  position: relative;
+  animation:shake 0.1s ease-in-out 1 alternate;
+}
+
+@keyframes shake {
+  0% { transform: translate(0px, 0px); }
+  100% { transform: translate(6px, 1px); }
 }
