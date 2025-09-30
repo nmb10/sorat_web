@@ -1678,7 +1678,10 @@ class Main extends React.Component {
           }
         } else {
           const currentRound = newState.rounds[newState.currentRound - 1]
-          const stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
+          let stateUserHints = []
+          if (self.state.rounds[newState.currentRound - 1].solutions !== undefined) {
+            stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
+          }
           const newStateUserHints = currentRound.solutions[newState.user.id].hints || []
           const word = currentRound.question[0] // FIXME: Use string instead of list of strings
 
