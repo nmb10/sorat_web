@@ -245,7 +245,15 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes, lettersDis
     display: 'inline-block', padding: 0, borderBottom: 0
   }
 
+  let lettersDisplayTimeoutBlock
   if (lettersDisplayTimeout > 0) {
+    lettersDisplayTimeoutBlock = (
+      <div style={{ position: 'relative' }}>
+        <h3 className="timeout timeout-green" style={{ left: '10px' }}>
+          {lettersDisplayTimeout}
+        </h3>
+      </div>
+    )
     tdStyle.opacity = 0
   }
 
@@ -265,11 +273,14 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes, lettersDis
   }
 
   return (
+    <>
+    {lettersDisplayTimeoutBlock}
     <table>
       <tbody>
         {tableRows}
       </tbody>
     </table>
+    </>
   )
 };
 
@@ -277,7 +288,7 @@ function pair (wordIndex, letterIndex) {
   return wordIndex + ',' + letterIndex
 }
 
-function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame, sharedGameIsChecked) {
+function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame, sharedGameIsChecked, transcription) {
   const replyLetters = []
   let inReplyWords = false
 
@@ -303,6 +314,11 @@ function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame,
   const styles = {
     whiteSpace: 'nowrap'
   }
+
+  if (transcription !== '') {
+    styles.opacity = 0.1
+  }
+
   return (
     <div style={styles}>
       {replyLetters}
@@ -394,36 +410,16 @@ function CurrentRoundTimeoutWidget (props) {
       }
       pointsBlock = <span style={{ color: 'green' }}>{points}</span>
     }
-    return (<h3 style={{ color: 'green', marginLeft: '10px', textShadow: '1px 1px 1px #000', fontSize: '125px', float: 'left', position: 'absolute' }}>
-      {pointsBlock}
-    </h3>)
+    return <h3 className="timeout timeout-green">{pointsBlock}</h3>
   } else if (props.currentRound.timeout < 10) {
     return (
-      <h3 style={{
-        color: 'red',
-        marginLeft: '5px',
-        textShadow: '10px 10px 2px black, 0 0 1em blue, 0 0 0.2em blue',
-        position: 'absolute',
-        // textShadow: '2px 2px 2px #000',
-        fontSize: '125px',
-        float: 'left'
-      }}>
+      <h3 className="timeout timeout-red">
         {props.currentRound.timeout}
       </h3>
     )
   } else {
     return (
-      <h3 style={{
-        color: 'green',
-        marginLeft: '10px',
-        float: 'left',
-        // textShadow: '3px 3px 3px #000',
-        textShadow: '5px 5px 2px black, 0 0 1em black, 0 0 0.2em black',
-        fontSize: '125px',
-        // float: 'right',
-        opacity: 0.8,
-        position: 'absolute'
-      }}>
+      <h3 className="timeout timeout-green">
         {props.currentRound.timeout}
       </h3>
     )
@@ -839,7 +835,7 @@ class Main extends React.Component {
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
       modeOpened: null, // deprecated. Use uiState instead.
       rounds: [],
-      transcription: null,
+      transcription: '',
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying (or placeholders if no click)
       currentRound: null,
@@ -1335,6 +1331,12 @@ class Main extends React.Component {
         command: 'help',
         payload: {}
       })
+
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.transcription = ''
+        return newState
+      })
     })
 
     document.getElementById('root').addEventListener('letters-display.tick', function (event) {
@@ -1692,7 +1694,7 @@ class Main extends React.Component {
           const word = currentRound.question[0] // FIXME: Use string instead of list of strings
           const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
-          newState.transcription = null
+          newState.transcription = ''
           newState.replyLetters = [replyLetters.join('')]
           if (newState.method === LETTERS_SELECTION_METHOD) {
             self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
@@ -2005,7 +2007,7 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('recording.start', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.transcription = null
+        newState.transcription = ''
         return newState
       })
     })
@@ -2033,6 +2035,7 @@ class Main extends React.Component {
         const replyWordLetters = newState.replyLetters[wordIndex]
         const indexToReplace = replyWordLetters.indexOf('?')
         const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
+        newState.transcription = ''
         newState.replyLetters[wordIndex] = updatedReplyWordLetters
         newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
         newState.recentActionTime = Date.now()
@@ -2232,7 +2235,7 @@ class Main extends React.Component {
       )
 
       customSetColumn = (
-        <div className="column">
+        <div className="column" style={{ opacity: 0 }}>
           <a href="#" onClick={self.handleCustomSetDisplay}>My set</a>
         </div>
       )
@@ -2389,6 +2392,24 @@ class Main extends React.Component {
     }
     const currentRoundNotEmpty = Object.keys(currentRound).length > 0
 
+    let solvedMark
+    if (isSolved) {
+      solvedMark = <div className="solved-mark">✓</div>
+    }
+
+    let transcriptionBlock
+    let transcription = self.state.transcription
+    if (transcription.length > 20) {
+      transcription = transcription.substring(0, 20) + '...'
+    }
+    if (transcription !== '') {
+      transcriptionBlock = <div id="transcription">
+        <div style={{ position: 'absolute', fontSize: '40px', color: 'red', textDecoration: 'line-through', textShadow: '1px 1px 1px #000' }}>
+          {transcription}
+        </div>
+      </div>
+    }
+
     let replyLetterItems = []
     if (currentRoundNotEmpty && self.state.method === LETTERS_SELECTION_METHOD) {
       // New responsive implementation
@@ -2398,7 +2419,7 @@ class Main extends React.Component {
       replyLetterItems = replyLettersToRow(
         self.state.replyLetters[0], isSolved, attempts,
         self.state.isDemoGame, self.state.isSharedGame,
-        self.state.sharedGameIsChecked)
+        self.state.sharedGameIsChecked, transcription)
 
       const splittedLetters = [[]]
       const words = currentRound.question[0]
@@ -2638,11 +2659,7 @@ class Main extends React.Component {
 
     let timeoutBlock
     if (self.state.method === LETTERS_SELECTION_METHOD) {
-      if (self.state.lettersDisplayTimeout) {
-        timeoutBlock = <h3 style={{ position: 'absolute', color: 'green', marginLeft: '10px', textShadow: '2px 2px 2px #000', fontSize: '125px', float: 'left' }}>
-          &nbsp;{self.state.lettersDisplayTimeout} <span style={{ fontSize: '40px' }}>...</span>
-        </h3>
-      } else if (!self.state.isDemoGame) {
+      if (!self.state.isDemoGame) {
         timeoutBlock = <CurrentRoundTimeoutWidget
           isSolved={isSolved} currentRound={currentRound}
           isLettersSelection={self.state.method === LETTERS_SELECTION_METHOD} user={self.state.user}/>
@@ -2668,15 +2685,17 @@ class Main extends React.Component {
     }
 
     if (self.state.isSharedGame || self.state.isDemoGame) {
-      suggestionBlock = (
-        <div className="row">
-          <div className="column">
-            <button style={{ float: 'left', margin: '5px' }} onClick={ startExploreGame }>
-            If you want to solve more words click here.
-            </button>
+      if (self.state.uiState !== UI_STATES.trainRequested && self.state.uiState !== UI_STATES.exploreRequested) {
+        suggestionBlock = (
+          <div className="row">
+            <div className="column">
+              <button style={{ float: 'left', margin: '5px' }} onClick={ startExploreGame }>
+              If you want to solve more words click here.
+              </button>
+            </div>
           </div>
-        </div>
-      )
+        )
+      }
     }
 
     let gameWidgetElems
@@ -2931,7 +2950,11 @@ class Main extends React.Component {
           {shareBlock}
         </div>
         <div className="row">
+          <div style={{ position: 'relative' }}>
           {timeoutBlock}
+          </div>
+          {transcribeWord}
+          {solvedMark}
           {gameColumn}
         </div>
         <div className="row">
@@ -2947,14 +2970,13 @@ class Main extends React.Component {
               </td>
               <td style={{ padding: '2px', borderBottom: 0 }}>
                 {replyLetterItems}
+                <div>
+                {transcriptionBlock}
+                </div>
               </td>
             </tr>
             <tr>
               <td style={{ padding: '2px', borderBottom: 0 }}>
-                {transcribeWord}
-              </td>
-              <td style={{ padding: '2px', borderBottom: 0 }}>
-                {self.state.transcription}
               </td>
             </tr>
           </table>

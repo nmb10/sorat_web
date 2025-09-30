@@ -14,36 +14,6 @@ const sorted = function (str1) {
   return str1List.join('')
 }
 
-// Start recording
-async function startRecording () {
-  try {
-    // Request microphone access
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      echoCancellation: true
-    })
-
-    // Create MediaRecorder instance
-    mediaRecorder = new MediaRecorder(stream)
-    recordedBlobs = []
-
-    // Collect audio chunks during recording
-    mediaRecorder.ondataavailable = event => {
-      if (event.data && event.data.size > 0) {
-        recordedBlobs.push(event.data)
-      }
-    }
-
-    // Start recording
-    mediaRecorder.start(3000) // 100ms chunks
-    return stream
-  } catch (error) {
-    alert('Error starting recording: ' + error)
-    // console.error('Error starting recording:', error)
-    throw error
-  }
-}
-
 async function stopRecording () {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop()
@@ -147,11 +117,36 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     if (recordingRef.current) {
       return
     }
-    startRecording()
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('recording.start', { detail: {} }))
-    setStatus('recording-started')
-    recordingRef.current = true
+    navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true })
+      .then(stream => {
+        // Media stream obtained successfully
+
+        // Create MediaRecorder instance
+        mediaRecorder = new MediaRecorder(stream)
+        recordedBlobs = []
+
+        // Collect audio chunks during recording
+        mediaRecorder.ondataavailable = event => {
+          if (event.data && event.data.size > 0) {
+            recordedBlobs.push(event.data)
+          }
+        }
+
+        // Start recording
+        mediaRecorder.start(3000) // 100ms chunks
+        document.getElementById('root').dispatchEvent(
+          new CustomEvent('recording.start', { detail: {} }))
+        setStatus('recording-started')
+        recordingRef.current = true
+      })
+      .catch(error => {
+        if (error.name === 'NotAllowedError') {
+          // Inform the user that access was denied and how to grant it
+          console.log('User did not allow to use media.')
+        } else {
+          alert('Looks like your browser does not allow to use media.')
+        }
+      })
   }
 
   const endHold = useCallback(() => {
@@ -188,7 +183,9 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     function handleKeydown (event) {
       if (event.code === 'Space') {
         event.preventDefault()
-        startHold()
+        if (status !== 'transcription-started') {
+          startHold()
+        }
       }
     }
     document.addEventListener('keydown', handleKeydown)
@@ -196,7 +193,9 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     function handleKeyup (event) {
       if (event.code === 'Space') {
         event.preventDefault()
-        endHold()
+        if (status !== 'transcription-started') {
+          endHold()
+        }
       }
     }
     document.addEventListener('keyup', handleKeyup)
@@ -228,6 +227,12 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     microphoneIcon = iconMicrophoneOff
   }
 
+  const handleContextMenu = (event) => {
+    event.preventDefault()
+  }
+
+  const buttonDisabled = status === 'transcription-started'
+
   return (
     <button
       onMouseDown={startHold}
@@ -235,11 +240,12 @@ function TranscribeWordComponent ({ language, wordLetters }) {
       onMouseLeave={endHold}
       onTouchStart={startHold}
       onTouchEnd={endHold}
-      style={{ padding: '0 16px' }}
+      onContextMenu={handleContextMenu}
+      disabled={buttonDisabled}
+      style={{ padding: '0 16px', position: 'absolute', right: '10px', height: '200px' }}
       title="Hold this button or hold whitespace button when ready to tell">
       <img src={microphoneIcon} style={{ padding: 0, height: '35px' }} />
       {spinnerElem}
-      !!!!!!
     </button>
   )
 }
