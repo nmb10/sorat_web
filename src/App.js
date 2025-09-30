@@ -32,6 +32,7 @@ const IMAGE_SELECTION_METHOD = 'image-selection'
 const UI_STATES = {
   init: 'init',
   demo: 'demo',
+  shared: 'shared',
   inTrain: 'inTrain', // In train mode dialog.
   trainRequested: 'trainRequested',
   inExplore: 'inExplore', // In explore mode dialog.
@@ -904,7 +905,7 @@ class Main extends React.Component {
       }
     }
     if (!containsQuestionMark) {
-      if (prevState.uiState === UI_STATES.demo) {
+      if (prevState.uiState === UI_STATES.demo || prevState.uiState === UI_STATES.shared) {
         // FIXME: take share language from state
         if (prevState.isSharedGame) {
           // Ask server side.
@@ -1237,6 +1238,8 @@ class Main extends React.Component {
             }
           } else if (json.is_demo_game) {
             newState.uiState = UI_STATES.demo
+          } else if (json.is_shared_game) {
+            newState.uiState = UI_STATES.shared
           }
           newState.currentRound = json.current_round
           const currentRoundObj = newState.rounds[newState.currentRound - 1]
