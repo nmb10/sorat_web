@@ -7,6 +7,8 @@ import iconShare from './icon-share.png'
 import logo from './logo.png'
 import iconSelectImage from './icon-select-image.png'
 
+import { getCookies, copyToClipboard } from './utils'
+
 import React from 'react'
 
 import './App.css'
@@ -17,6 +19,7 @@ import trn from './translations'
 import { handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE } from './events'
 import CustomSetComponent from './CustomSetComponent'
 import TranscribeWordComponent from './TranscribeWordComponent'
+import SettingsComponent from './SettingsComponent'
 
 const imageLoadTimeout = 0
 
@@ -115,10 +118,6 @@ const finishStatusStyle = {
   borderRadius: '10px'
 }
 
-function setCookie (name, value) {
-  document.cookie = name + '=' + value
-}
-
 function toIndex (userLanguage) {
   let indexUrl
   if (userLanguage === 'en') {
@@ -127,16 +126,6 @@ function toIndex (userLanguage) {
     indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
   }
   window.open(indexUrl, '_self')
-}
-
-function getCookies () {
-  const ret = {}
-  let key, value
-  for (const cookie of document.cookie.split('; ')) {
-    [key, value] = cookie.split('=')
-    ret[key] = value
-  }
-  return ret
 }
 
 function debugMode () {
@@ -158,16 +147,6 @@ function playSound (src, volume) {
 
   document.getElementById('root').dispatchEvent(
     new CustomEvent('voice.played', { detail: { src: src, soundVolume: volume } }))
-}
-
-function copyToClipboard (text) {
-  navigator.clipboard.writeText(text).then(
-    function () {
-      console.log('Async: Copying to clipboard was successful!')
-    },
-    function (err) {
-      console.error('Async: Could not copy text: ', err)
-    })
 }
 
 function getPlayersScores (players, finishedRounds) {
@@ -829,6 +808,7 @@ class Main extends React.Component {
       setName: 'main', // selected set of games name (main, custom, etc)
       challenge: null,
       connection: '',
+      autoplayEnabled: !document.cookie.includes('autoplay=0'),
       languages: [], // all languages.
       topics: [], // all topics of the selected language.
       method: null, // current game method, server choice. May not match to user.method
@@ -852,7 +832,6 @@ class Main extends React.Component {
       finishStatusDisplayTimeout: 0,
       replyWaitingTimeout: 0,
       recentActionTime: Date.now(),
-      autoplayEnabled: !document.cookie.includes('autoplay=0'),
       soundVolume: parseInt(getCookies().volume || 40),
       voicePlayed: false,
       isDemoGame: false,
@@ -896,8 +875,6 @@ class Main extends React.Component {
     this.runFinishStatusTicker = this.runFinishStatusTicker.bind(this)
     this.runLettersDisplayTimeoutTicker = this.runLettersDisplayTimeoutTicker.bind(this)
     this.runCurrentRoundTimeoutTicker = this.runCurrentRoundTimeoutTicker.bind(this)
-    this.onAutoplayToggleClick = this.onAutoplayToggleClick.bind(this)
-    this.onVolumeChange = this.onVolumeChange.bind(this)
     this.processReply = this.processReply.bind(this)
     this.handleCustomSetDisplay = this.handleCustomSetDisplay.bind(this)
     this.sendMessage = this.sendMessage.bind(this)
@@ -1847,7 +1824,6 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = true
-        setCookie('autoplay', '1')
         return newState
       })
     })
@@ -1856,7 +1832,14 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = false
-        setCookie('autoplay', '0')
+        return newState
+      })
+    })
+
+    document.getElementById('root').addEventListener('volume-changed', function (event) {
+      self.setState(prevState => {
+        const newState = _.cloneDeep(prevState)
+        newState.soundVolume = event.detail.volume
         return newState
       })
     })
@@ -1976,15 +1959,6 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('volume-changed', function (event) {
-      self.setState(prevState => {
-        const newState = _.cloneDeep(prevState)
-        newState.soundVolume = event.detail.volume
-        setCookie('volume', newState.soundVolume)
-        return newState
-      })
-    })
-
     document.getElementById('root').addEventListener('reply-letter.remove', function (event) {
       // FIXME: Send to server
       // update-state
@@ -2075,20 +2049,6 @@ class Main extends React.Component {
     }
   }
 
-  handleLanguageChange (event) {
-    // Leave should go first to use language before changed.
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('game.leave', { detail: {} }))
-
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('language-changed', { detail: { language: event.target.value } }))
-  }
-
-  handleNameChange (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('name-changed', { detail: { name: event.target.value } }))
-  }
-
   onTrainClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('train-clicked', { detail: {} }))
@@ -2102,21 +2062,6 @@ class Main extends React.Component {
   onContestClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent('contest-clicked', { detail: {} }))
-  }
-
-  onAutoplayToggleClick (event) {
-    if (event.target.checked) {
-      document.getElementById('root').dispatchEvent(
-        new CustomEvent('autoplay-enabled', { detail: {} }))
-    } else {
-      document.getElementById('root').dispatchEvent(
-        new CustomEvent('autoplay-disabled', { detail: {} }))
-    }
-  }
-
-  onVolumeChange (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent('volume-changed', { detail: { volume: event.target.valueAsNumber } }))
   }
 
   onExploreClick (event) {
@@ -2187,53 +2132,10 @@ class Main extends React.Component {
       ', Images: ' + self.state.versions.images +
       ', Voices: ' + self.state.versions.voices
 
-    const languageOptionItems = self.state.languages
-      .map((language) => <option key={language.code} value={language.code}>{language.local_name}</option>)
-
     // Parts not visible on shared game.
-    let volumeColumn, autoplayColumn, usernameInput,
-      languageColumn, warningRow, customSetColumn
+    let warningRow, customSetColumn
 
     if (!self.state.isSharedGame) {
-      autoplayColumn = (
-        <div className="column">
-          <label htmlFor="autoplay-toggle-checkbox" style={{ float: 'right' }} title={trn(userLanguage, 'Autoplay site sounds')}>
-            {trn(userLanguage, 'Autoplay')}
-            <input id="autoplay-toggle-checkbox" type="checkbox" checked={self.state.autoplayEnabled} onClick={this.onAutoplayToggleClick}/>
-          </label>
-        </div>
-      )
-
-      volumeColumn = (
-        <div className="column">
-          <input type="range"
-                 style={{ float: 'left' }}
-                 id="volume"
-                 name="volume" min="0" max="100"
-                 defaultValue={self.state.soundVolume}
-                 onChange={this.onVolumeChange}/>
-        </div>
-      )
-
-      usernameInput = (
-        <div>
-          <input type="text" placeholder="Username"
-                 value={self.state.user.name}
-                 onChange={self.handleNameChange}
-                 style={{ color: 'white' }}>
-          </input>
-        </div>
-      )
-
-      languageColumn = (
-        <div className="column">
-          <select id="language" style={{ backgroundColor: '#282c34' }} value={self.state.user.language} onChange={self.handleLanguageChange}>
-            <option value="">---</option>
-            {languageOptionItems}
-          </select>
-        </div>
-      )
-
       customSetColumn = (
         <div className="column" style={{ opacity: 0 }}>
           <a href="#" onClick={self.handleCustomSetDisplay}>My set</a>
@@ -2252,9 +2154,6 @@ class Main extends React.Component {
         <div className="column">
           <img style={{ float: 'left', padding: '5px' }} src={ logo } alt="Logo" title={versions}/>
         </div>
-        {autoplayColumn}
-        {volumeColumn}
-        {languageColumn}
         {customSetColumn}
       </div>)
 
@@ -2913,6 +2812,11 @@ class Main extends React.Component {
     return (
     <>
       <header className="App-header">
+        <SettingsComponent
+          userLanguage={userLanguage}
+          isSharedGame={self.state.isSharedGame}
+          languages={self.state.languages}
+          user={self.state.user} />
         {warningRow}
         {header}
       </header>
@@ -2934,7 +2838,6 @@ class Main extends React.Component {
         <div className="row">
           <div className="column">
             {statusLine}
-            {usernameInput}
             {methodSelectBox}
             {levelSelectBox}
             {topicSelectBox}
