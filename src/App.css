@@ -37,6 +37,7 @@
   }
   .timeout {
     font-size: 79px;
+    z-index: 98;
   }
   .solved-mark {
     font-size: 150px;

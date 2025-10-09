@@ -1,18 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
+
 import spinner from './spinner1.png'
 import iconMicrophoneOff from './icon-microphone-off.png'
 import iconMicrophoneOn from './icon-microphone-on.png'
+import { warningMessage, sorted } from './utils'
 
 // Initialize recording state
 let mediaRecorder = null
 let recordedBlobs = []
-
-const sorted = function (str1) {
-  const str1List = str1.replaceAll(' ', '').toLowerCase().split('')
-  str1List.sort()
-  return str1List.join('')
-}
 
 async function stopRecording () {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -89,7 +85,7 @@ async function uploadAudio (language, wordLetters) {
           // Exact match. Looks like transcription was success.
           exactMatch = result
         } else {
-          noMatch = result
+          noMatch = result || 'not clear'
         }
       }
       const detail = {
@@ -101,15 +97,23 @@ async function uploadAudio (language, wordLetters) {
     })
 }
 
-TranscribeWordComponent.propTypes = {
-  language: PropTypes.str,
-  wordLetters: PropTypes.str
+SelectLettersGameComponent.propTypes = {
+  round: PropTypes.node.isRequired,
+  isSolved: PropTypes.bool,
+  language: PropTypes.str
 }
 
-function TranscribeWordComponent ({ language, wordLetters }) {
+function SelectLettersGameComponent ({ round, isSolved, language }) {
+  const correctChoice = round.correct_choice
+  const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
+  const wordLetters = round.question[0]
+
   const [status, setStatus] = useState('transcription-finished')
+  const isTouchHolding = useRef(false)
+  const hasMoveEvent = useRef(false)
 
   const recordingRef = useRef(false)
+  const transcriptionRef = useRef(false)
   const wordLettersRef = useRef(null)
   wordLettersRef.current = wordLetters
 
@@ -117,6 +121,11 @@ function TranscribeWordComponent ({ language, wordLetters }) {
     if (recordingRef.current) {
       return
     }
+
+    if (transcriptionRef.current) {
+      return
+    }
+
     navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true })
       .then(stream => {
         // Media stream obtained successfully
@@ -142,9 +151,9 @@ function TranscribeWordComponent ({ language, wordLetters }) {
       .catch(error => {
         if (error.name === 'NotAllowedError') {
           // Inform the user that access was denied and how to grant it
-          console.log('User did not allow to use media.')
+          warningMessage('Getting media is not allowed (disabled by browser or by user).', true)
         } else {
-          alert('Looks like your browser does not allow to use media.')
+          warningMessage('Looks like your browser does not allow to use media.', true)
         }
       })
   }
@@ -156,9 +165,32 @@ function TranscribeWordComponent ({ language, wordLetters }) {
       document.getElementById('root').dispatchEvent(
         new CustomEvent('recording.stop', { detail: {} }))
       setStatus('recording-stopped')
+      transcriptionRef.current = true
       setTimeout(uploadAudio, 100, language, wordLettersRef.current)
     }
   }, [wordLetters])
+
+  const handleTouchMove = useCallback(() => {
+    hasMoveEvent.current = true
+  })
+
+  const handleTouchStart = useCallback((event) => {
+    event.preventDefault()
+    isTouchHolding.current = true
+    const checkHolding = () => {
+      if (isTouchHolding.current && !hasMoveEvent.current) {
+        startHold()
+      }
+    }
+    setTimeout(checkHolding, 200)
+  })
+
+  const handleTouchEnd = useCallback((event) => {
+    event.preventDefault()
+    isTouchHolding.current = false
+    hasMoveEvent.current = false
+    endHold()
+  })
 
   useEffect(() => {
     // Cleanup on component unmount
@@ -168,6 +200,7 @@ function TranscribeWordComponent ({ language, wordLetters }) {
   useEffect(() => {
     function handleTranscriptionStart () {
       setStatus('transcription-started')
+      transcriptionRef.current = true
     }
     document
       .getElementById('root')
@@ -175,6 +208,7 @@ function TranscribeWordComponent ({ language, wordLetters }) {
 
     function handleTranscriptionFinish () {
       setStatus('transcription-finished')
+      transcriptionRef.current = false
     }
     document
       .getElementById('root')
@@ -216,38 +250,73 @@ function TranscribeWordComponent ({ language, wordLetters }) {
   }, [])
 
   let spinnerElem
-  if (status === 'transcription-started') {
-    spinnerElem = <img src={spinner} alt="Spinner" />
+  const spinnerStyle = {
+    position: 'absolute',
+    height: '90px',
+    zIndex: 99,
+    left: '180px',
+    pointerEvents: 'none',
+    top: '20px'
   }
 
   let microphoneIcon
-  if (status === 'recording-started') {
+
+  if (status === 'transcription-started') {
+    spinnerElem = <img src={spinner} alt="Spinner" style={ spinnerStyle } />
+  } else if (status === 'recording-started') {
     microphoneIcon = iconMicrophoneOn
   } else {
     microphoneIcon = iconMicrophoneOff
   }
-
   const handleContextMenu = (event) => {
     event.preventDefault()
   }
 
   const buttonDisabled = status === 'transcription-started'
+  console.log(correctImage.src, '!!!!')
 
-  return (
-    <button
-      onMouseDown={startHold}
-      onMouseUp={endHold}
-      onMouseLeave={endHold}
-      onTouchStart={startHold}
-      onTouchEnd={endHold}
-      onContextMenu={handleContextMenu}
-      disabled={buttonDisabled}
-      style={{ padding: '0 16px', position: 'absolute', right: '10px', height: '200px' }}
-      title="Hold this button or hold whitespace button when ready to tell">
-      <img src={microphoneIcon} style={{ padding: 0, height: '35px' }} />
-      {spinnerElem}
-    </button>
-  )
+  if (isSolved) {
+    return (
+      <img id="select-letters-image"
+           className="word-image  word-image-letters-selection word-image-solved"
+           src={correctImage.src}/>
+    )
+  } else {
+    // Didn't find a way to disable image save popup on touch and hold on
+    // iphone. So using this trick to overcome that - display an image
+    // as background. Also it requires `nbsp` to work well.
+    return (
+      <div style={{ position: 'relative' }}>
+        <img src={microphoneIcon}
+             style={{ pointerEvents: 'none', zIndex: 99, padding: 0, height: '90px', position: 'absolute', left: '180px', top: '20px' }} />
+        {spinnerElem}
+        <div id="select-letters-image"
+             title="Hold image or hold whitespace button when ready to tell"
+             onMouseDown={startHold}
+             onMouseUp={endHold}
+             onMouseLeave={endHold}
+             onTouchStart={handleTouchStart}
+             onTouchEnd={handleTouchEnd}
+             onTouchMove={handleTouchMove}
+             onContextMenu={handleContextMenu}
+             disabled={buttonDisabled}
+             style={{
+               backgroundSize: 'contain',
+               backgroundImage: 'url("' + correctImage.src + '")',
+               padding: '0 16px',
+               width: '100%',
+               backgroundRepeat: 'no-repeat',
+               position: 'absolute',
+               webkitUserSelect: 'none',
+               msUserSelect: 'none',
+               userSelect: 'none'
+             }}
+             className="word-image word-image-letters-selection">
+          &nbsp;&nbsp;
+        </div>
+      </div>
+    )
+  }
 }
 
-export default TranscribeWordComponent
+export default SelectLettersGameComponent

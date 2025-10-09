@@ -96,7 +96,7 @@ function SettingsComponent ({ userLanguage, isSharedGame, user, languages }) {
     )
 
     settingsDialog = (
-      <ul style={{ backgroundColor: '#282c34', listStyleType: 'none', width: '400px', border: '4px solid white', padding: '5px', paddingTop: '40px' }}>
+      <ul style={{ backgroundColor: '#282c34', listStyleType: 'none', width: '350px', border: '4px solid white', padding: '5px', paddingTop: '40px' }}>
         <li>{autoplayColumn}</li>
         <li><label>Sound volume:</label>{volumeColumn}</li>
         <li><label>Username:</label> {usernameInput}</li>
@@ -107,17 +107,21 @@ function SettingsComponent ({ userLanguage, isSharedGame, user, languages }) {
     title = 'Close settings'
   }
 
-  return (
-    <div style={{ position: 'fixed', right: '20px', top: '20px', zIndex: 9999 }}>
-      <button
-        onClick={handleSettingsDisplayButtonClick}
-        style={{ padding: '0 16px', float: 'right', height: '40px' }}
-        title={ title }>
-        Settings
-      </button>
-      {settingsDialog}
-    </div>
-  )
+  let settingsBlock
+  if (!isSharedGame) {
+    settingsBlock = (
+      <div style={{ position: 'fixed', right: '20px', top: '20px', zIndex: 9999 }}>
+        <button
+          onClick={handleSettingsDisplayButtonClick}
+          style={{ padding: '0 16px', float: 'right', height: '40px' }}
+          title={ title }>
+          Settings
+        </button>
+        {settingsDialog}
+      </div>
+    )
+  }
+  return settingsBlock
 }
 
 export default SettingsComponent

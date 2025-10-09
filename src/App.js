@@ -7,7 +7,7 @@ import iconShare from './icon-share.png'
 import logo from './logo.png'
 import iconSelectImage from './icon-select-image.png'
 
-import { getCookies, copyToClipboard } from './utils'
+import { getCookies, copyToClipboard, formatFloat } from './utils'
 
 import React from 'react'
 
@@ -18,8 +18,8 @@ import trn from './translations'
 // import * as events from './events'
 import { handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE } from './events'
 import CustomSetComponent from './CustomSetComponent'
-import TranscribeWordComponent from './TranscribeWordComponent'
 import SettingsComponent from './SettingsComponent'
+import SelectLettersGameComponent from './SelectLettersGameComponent'
 
 const imageLoadTimeout = 0
 
@@ -181,18 +181,18 @@ function getPlayersScores (players, finishedRounds) {
 }
 
 function preloadImage (imageMap) {
-  const resolve = function (img1) {
+  const resolve = (img1) => {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
         'image.load',
         { detail: { img: img1, imageMap: imageMap } }))
   }
-  const reject = function (img1) {
+  const reject = (img1) => {
     console.log('Image rejected: ', img1)
   }
 
   const img = new Image()
-  img.onload = function () {
+  img.onload = () => {
     if (imageLoadTimeout === 0) {
       resolve(img)
     } else {
@@ -305,10 +305,6 @@ function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame,
     </div>
   )
 };
-
-function formatFloat (number) {
-  return parseFloat(number.toFixed(2))
-}
 
 function userScoreToRow (isCurrent, score) {
   let scorePercent = ''
@@ -563,13 +559,15 @@ function TopicElems (props) {
         // Show start game links for unsolved games.
         rows.push(
           <div style={{ border: '4px solid gray', float: 'left', margin: '3px' }}>
-            <a href="#" title='Try that set' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>&nbsp;{props.setsCounter + i}&nbsp;</a>
+            <a href="#" title='Try that set' onClick={(event) => sendExploreStartEvent(event, props.setsCounter + i)}>
+              &nbsp;{props.setsCounter + i}&nbsp;
+            </a>
          </div>)
       } else {
         rows.push(
           <div style={{ border: '4px solid gray', float: 'left', margin: '3px' }}>
             &nbsp;{props.setsCounter + i}&nbsp;
-         </div>)
+          </div>)
       }
     }
   }
@@ -616,26 +614,6 @@ function WordImageColumn (props) {
            style={imageStyle} />
     </div>
   )
-}
-
-SelectLettersGameWidget.propTypes = {
-  currentRound: PropTypes.node.isRequired,
-  isSolved: PropTypes.bool
-}
-
-function SelectLettersGameWidget (props) {
-  const round = props.currentRound
-  const correctChoice = round.correct_choice
-  const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
-  if (props.isSolved) {
-    return (
-      <img id="select-letters-image" className="word-image  word-image-letters-selection word-image-solved" src={correctImage.src}/>
-    )
-  } else {
-    return (
-      <img id="select-letters-image" className="word-image word-image-letters-selection" src={correctImage.src}/>
-    )
-  }
 }
 
 SelectImageGameWidget.propTypes = {
@@ -816,7 +794,8 @@ class Main extends React.Component {
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
       modeOpened: null, // deprecated. Use uiState instead.
       rounds: [],
-      transcription: '',
+      transcriptionExactMatch: '',
+      transcriptionNoMatch: '',
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying (or placeholders if no click)
       currentRound: null,
@@ -1314,7 +1293,8 @@ class Main extends React.Component {
 
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.transcription = ''
+        newState.transcriptionExactMatch = ''
+        newState.transcriptionNoMatch = ''
         return newState
       })
     })
@@ -1674,7 +1654,8 @@ class Main extends React.Component {
           const word = currentRound.question[0] // FIXME: Use string instead of list of strings
           const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
-          newState.transcription = ''
+          newState.transcriptionExactMatch = ''
+          newState.transcriptionNoMatch = ''
           newState.replyLetters = [replyLetters.join('')]
           if (newState.method === LETTERS_SELECTION_METHOD) {
             self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
@@ -1682,7 +1663,7 @@ class Main extends React.Component {
         } else {
           const currentRound = newState.rounds[newState.currentRound - 1]
           let stateUserHints = []
-          if (self.state.rounds[newState.currentRound - 1].solutions !== undefined) {
+          if (self.state.rounds[newState.currentRound - 1] !== undefined) {
             stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
           }
           const newStateUserHints = currentRound.solutions[newState.user.id].hints || []
@@ -1987,7 +1968,8 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener('recording.start', function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.transcription = ''
+        newState.transcriptionExactMatch = ''
+        newState.transcriptionNoMatch = ''
         return newState
       })
     })
@@ -1997,9 +1979,11 @@ class Main extends React.Component {
         const newState = _.cloneDeep(prevState)
         if (event.detail.exactMatch) {
           newState.replyLetters[0] = event.detail.exactMatch
-          newState.transcription = event.detail.exactMatch
+          newState.transcriptionExactMatch = event.detail.exactMatch
+          newState.transcriptionNoMatch = ''
         } else {
-          newState.transcription = event.detail.noMatch
+          newState.transcriptionExactMatch = ''
+          newState.transcriptionNoMatch = event.detail.noMatch
         }
         self.processReply(prevState, newState)
         return newState
@@ -2015,7 +1999,8 @@ class Main extends React.Component {
         const replyWordLetters = newState.replyLetters[wordIndex]
         const indexToReplace = replyWordLetters.indexOf('?')
         const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
-        newState.transcription = ''
+        newState.transcriptionExactMatch = ''
+        newState.transcriptionNoMatch = ''
         newState.replyLetters[wordIndex] = updatedReplyWordLetters
         newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
         newState.recentActionTime = Date.now()
@@ -2303,14 +2288,14 @@ class Main extends React.Component {
     }
 
     let transcriptionBlock
-    let transcription = self.state.transcription
-    if (transcription.length > 20) {
-      transcription = transcription.substring(0, 20) + '...'
+    let transcriptionNoMatch = self.state.transcriptionNoMatch
+    if (transcriptionNoMatch.length > 20) {
+      transcriptionNoMatch = transcriptionNoMatch.substring(0, 20) + '...'
     }
-    if (transcription !== '') {
+    if (transcriptionNoMatch !== '') {
       transcriptionBlock = <div id="transcription">
-        <div style={{ position: 'absolute', fontSize: '40px', color: 'red', textDecoration: 'line-through', textShadow: '1px 1px 1px #000' }}>
-          {transcription}
+        <div title={self.state.transcriptionNoMatch} style={{ position: 'absolute', fontSize: '40px', color: 'red', textDecoration: 'line-through', textShadow: '1px 1px 1px #000' }}>
+          {transcriptionNoMatch}
         </div>
       </div>
     }
@@ -2324,7 +2309,7 @@ class Main extends React.Component {
       replyLetterItems = replyLettersToRow(
         self.state.replyLetters[0], isSolved, attempts,
         self.state.isDemoGame, self.state.isSharedGame,
-        self.state.sharedGameIsChecked, transcription)
+        self.state.sharedGameIsChecked, transcriptionNoMatch)
 
       const splittedLetters = [[]]
       const words = currentRound.question[0]
@@ -2538,7 +2523,7 @@ class Main extends React.Component {
     let roundDetails
     if (self.state.mode != null && currentRoundNotEmpty && !self.state.isDemoGame) {
       roundDetails = (
-        <div id='round-details' style={{ color: 'green', marginLeft: '10px', textShadow: '2px 2px 2px #000', position: 'absolute', fontSize: '32px', float: 'left' }}>
+        <div id='round-details' style={{ zIndex: 98, color: 'green', marginLeft: '10px', textShadow: '2px 2px 2px #000', position: 'absolute', fontSize: '32px', float: 'left' }}>
           #{self.state.currentRound} of {self.state.rounds.length}
         </div>)
 
@@ -2629,7 +2614,10 @@ class Main extends React.Component {
         splittedLettersItems = null
         gameColumn = <div className="column">{gameWidgetElems}</div>
       } else if (self.state.method === LETTERS_SELECTION_METHOD) {
-        gameWidgetElems = <SelectLettersGameWidget currentRound={currentRound} isSolved={isSolved}/>
+        gameWidgetElems = <SelectLettersGameComponent
+          language={userLanguage}
+          round={currentRound}
+          isSolved={isSolved}/>
         gameColumn = <div className="column image-wrapper">{roundDetails}{gameWidgetElems}</div>
       } else {
         ;
@@ -2737,12 +2725,6 @@ class Main extends React.Component {
       )
     }
 
-    let transcribeWord
-
-    if (currentRoundNotEmpty && currentRound.question.length > 0 && self.state.method !== IMAGE_SELECTION_METHOD && !self.state.isDemoGame) {
-      transcribeWord = <TranscribeWordComponent language={self.state.user.language} wordLetters={currentRound.question[0]}/>
-    }
-
     let shareBlock
 
     if (self.state.isSharedGame && (self.state.user.id === self.state.ownerId)) {
@@ -2827,6 +2809,7 @@ class Main extends React.Component {
         {header}
       </header>
       <div className="container">
+        <div id="warning"></div>
         {debugBlock}
         {customSetWidget}
         <br />
@@ -2862,7 +2845,6 @@ class Main extends React.Component {
           <div style={{ position: 'relative' }}>
           {timeoutBlock}
           </div>
-          {transcribeWord}
           {solvedMark}
           {gameColumn}
         </div>
