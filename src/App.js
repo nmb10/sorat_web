@@ -20,6 +20,7 @@ import { handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, C
 import CustomSetComponent from './CustomSetComponent'
 import SettingsComponent from './SettingsComponent'
 import SelectLettersGameComponent from './SelectLettersGameComponent'
+import AuthComponent from './AuthComponent'
 
 const imageLoadTimeout = 0
 
@@ -2124,18 +2125,12 @@ class Main extends React.Component {
       ', Voices: ' + self.state.versions.voices
 
     // Parts not visible on shared game.
-    let warningRow, customSetColumn
+    let customSetColumn
 
     if (!self.state.isSharedGame) {
       customSetColumn = (
-        <div className="column" style={{ opacity: 0 }}>
+        <div className="column" style={{ opacity: 0, display: 'none' }}>
           <a href="#" onClick={self.handleCustomSetDisplay}>My set</a>
-        </div>
-      )
-
-      warningRow = (
-        <div className="row" style={{ fontSize: '25px', color: 'orange' }}>
-          {trn(userLanguage, 'Warning: this is alpha version of the app. Please be ready to lose your progress in explore mode once. Sorry for inconvenience.')}
         </div>
       )
     }
@@ -2580,7 +2575,7 @@ class Main extends React.Component {
           <div className="row">
             <div className="column">
               <button style={{ float: 'left', margin: '5px' }} onClick={ startExploreGame }>
-              If you want to solve more words click here.
+              Solve more words...
               </button>
             </div>
           </div>
@@ -2784,7 +2779,7 @@ class Main extends React.Component {
       } else {
         statusText = trn(
           userLanguage,
-          'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+          'Now: {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet}, next: {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
           variables)
         statusLine = <div style={{ fontSize: '20px', color: 'orange' }}>
           {statusText}
@@ -2800,19 +2795,18 @@ class Main extends React.Component {
     return (
     <>
       <header className="App-header">
+        <AuthComponent authenticatedUserEmail={self.state.user.email}/>
         <SettingsComponent
           userLanguage={userLanguage}
           isSharedGame={self.state.isSharedGame}
           languages={self.state.languages}
           user={self.state.user} />
-        {warningRow}
         {header}
       </header>
       <div className="container">
         <div id="warning"></div>
         {debugBlock}
         {customSetWidget}
-        <br />
         <div className="row">
           <div className="column">
             {finishStatusBlock}

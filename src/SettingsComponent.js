@@ -2,6 +2,7 @@
 import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import trn from './translations'
+import iconSettings from './icon-settings.png'
 
 import { setCookie, getCookies } from './utils'
 
@@ -96,7 +97,7 @@ function SettingsComponent ({ userLanguage, isSharedGame, user, languages }) {
     )
 
     settingsDialog = (
-      <ul style={{ backgroundColor: '#282c34', listStyleType: 'none', width: '350px', border: '4px solid white', padding: '5px', paddingTop: '40px' }}>
+      <ul style={{ backgroundColor: '#282c34', listStyleType: 'none', width: '300px', border: '4px solid white', padding: '5px', paddingTop: '40px' }}>
         <li>{autoplayColumn}</li>
         <li><label>Sound volume:</label>{volumeColumn}</li>
         <li><label>Username:</label> {usernameInput}</li>
@@ -115,7 +116,7 @@ function SettingsComponent ({ userLanguage, isSharedGame, user, languages }) {
           onClick={handleSettingsDisplayButtonClick}
           style={{ padding: '0 16px', float: 'right', height: '40px' }}
           title={ title }>
-          Settings
+          <img src={iconSettings} alt="{ trn(userLanguage, 'Settings') }" style={{ maxHeight: '36px', float: 'left' }} />
         </button>
         {settingsDialog}
       </div>

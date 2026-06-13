@@ -38,5 +38,7 @@ export const translations = {
   // levels
   Simple: 'Еувазæг',
   Normal: 'Уаггин',
-  Hard: 'Гъесгун'
+  Hard: 'Гъесгун',
+
+  'Now: {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet}, next: {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Нур: {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet}, уой фæстæ: {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.'
 }

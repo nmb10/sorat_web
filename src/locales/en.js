@@ -33,7 +33,7 @@ export const translations = {
   Explore: 'Explore',
   'What?': 'What?',
   'You won!': 'You won!',
-  'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
+  'Now: {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet}, next: {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Now: {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet}, next: {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
   'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.': 'Hints limit exceeded. Try to solve {firstUnsolvedGameTopic}#{firstUnsolvedGameTopicSet} again to reach the {secondUnsolvedGameTopic}#{secondUnsolvedGameTopicSet}.',
 
   // levels
