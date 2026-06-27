@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 import trn from './translations'
+import spinner from './spinner1.png'
 
 export const AuthComponent = ({ authenticatedUserEmail }) => {
   const isAuthenticated = authenticatedUserEmail !== null
@@ -11,6 +12,7 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
   const [step, setStep] = useState('') // Steps: 'EMAIL' | 'OTP' | 'SUCCESS' | 'FAILURE'
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [waitingResponse, setWaitingResponse] = useState(false)
 
   // OTP State
   const otpLength = 6
@@ -24,19 +26,26 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
 
   const handleLogout = (e) => {
     e.preventDefault()
-    console.log('Sending logout ...')
-    // Trigger API call to send OTP here
-
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ method: 'otp', command: 'logout', email: email })
     }
+    setWaitingResponse(true)
     fetch('/api/v1/auth', requestOptions)
-      .then(response => response.json())
+      .then((response) => {
+        setWaitingResponse(false)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+        return response.json()
+      })
       .then(data => {
         window.location.reload()
         setStep('')
+      })
+      .catch((error) => {
+        setError(`Could not logout. Error: ${error.message}`)
       })
   }
 
@@ -58,19 +67,27 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
     if (!email) {
       return
     }
-    console.log('Sending OTP to:', email)
     // Trigger API call to send OTP here
 
+    setWaitingResponse(true)
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ method: 'otp', command: 'send', email: email })
     }
     fetch('/api/v1/auth', requestOptions)
-      .then(response => response.json())
+      .then((response) => {
+        setWaitingResponse(false)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+        return response.json()
+      })
       .then(data => {
-        console.log(data)
         setStep('OTP')
+      })
+      .catch((error) => {
+        setError(`Failed to send OTP code. Error: ${error.message}`)
       })
   }
 
@@ -122,10 +139,16 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ method: 'otp', command: 'verify', code: code })
     }
+    setWaitingResponse(true)
     fetch('/api/v1/auth', requestOptions)
-      .then(response => response.json())
+      .then((response) => {
+        setWaitingResponse(false)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+        return response.json()
+      })
       .then(data => {
-        console.log(data)
         if (data.is_verified) {
           setStep('SUCCESS') // authenticate instead.
           // FIXME: Try to authenticate without reload.
@@ -133,6 +156,9 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
         } else {
           setError('Code is not valid. Try again.')
         }
+      })
+      .catch((error) => {
+        setError(`Could not verify OTP code. Error: ${error.message}`)
       })
   }
 
@@ -144,6 +170,12 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
     top: '16px',
     zIndex: 9999
   }
+
+  let spinnerImg
+  if (waitingResponse) {
+    spinnerImg = <img src={spinner} alt="Spinner" />
+  }
+
   return (
     <div style={ popupStyle }>
       {/* User already authenticated */}
@@ -153,10 +185,12 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
             {authenticatedUserEmail}&nbsp;|&nbsp;
           </span>
           <button
+            disabled={waitingResponse}
             onClick={handleLogout}
             title={trn(userLanguage, 'Logout')}
             style={{ margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
               {trn(userLanguage, 'Logout')}
+              {spinnerImg}
           </button>
         </div>
       )}
@@ -164,10 +198,12 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
       {/* User is not authenticated, dialog is hidden */}
       {!isAuthenticated && step === '' && (
           <button
+            disabled={waitingResponse}
             onClick={handleStartAuth}
             title={trn(userLanguage, 'Login')}
             style={{ float: 'left', margin: 0, paddingLeft: '5px', paddingRight: '5px' }}>
               {trn(userLanguage, 'Login')}
+              {spinnerImg}
           </button>
       )}
 
@@ -180,6 +216,7 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
             <p className="text-sm text-gray-500 mt-2">
               {trn(userLanguage, 'Enter your email address to receive a verification code.')}
             </p>
+            <p style={{ color: 'red' }}>{ error }&nbsp;</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -197,10 +234,11 @@ export const AuthComponent = ({ authenticatedUserEmail }) => {
             />
           </div>
           <button
+            disabled={waitingResponse}
             type="submit"
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors"
-          >
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors">
             Send Verification Code
+            {spinnerImg}
           </button>
         </form>
       )}

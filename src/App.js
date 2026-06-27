@@ -1266,6 +1266,8 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.connection = 'error'
+        newState.rounds = []
+        newState.currentRound = -1
         return newState
       })
     })
@@ -1274,6 +1276,8 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.connection = 'closed'
+        newState.rounds = []
+        newState.currentRound = -1
         return newState
       })
     })
@@ -2143,19 +2147,7 @@ class Main extends React.Component {
         {customSetColumn}
       </div>)
 
-    if (self.state.connection === 'closed') {
-      return (
-        <div className="container">
-          <br />
-          {header}
-          <div className="row">
-            <div className="column">
-              <div style={{ fontSize: '45px' }}>Connection closed. Please refresh the page.</div>
-            </div>
-          </div>
-        </div>
-      )
-    } else if (!self.state.stateReceived) {
+    if (!self.state.stateReceived) {
       return (
         <div className="container">
           <br />
@@ -2167,17 +2159,13 @@ class Main extends React.Component {
           </div>
         </div>
       )
-    } else if (self.state.connection === 'error') {
-      return (
-        <div className="container">
-          <br />
-          {header}
-          <div className="row">
-            <div className="column">
-              <div style={{ fontSize: '45px' }}>
-                Connection error. Please refresh the page.
-              </div>
-            </div>
+    }
+    let connectionErrorBlock
+    if (self.state.connection === 'error' || self.state.connection === 'closed') {
+      connectionErrorBlock = (
+        <div style={warningBlockStyle}>
+          <div>
+            Connection {self.state.connection}. We are trying to restore...
           </div>
         </div>)
     }
@@ -2816,6 +2804,7 @@ class Main extends React.Component {
           <div className="column">
             {gameErrorBlock}
             {gameWarningBlock}
+            {connectionErrorBlock}
           </div>
         </div>
         <div className="row">
