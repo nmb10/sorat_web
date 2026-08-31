@@ -134,6 +134,13 @@ function debugMode () {
   return document.cookie.includes('debug=1')
 }
 
+function questionToReplyLetters (questionWords) {
+  // questionWords - [['d', 'o', 'n', 'k', 'e', 'y']]
+  return questionWords.map(word =>
+    word.map(letter => (letter === ' ' ? ' ' : '?'))
+  )
+}
+
 function sendExploreStartEvent (event, topicSet) {
   event.preventDefault()
   document.getElementById('root').dispatchEvent(
@@ -217,7 +224,7 @@ function preloadImages (images) {
   })
 }
 
-function questionLettersToTable (questionLetters, chosenQueryIndexes, lettersDisplayTimeout) {
+function questionLettersToTable (wordIndex, questionLetters, chosenQueryIndexes, lettersDisplayTimeout) {
   const [tableRowsCount, tableColumnsCount] = tableSizeMap[questionLetters.length]
   let letterIndex, letter
   const tableRows = []
@@ -243,9 +250,9 @@ function questionLettersToTable (questionLetters, chosenQueryIndexes, lettersDis
     for (let j = 0; j < tableColumnsCount; ++j) {
       if (questionLetters.length > 0) {
         [letterIndex, letter] = questionLetters.shift()
-        const isChosen = chosenQueryIndexes.includes(pair(0, letterIndex))
+        const isChosen = chosenQueryIndexes.includes(pair(wordIndex, letterIndex))
         const questionLetter = <td style={tdStyle}>
-          <QuestionLetter letter={letter} wordIndex={0} letterIndex={letterIndex} isChosen={isChosen} />
+          <QuestionLetter letter={letter} wordIndex={wordIndex} letterIndex={letterIndex} isChosen={isChosen} />
         </td>
         rowElems.push(questionLetter)
       }
@@ -287,9 +294,13 @@ function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame,
     isWrongReply = true
   }
 
-  for (let j = 0; j < words.length; ++j) {
-    replyLetters.push(
-      <ReplyLetter isWrongReply={isWrongReply} isSolved={isSolved} letter={words[j]} wordIndex={0} letterIndex={j} />)
+  for (let i = 0; i < words.length; ++i) {
+    replyLetters.push([])
+    for (let j = 0; j < words[i].length; ++j) {
+      replyLetters[replyLetters.length - 1].push(
+        <ReplyLetter isWrongReply={isWrongReply} isSolved={isSolved} letter={words[i][j]} wordIndex={i} letterIndex={j} />)
+    }
+    replyLetters[replyLetters.length - 1].push(<ReplyLetter isSolved={false} letter={' '} />)
   }
 
   const styles = {
@@ -695,7 +706,7 @@ QuestionLetter.propTypes = {
 }
 
 function QuestionLetter (props) {
-  function onClick (e) {
+  function onQuestionLetterClick (e) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
         'question-letter.click',
@@ -710,7 +721,7 @@ function QuestionLetter (props) {
     )
   } else {
     return (
-      <button className="question-letter-button" onClick={onClick}>
+      <button className="question-letter-button" onClick={onQuestionLetterClick}>
         {props.letter}
       </button>
     )
@@ -884,6 +895,7 @@ class Main extends React.Component {
         break
       }
     }
+
     if (!containsQuestionMark) {
       if (prevState.uiState === UI_STATES.demo || prevState.uiState === UI_STATES.shared) {
         // FIXME: take share language from state
@@ -948,16 +960,17 @@ class Main extends React.Component {
           */
         } else {
           // compare on client side.
-          const replyLetters = newState.replyLetters[0]
-          const localTerm = newState.rounds[0].local_term
 
-          if (replyLetters === localTerm) {
+          const localTerm = newState.rounds[0].local_term
+          const flattenReplyLetters = newState.replyLetters.map((word) => word.join('')).join(' ')
+
+          if (flattenReplyLetters === localTerm) {
             newState.status = 'solved'
             newState.rounds[0].solutions[newState.user.id].attempts = [
               {
                 time: 'FIXME:',
                 reply: {
-                  letters: replyLetters
+                  letters: newState.replyLetters
                 }
               }
             ]
@@ -971,7 +984,7 @@ class Main extends React.Component {
               {
                 time: 'FIXME:',
                 reply: {
-                  letters: replyLetters
+                  letters: newState.replyLetters
                 }
               }
             ]
@@ -979,10 +992,11 @@ class Main extends React.Component {
           }
         }
       } else {
+        const flattenReplyLetters = newState.replyLetters.map((word) => word.join('')).join(' ')
         self.sendMessage({
           command: 'reply',
           payload: {
-            letters: newState.replyLetters
+            letters: [flattenReplyLetters]
           }
         })
       }
@@ -1223,10 +1237,8 @@ class Main extends React.Component {
           }
           newState.currentRound = json.current_round
           const currentRoundObj = newState.rounds[newState.currentRound - 1]
-          const word = currentRoundObj.question[0] // FIXME: Use string instead of list of strings
-          const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
-          newState.replyLetters = [replyLetters.join('')]
+          newState.replyLetters = questionToReplyLetters(currentRoundObj.question)
           // FIXME: Add state.
 
           if (newState.mode == null) {
@@ -1656,12 +1668,10 @@ class Main extends React.Component {
             }
           }
 
-          const word = currentRound.question[0] // FIXME: Use string instead of list of strings
-          const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
           newState.replyMap = {}
           newState.transcriptionExactMatch = ''
           newState.transcriptionNoMatch = ''
-          newState.replyLetters = [replyLetters.join('')]
+          newState.replyLetters = questionToReplyLetters(currentRound.question)
           if (newState.method === LETTERS_SELECTION_METHOD) {
             self.runLettersDisplayTimeoutTicker(LETTERS_DISPLAY_TIMEOUT)
           }
@@ -1672,13 +1682,12 @@ class Main extends React.Component {
             stateUserHints = self.state.rounds[newState.currentRound - 1].solutions[newState.user.id].hints
           }
           const newStateUserHints = currentRound.solutions[newState.user.id].hints || []
-          const word = currentRound.question[0] // FIXME: Use string instead of list of strings
 
           if (stateUserHints.length !== newStateUserHints.length) {
             newState.replyMap = {}
             if (newStateUserHints.length > 0) {
               // show hint.
-              const replyLetters = word.split('').map((elem) => elem === ' ' ? ' ' : '?')
+              const replyLetters = questionToReplyLetters(currentRound.question)
 
               const lastHintArray = newStateUserHints[newStateUserHints.length - 1]
 
@@ -1958,10 +1967,7 @@ class Main extends React.Component {
         const newState = _.cloneDeep(prevState)
         const replyWordIndex = event.detail.wordIndex
         const replyLetterIndex = event.detail.letterIndex
-        const replyWordLetters = newState.replyLetters[replyWordIndex]
-        const replyWordArray = replyWordLetters.split('')
-        replyWordArray[replyLetterIndex] = '?'
-        newState.replyLetters[replyWordIndex] = replyWordArray.join('')
+        newState.replyLetters[replyWordIndex][replyLetterIndex] = '?'
 
         // Drop removed indexes.
         newState.replyMap[pair(replyWordIndex, replyLetterIndex)] = null
@@ -2003,10 +2009,10 @@ class Main extends React.Component {
         const letter = event.detail.letter
         const replyWordLetters = newState.replyLetters[wordIndex]
         const indexToReplace = replyWordLetters.indexOf('?')
-        const updatedReplyWordLetters = replyWordLetters.replace('?', letter)
+        replyWordLetters[indexToReplace] = letter
         newState.transcriptionExactMatch = ''
         newState.transcriptionNoMatch = ''
-        newState.replyLetters[wordIndex] = updatedReplyWordLetters
+        newState.replyLetters[wordIndex] = replyWordLetters
         newState.replyMap[pair(wordIndex, indexToReplace)] = pair(wordIndex, letterIndex)
         newState.recentActionTime = Date.now()
 
@@ -2289,30 +2295,29 @@ class Main extends React.Component {
       // FIXME: handle currentRound.question as string instead of list of words.
 
       const attempts = currentRound.solutions[self.state.user.id].attempts
+
       replyLetterItems = replyLettersToRow(
-        self.state.replyLetters[0], isSolved, attempts,
+        self.state.replyLetters, isSolved, attempts,
         self.state.isDemoGame, self.state.isSharedGame,
         self.state.sharedGameIsChecked, transcriptionNoMatch)
 
-      const splittedLetters = [[]]
-      const words = currentRound.question[0]
-      for (let letterIndex = 0; letterIndex < words.length; ++letterIndex) {
-        if (words[letterIndex] === ' ') {
-          splittedLetters.push([])
-        } else {
-          splittedLetters[splittedLetters.length - 1].push([letterIndex, words[letterIndex]])
+      const splittedLetters = []
+      const questionWords = currentRound.question
+
+      for (const word of questionWords) {
+        splittedLetters.push([])
+        for (let letterIndex = 0; letterIndex < word.length; ++letterIndex) {
+          splittedLetters[splittedLetters.length - 1].push([letterIndex, word[letterIndex]])
         }
       }
-
       const replyMap = self.state.replyMap || {}
       // const replyMap = { '0,0': '0,6', '0,1': '0,3', '0,2': '0,5', '0,3': '0,1', '0,4': '0,0', '0,5': '0,4' }
       const chosenQueryIndexes = Object.values(replyMap)
 
       const questionLettersTables = []
-
       for (let i = 0; i < splittedLetters.length; ++i) {
         questionLettersTables.push(questionLettersToTable(
-          splittedLetters[i], chosenQueryIndexes, self.state.lettersDisplayTimeout))
+          i, splittedLetters[i], chosenQueryIndexes, self.state.lettersDisplayTimeout))
       }
 
       const letterItems1 = questionLettersTables
