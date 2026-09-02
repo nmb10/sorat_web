@@ -16,7 +16,15 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import trn from './translations'
 // import * as events from './events'
-import { handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE } from './events'
+import {
+  handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE,
+  VOICE_PLAYED, IMAGE_SELECTION_REPLY, REPLY_LETTER_REMOVE, CHALLENGE, CONTEST_ENQUEUED, GAME_ERROR, PROGRESS,
+  WS_OPENED, WS_CLOSED, WS_ERROR, TICK_CHALLENGE, LETTERS_DISPLAY_TICK, FINISH_STATUS_TICK, CONNECTION_SLOW_MESSAGE,
+  GAME_HELP, ROUND_TIMEOUT_TICK, ERROR_CLOSE, GAME_LEAVE, IMAGE_LOAD, STATE_UPDATE, METHOD_CHANGED, SHARE_CREATE,
+  LEVEL_CHANGED, LANGUAGE_CHANGED, NAME_CHANGED, AUTOPLAY_ENABLED, AUTOPLAY_DISABLED, VOLUME_CHANGED, CONTEST_CLICKED,
+  GAME_SKIP, TRAIN_CLICKED, EXPLORE_START, FORCE_IMAGE_SELECT_METHOD, CHALLENGE_ACCEPTED, CHALLENGE_DECLINED,
+  TOPIC_CHANGED, RECORDING_START, TRANSCRIPTION_DONE, QUESTION_LETTER_CLICK
+} from './events'
 import CustomSetComponent from './CustomSetComponent'
 import SettingsComponent from './SettingsComponent'
 import SelectLettersGameComponent from './SelectLettersGameComponent'
@@ -145,7 +153,7 @@ function sendExploreStartEvent (event, topicSet) {
   event.preventDefault()
   document.getElementById('root').dispatchEvent(
     new CustomEvent(
-      'explore-start',
+      EXPLORE_START,
       { detail: { topicSet: topicSet } }))
 }
 
@@ -155,7 +163,7 @@ function playSound (src, volume) {
   voice1.play()
 
   document.getElementById('root').dispatchEvent(
-    new CustomEvent('voice.played', { detail: { src: src, soundVolume: volume } }))
+    new CustomEvent(VOICE_PLAYED, { detail: { src: src, soundVolume: volume } }))
 }
 
 function getPlayersScores (players, finishedRounds) {
@@ -192,7 +200,7 @@ function preloadImage (imageMap) {
   const resolve = (img1) => {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
-        'image.load',
+        IMAGE_LOAD,
         { detail: { img: img1, imageMap: imageMap } }))
   }
   const reject = (img1) => {
@@ -613,7 +621,7 @@ function WordImageColumn (props) {
     imageStyle.cursor = 'pointer'
     onImageClick = function (event) {
       document.getElementById('root').dispatchEvent(
-        new CustomEvent('image-selection.reply', { detail: { userChoice: props.imageChoice } }))
+        new CustomEvent(IMAGE_SELECTION_REPLY, { detail: { userChoice: props.imageChoice } }))
     }
   }
 
@@ -671,7 +679,7 @@ function SelectImageGameWidget (props) {
   }
 
   return (
-    <table style={{ border: 'none', borderCollapse: 'collapse', cellspacing: 0, cellpadding: 0 }}>
+    <table style={{ border: 'none', borderCollapse: 'collapse' }}>
       <tr>
         <td style={{ verticalAlign: 'top' }}>
           <WordImageColumn imageSrc={src1} imageChoice={1} userChoices={userChoices} isCorrectChoice={props.correctChoice === 1} score={score1} isSolved={props.isSolved} />
@@ -709,7 +717,7 @@ function QuestionLetter (props) {
   function onQuestionLetterClick (e) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(
-        'question-letter.click',
+        QUESTION_LETTER_CLICK,
         { detail: { letter: props.letter, wordIndex: props.wordIndex, letterIndex: props.letterIndex } }))
   };
 
@@ -747,7 +755,7 @@ function ReplyLetter (props) {
       }
     }
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('reply-letter.remove', eventDetail))
+      new CustomEvent(REPLY_LETTER_REMOVE, eventDetail))
   };
 
   const letterStyle = {}
@@ -928,7 +936,7 @@ class Main extends React.Component {
               }
               document.getElementById('root').dispatchEvent(
                 new CustomEvent(
-                  'state.update',
+                  STATE_UPDATE,
                   {
                     detail: {
                       state: {
@@ -1032,7 +1040,7 @@ class Main extends React.Component {
         const messageTime = new Date()
         document.getElementById('root').dispatchEvent(
           new CustomEvent(
-            'state.update',
+            STATE_UPDATE,
             {
               detail: {
                 state: {
@@ -1051,18 +1059,18 @@ class Main extends React.Component {
                 eventType: message.event_type
               }
             }))
-      } else if (message.type === 'challenge') {
+      } else if (message.type === CHALLENGE) {
         document.getElementById('root').dispatchEvent(
-          new CustomEvent('challenge', { detail: { user: message.payload.user } }))
-      } else if (message.type === 'contest_enqueued') {
+          new CustomEvent(CHALLENGE, { detail: { user: message.payload.user } }))
+      } else if (message.type === CONTEST_ENQUEUED) {
         document.getElementById('root').dispatchEvent(
-          new CustomEvent('contest_enqueued', { detail: {} }))
-      } else if (message.type === 'game_error') {
+          new CustomEvent(CONTEST_ENQUEUED, { detail: {} }))
+      } else if (message.type === GAME_ERROR) {
         document.getElementById('root').dispatchEvent(
-          new CustomEvent('game_error', { detail: message.payload }))
-      } else if (message.type === 'progress') {
+          new CustomEvent(GAME_ERROR, { detail: message.payload }))
+      } else if (message.type === PROGRESS) {
         document.getElementById('root').dispatchEvent(
-          new CustomEvent('progress', { detail: message.payload }))
+          new CustomEvent(PROGRESS, { detail: message.payload }))
       }
     }
     let intervalID
@@ -1077,16 +1085,16 @@ class Main extends React.Component {
 
     self.websocket.onopen = function (evt) {
       intervalID = setInterval(sendPing, 1000 * 30)
-      document.getElementById('root').dispatchEvent(new CustomEvent('ws.opened'))
+      document.getElementById('root').dispatchEvent(new CustomEvent(WS_OPENED))
       self.runCurrentRoundTimeoutTicker()
     }
 
     self.websocket.onclose = function (evt) {
-      document.getElementById('root').dispatchEvent(new CustomEvent('ws.closed'))
+      document.getElementById('root').dispatchEvent(new CustomEvent(WS_CLOSED))
     }
 
     self.websocket.onerror = function (evt) {
-      document.getElementById('root').dispatchEvent(new CustomEvent('ws.error'))
+      document.getElementById('root').dispatchEvent(new CustomEvent(WS_ERROR))
     }
     self.websocket.onmessage = onMessage
   }
@@ -1101,7 +1109,7 @@ class Main extends React.Component {
 
   sendChallengeTickEvent () {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('tick-challenge', { detail: {} }))
+      new CustomEvent(TICK_CHALLENGE, { detail: {} }))
   }
 
   saveState () {
@@ -1129,7 +1137,7 @@ class Main extends React.Component {
     if (currentRound.timeout > 0) {
       document.getElementById('root').dispatchEvent(
         new CustomEvent(
-          'round-timeout.tick',
+          ROUND_TIMEOUT_TICK,
           {
             detail: {
               timeout: currentRound.timeout - 1,
@@ -1144,7 +1152,7 @@ class Main extends React.Component {
     const self = this
     if (seconds > 0) {
       document.getElementById('root').dispatchEvent(
-        new CustomEvent('letters-display.tick', { detail: { seconds: seconds - 1 } }))
+        new CustomEvent(LETTERS_DISPLAY_TICK, { detail: { seconds: seconds - 1 } }))
       setTimeout(self.runLettersDisplayTimeoutTicker, 1000, seconds - 1)
     }
   }
@@ -1153,7 +1161,7 @@ class Main extends React.Component {
     const self = this
     if (seconds > 0) {
       document.getElementById('root').dispatchEvent(
-        new CustomEvent('finish-status.tick', { detail: { seconds: seconds - 1 } }))
+        new CustomEvent(FINISH_STATUS_TICK, { detail: { seconds: seconds - 1 } }))
       setTimeout(self.runFinishStatusTicker, 1000, seconds - 1)
     }
     if (seconds === 1) {
@@ -1259,7 +1267,7 @@ class Main extends React.Component {
     // Events listeners.
     //
 
-    document.getElementById('root').addEventListener('connection.slow-message', function (event) {
+    document.getElementById('root').addEventListener(CONNECTION_SLOW_MESSAGE, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         if (prevState.slowMessageCount > 5) {
@@ -1274,7 +1282,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('ws.error', function (event) {
+    document.getElementById('root').addEventListener(WS_ERROR, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.connection = 'error'
@@ -1284,7 +1292,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('ws.closed', function (event) {
+    document.getElementById('root').addEventListener(WS_CLOSED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.connection = 'closed'
@@ -1294,7 +1302,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('ws.opened', function (event) {
+    document.getElementById('root').addEventListener(WS_OPENED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.connection = 'Opened'
@@ -1302,7 +1310,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('game.help', function (event) {
+    document.getElementById('root').addEventListener(GAME_HELP, function (event) {
       self.sendMessage({
         command: 'help',
         payload: {}
@@ -1316,7 +1324,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('letters-display.tick', function (event) {
+    document.getElementById('root').addEventListener(LETTERS_DISPLAY_TICK, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.lettersDisplayTimeout = event.detail.seconds
@@ -1324,7 +1332,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('finish-status.tick', function (event) {
+    document.getElementById('root').addEventListener(FINISH_STATUS_TICK, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.finishStatusDisplayTimeout = event.detail.seconds
@@ -1332,7 +1340,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('round-timeout.tick', function (event) {
+    document.getElementById('root').addEventListener(ROUND_TIMEOUT_TICK, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.rounds[event.detail.currentRound - 1].timeout = event.detail.timeout
@@ -1340,7 +1348,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('error.close', function (event) {
+    document.getElementById('root').addEventListener(ERROR_CLOSE, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.gameError = null
@@ -1350,7 +1358,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('game.leave', function (event) {
+    document.getElementById('root').addEventListener(GAME_LEAVE, function (event) {
       self.sendMessage({
         command: 'leave',
         payload: {
@@ -1366,7 +1374,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('challenge', function (event) {
+    document.getElementById('root').addEventListener(CHALLENGE, function (event) {
       setTimeout(self.sendChallengeTickEvent, 1000)
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1474,7 +1482,7 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('voice.played', function (event) {
+    document.getElementById('root').addEventListener(VOICE_PLAYED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.voicePlayed = true
@@ -1482,7 +1490,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('image-selection.reply', function (event) {
+    document.getElementById('root').addEventListener(IMAGE_SELECTION_REPLY, function (event) {
       self.sendMessage({
         command: 'reply',
         method: IMAGE_SELECTION_METHOD,
@@ -1496,7 +1504,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('image.load', function (event) {
+    document.getElementById('root').addEventListener(IMAGE_LOAD, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.preloadedImages[decodeURIComponent(URL.parse(event.detail.img.src).pathname)] = event.detail.img.src
@@ -1504,7 +1512,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('contest_enqueued', function (event) {
+    document.getElementById('root').addEventListener(CONTEST_ENQUEUED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.mode = 'contest_enqueued'
@@ -1512,7 +1520,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('game_error', function (event) {
+    document.getElementById('root').addEventListener(GAME_ERROR, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.gameError = event.detail
@@ -1520,7 +1528,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('progress', function (event) {
+    document.getElementById('root').addEventListener(PROGRESS, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.progress = event.detail
@@ -1528,7 +1536,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('tick-challenge', function (event) {
+    document.getElementById('root').addEventListener(TICK_CHALLENGE, function (event) {
       if (self.state.challenge == null) {
         ;
       } else {
@@ -1547,7 +1555,7 @@ class Main extends React.Component {
       }
     })
 
-    document.getElementById('root').addEventListener('state.update', function (event) {
+    document.getElementById('root').addEventListener(STATE_UPDATE, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.players = event.detail.state.players
@@ -1656,7 +1664,7 @@ class Main extends React.Component {
               }
             }
 
-            if (currentRoundImagesToPreload.length > 0 && nextRoundImagesToPreload > 0) {
+            if (currentRoundImagesToPreload.length > 0 && nextRoundImagesToPreload.length > 0) {
               preloadImages(currentRoundImagesToPreload)
                 .then(() => {
                   return preloadImages(nextRoundImagesToPreload)
@@ -1715,7 +1723,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('method-changed', function (event) {
+    document.getElementById('root').addEventListener(METHOD_CHANGED, function (event) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1749,7 +1757,7 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('share-create', function (event) {
+    document.getElementById('root').addEventListener(SHARE_CREATE, function (event) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1763,7 +1771,7 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('level-changed', function (event) {
+    document.getElementById('root').addEventListener(LEVEL_CHANGED, function (event) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1799,7 +1807,7 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('language-changed', function (event) {
+    document.getElementById('root').addEventListener(LANGUAGE_CHANGED, function (event) {
       if (event.detail.language === 'en') {
         window.history.pushState('/', 'Title', '/')
       } else {
@@ -1808,7 +1816,7 @@ class Main extends React.Component {
       window.location.reload(true)
     })
 
-    document.getElementById('root').addEventListener('name-changed', function (event) {
+    document.getElementById('root').addEventListener(NAME_CHANGED, function (event) {
       // Updates username
 
       // Update state and send to server side.
@@ -1821,7 +1829,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('autoplay-enabled', function (event) {
+    document.getElementById('root').addEventListener(AUTOPLAY_ENABLED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = true
@@ -1829,7 +1837,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('autoplay-disabled', function (event) {
+    document.getElementById('root').addEventListener(AUTOPLAY_DISABLED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.autoplayEnabled = false
@@ -1837,7 +1845,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('volume-changed', function (event) {
+    document.getElementById('root').addEventListener(VOLUME_CHANGED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.soundVolume = event.detail.volume
@@ -1845,7 +1853,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('contest-clicked', function (event) {
+    document.getElementById('root').addEventListener(CONTEST_CLICKED, function (event) {
       // FIXME:
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1861,7 +1869,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('game.skip', function (event) {
+    document.getElementById('root').addEventListener(GAME_SKIP, function (event) {
       self.sendMessage({ command: 'skip', payload: {} })
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1871,7 +1879,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('train-clicked', function (event) {
+    document.getElementById('root').addEventListener(TRAIN_CLICKED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         if (newState.modeOpened === 'train') {
@@ -1888,7 +1896,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('explore-start', function (event) {
+    document.getElementById('root').addEventListener(EXPLORE_START, function (event) {
       // FIXME:
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
@@ -1910,11 +1918,11 @@ class Main extends React.Component {
     })
 
     // new CustomEvent('challenge-accepted', {detail: {}}));
-    document.getElementById('root').addEventListener('force-image-select-method', function (event) {
+    document.getElementById('root').addEventListener(FORCE_IMAGE_SELECT_METHOD, function (event) {
       self.sendMessage({ command: 'force-image-select-method', payload: { } })
     })
 
-    document.getElementById('root').addEventListener('challenge-accepted', function (event) {
+    document.getElementById('root').addEventListener(CHALLENGE_ACCEPTED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.challenge = null
@@ -1927,14 +1935,14 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('challenge-declined', function (event) {
+    document.getElementById('root').addEventListener(CHALLENGE_DECLINED, function (event) {
       self.sendMessage({
         command: 'challenge-decline',
         payload: {}
       })
     })
 
-    document.getElementById('root').addEventListener('topic-changed', function (event) {
+    document.getElementById('root').addEventListener(TOPIC_CHANGED, function (event) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1960,7 +1968,7 @@ class Main extends React.Component {
         })
     })
 
-    document.getElementById('root').addEventListener('reply-letter.remove', function (event) {
+    document.getElementById('root').addEventListener(REPLY_LETTER_REMOVE, function (event) {
       // FIXME: Send to server
       // update-state
       self.setState(prevState => {
@@ -1976,7 +1984,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('recording.start', function (event) {
+    document.getElementById('root').addEventListener(RECORDING_START, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.transcriptionExactMatch = ''
@@ -1985,7 +1993,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('transcription.done', function (event) {
+    document.getElementById('root').addEventListener(TRANSCRIPTION_DONE, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         if (event.detail.exactMatch) {
@@ -2001,7 +2009,7 @@ class Main extends React.Component {
       })
     })
 
-    document.getElementById('root').addEventListener('question-letter.click', function (event) {
+    document.getElementById('root').addEventListener(QUESTION_LETTER_CLICK, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         const wordIndex = event.detail.wordIndex
@@ -2030,17 +2038,17 @@ class Main extends React.Component {
 
   handleMethodChange (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('method-changed', { detail: { method: event.target.value } }))
+      new CustomEvent(METHOD_CHANGED, { detail: { method: event.target.value } }))
   }
 
   handleCreateShareButtonClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('share-create', {}))
+      new CustomEvent(SHARE_CREATE, {}))
   }
 
   handleLevelChange (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('level-changed', { detail: { level: event.target.value } }))
+      new CustomEvent(LEVEL_CHANGED, { detail: { level: event.target.value } }))
   }
 
   handleCustomSetDisplay (event) {
@@ -2053,57 +2061,57 @@ class Main extends React.Component {
 
   onTrainClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('train-clicked', { detail: {} }))
+      new CustomEvent(TRAIN_CLICKED, { detail: {} }))
   }
 
   onSkipClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('game.skip', { detail: {} }))
+      new CustomEvent(GAME_SKIP, { detail: {} }))
   }
 
   onContestClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('contest-clicked', { detail: {} }))
+      new CustomEvent(CONTEST_CLICKED, { detail: {} }))
   }
 
   onExploreClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('explore-start', { detail: { setName: this.state.setName } }))
+      new CustomEvent(EXPLORE_START, { detail: { setName: this.state.setName } }))
   }
 
   onAcceptClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('challenge-accepted', { detail: {} }))
+      new CustomEvent(CHALLENGE_ACCEPTED, { detail: {} }))
   }
 
   onImageSelectModeSwitchClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('force-image-select-method', { detail: {} }))
+      new CustomEvent(FORCE_IMAGE_SELECT_METHOD, { detail: {} }))
   }
 
   onDeclineClick (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('challenge-declined', { detail: {} }))
+      new CustomEvent(CHALLENGE_DECLINED, { detail: {} }))
   }
 
   handleTopicChange (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('topic-changed', { detail: { topic: event.target.value } }))
+      new CustomEvent(TOPIC_CHANGED, { detail: { topic: event.target.value } }))
   }
 
   getHelp (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('game.help', { detail: {} }))
+      new CustomEvent(GAME_HELP, { detail: {} }))
   }
 
   leave (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('game.leave', { detail: {} }))
+      new CustomEvent(GAME_LEAVE, { detail: {} }))
   }
 
   onErrorClose (event) {
     document.getElementById('root').dispatchEvent(
-      new CustomEvent('error.close', { detail: {} }))
+      new CustomEvent(ERROR_CLOSE, { detail: {} }))
   }
 
   render () {
