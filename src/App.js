@@ -29,6 +29,7 @@ import CustomSetComponent from './CustomSetComponent'
 import SettingsComponent from './SettingsComponent'
 import SelectLettersGameComponent from './SelectLettersGameComponent'
 import AuthComponent from './AuthComponent'
+import ReplyLetterComponent from './ReplyLetterComponent'
 
 const imageLoadTimeout = 0
 
@@ -44,6 +45,7 @@ const UI_STATES = {
   shared: 'shared',
   inTrain: 'inTrain', // In train mode dialog.
   trainRequested: 'trainRequested',
+  inContest: 'inContest', // In contest mode dialog.
   inExplore: 'inExplore', // In explore mode dialog.
   exploreRequested: 'exploreRequested',
   leaveRequested: 'leaveRequested',
@@ -136,6 +138,37 @@ function toIndex (userLanguage) {
     indexUrl = document.location.protocol + '//' + document.location.host + '/' + userLanguage
   }
   window.open(indexUrl, '_self')
+}
+
+function populateWithHintLetters (questionLetters, hintArray) {
+  const replyLetters = questionToReplyLetters(questionLetters)
+  const replyMap = {}
+
+  for (let i = 0; i < hintArray.length; ++i) {
+    const unmatchedIndexesByLetter = indexesByLetter(questionLetters[i])
+
+    for (let j = 0; j < hintArray[i].length; ++j) {
+      const hintLetter = hintArray[i][j]
+      const matchingIndexes = unmatchedIndexesByLetter[hintLetter]
+      if (matchingIndexes && matchingIndexes.length > 0) {
+        const n = matchingIndexes.shift()
+        replyLetters[i][j] = hintLetter
+        replyMap[pair(i, j)] = pair(i, n)
+      }
+    }
+  }
+  return [replyLetters, replyMap]
+}
+
+function indexesByLetter (letters) {
+  const indexes = {}
+  letters.forEach((letter, index) => {
+    if (!indexes[letter]) {
+      indexes[letter] = []
+    }
+    indexes[letter].push(index)
+  })
+  return indexes
 }
 
 function debugMode () {
@@ -284,31 +317,33 @@ function pair (wordIndex, letterIndex) {
   return wordIndex + ',' + letterIndex
 }
 
-function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame, sharedGameIsChecked, transcription) {
-  const replyLetters = []
+function replyLettersToRow (replyLetters, isSolved, attempts, isDemoGame, isSharedGame, sharedGameIsChecked, transcription) {
+  const replyLetterElems = []
   let inReplyWords = false
 
+  const flattenReplyLetters = replyLetters.map((word) => word.join('')).join(' ')
   for (let i = 0; i < attempts.length; ++i) {
-    if (attempts[i].reply.letters.includes(words)) {
+    if (attempts[i].reply.letters.includes(flattenReplyLetters)) {
       inReplyWords = true
       break
     }
   }
 
   let isWrongReply = false
+
   if (isSharedGame && !isSolved && sharedGameIsChecked) {
     isWrongReply = true
   } else if (!isSolved && inReplyWords) {
     isWrongReply = true
   }
 
-  for (let i = 0; i < words.length; ++i) {
-    replyLetters.push([])
-    for (let j = 0; j < words[i].length; ++j) {
-      replyLetters[replyLetters.length - 1].push(
-        <ReplyLetter isWrongReply={isWrongReply} isSolved={isSolved} letter={words[i][j]} wordIndex={i} letterIndex={j} />)
+  for (let i = 0; i < replyLetters.length; ++i) {
+    replyLetterElems.push([])
+    for (let j = 0; j < replyLetters[i].length; ++j) {
+      replyLetterElems[replyLetterElems.length - 1].push(
+        <ReplyLetterComponent isWrongReply={isWrongReply} isSolved={isSolved} letter={replyLetters[i][j]} wordIndex={i} letterIndex={j} />)
     }
-    replyLetters[replyLetters.length - 1].push(<ReplyLetter isSolved={false} letter={' '} />)
+    replyLetterElems[replyLetterElems.length - 1].push(<ReplyLetterComponent isSolved={false} letter={' '} />)
   }
 
   const styles = {
@@ -321,7 +356,7 @@ function replyLettersToRow (words, isSolved, attempts, isDemoGame, isSharedGame,
 
   return (
     <div style={styles}>
-      {replyLetters}
+      {replyLetterElems}
     </div>
   )
 };
@@ -486,7 +521,7 @@ function TransitionWidget (props) {
   // Displays information about transition to the next rounds.
 
   if (props.mode === 'explore' && props.currentRoundNumber >= 0 && props.currentGame && props.currentGame.topic) {
-    const diff = 3 - props.totalHints
+    const diff = 4 - props.totalHints
     if (diff > 0) {
       return <span
           title={trn(props.userLanguage, 'Hints amount limit to pass to the next round.')}
@@ -736,52 +771,6 @@ function QuestionLetter (props) {
   }
 };
 
-ReplyLetter.propTypes = {
-  letter: PropTypes.node.isRequired,
-  wordIndex: PropTypes.node.isRequired,
-  letterIndex: PropTypes.node.isRequired,
-  isSolved: PropTypes.node.isRequired,
-  isWrongReply: PropTypes.bool
-}
-
-function ReplyLetter (props) {
-  function onRemoveClick (e) {
-    e.preventDefault()
-    const eventDetail = {
-      detail: {
-        letter: props.letter,
-        wordIndex: props.wordIndex,
-        letterIndex: props.letterIndex
-      }
-    }
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent(REPLY_LETTER_REMOVE, eventDetail))
-  };
-
-  const letterStyle = {}
-  if (props.letter !== ' ') {
-    letterStyle.border = 'solid gray 2px'
-  }
-  if (props.isSolved && props.letter !== ' ') {
-    letterStyle.border = 'solid green 2px'
-  } else if (props.isWrongReply && props.letter !== ' ') {
-    letterStyle.border = 'solid red 2px'
-  }
-
-  if (props.letter !== '?') {
-    letterStyle.cursor = 'pointer'
-  }
-
-  return (
-    <div className="reply-letter"
-         title="Remove letter"
-         style={ letterStyle }
-         onClick={ onRemoveClick }>
-      {props.letter}
-    </div>
-  )
-};
-
 class Main extends React.Component {
   constructor (props) {
     super(props)
@@ -812,10 +801,11 @@ class Main extends React.Component {
       topics: [], // all topics of the selected language.
       method: null, // current game method, server choice. May not match to user.method
       mode: null, // train_requested, train, contest_requested, contest_enqueued, contest_accepted
-      modeOpened: null, // deprecated. Use uiState instead.
       rounds: [],
       transcriptionExactMatch: '',
       transcriptionNoMatch: '',
+      // replyMap[(replyWordIndex, replyWordLetterIndex)] = (questionWordIndex, questionWordLetterIndex)
+      // const replyMap = { '0,0': '0,6', '0,1': '0,3', '0,2': '0,5', '0,3': '0,1', '0,4': '0,0', '0,5': '0,4' }
       replyMap: {}, // Question letters indexes clicked while replying.
       replyLetters: [], // Letters user clicked while replying (or placeholders if no click)
       currentRound: null,
@@ -958,14 +948,6 @@ class Main extends React.Component {
                     }
                   }))
             })
-          /*
-          newState.mode = 'explore_requested'
-          newState.modeOpened = 'explore'
-          newState.uiState = UI_STATES.exploreRequested
-          // We always send user in payload because server may loose initial state once (on
-          // backend restart for example).
-          self.sendMessage({ command: 'explore', payload: { user: newState.user } })
-          */
         } else {
           // compare on client side.
 
@@ -978,7 +960,7 @@ class Main extends React.Component {
               {
                 time: 'FIXME:',
                 reply: {
-                  letters: newState.replyLetters
+                  letters: flattenReplyLetters
                 }
               }
             ]
@@ -992,7 +974,7 @@ class Main extends React.Component {
               {
                 time: 'FIXME:',
                 reply: {
-                  letters: newState.replyLetters
+                  letters: flattenReplyLetters
                 }
               }
             ]
@@ -1183,7 +1165,6 @@ class Main extends React.Component {
         } else {
           self.setState(prevState => {
             const newState = _.cloneDeep(prevState)
-            newState.modeOpened = null
             newState.uiState = UI_STATES.init
             return newState
           })
@@ -1220,7 +1201,6 @@ class Main extends React.Component {
           newState.topics = json.topics
           newState.user = json.user
           newState.mode = json.mode
-          newState.modeOpened = json.mode
           newState.method = json.method
           newState.versions = json.versions
           newState.stateReceived = true
@@ -1320,6 +1300,7 @@ class Main extends React.Component {
         const newState = _.cloneDeep(prevState)
         newState.transcriptionExactMatch = ''
         newState.transcriptionNoMatch = ''
+        newState.recentActionTime = Date.now()
         return newState
       })
     })
@@ -1368,7 +1349,6 @@ class Main extends React.Component {
       // It may handle only client side specific state. Server side state should be handled by server.
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        newState.modeOpened = null
         newState.uiState = UI_STATES.leaveRequested
         return newState
       })
@@ -1582,7 +1562,6 @@ class Main extends React.Component {
         } else if (event.detail.eventType === 'explore_leave') {
           newState.uiState = UI_STATES.init
           newState.mode = null
-          newState.modeOpened = null
           newState.method = null
         } else if (event.detail.eventType === 'explore_skip') {
           newState.uiState = UI_STATES.skipped
@@ -1595,7 +1574,8 @@ class Main extends React.Component {
           newState.replyMap = {}
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
-          if (['explore', 'train'].includes(prevState.modeOpened) && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
+          const wasActivelyPlaying = prevState.uiState === UI_STATES.exploring || prevState.uiState === UI_STATES.training
+          if (wasActivelyPlaying && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
             // WS message just after game finish.
             // WTF? It should be much simpler!
             self.runFinishStatusTicker(4)
@@ -1695,27 +1675,10 @@ class Main extends React.Component {
             newState.replyMap = {}
             if (newStateUserHints.length > 0) {
               // show hint.
-              const replyLetters = questionToReplyLetters(currentRound.question)
-
-              const lastHintArray = newStateUserHints[newStateUserHints.length - 1]
-
-              for (let i = 0; i < currentRound.question.length; ++i) {
-                const mappedIndexes = []
-                const questionWord = currentRound.question[i]
-                for (let j = 0; j < lastHintArray.length; ++j) {
-                  // For every hint find appropriate letter and add to reply map.
-                  for (let n = 0; n < questionWord.length; ++n) {
-                    if (questionWord[n] === lastHintArray[j][1] && !mappedIndexes.includes(n)) {
-                      // match found, add as reply
-                      newState.replyMap[pair(0, j)] = pair(0, n)
-                      replyLetters[lastHintArray[j][0]] = lastHintArray[j][1]
-                      mappedIndexes.push(n)
-                      break
-                    }
-                  }
-                }
-              }
-              newState.replyLetters = [replyLetters.join('')]
+              const [newReplyLetters, newReplyMap] = populateWithHintLetters(
+                currentRound.question, newStateUserHints[newStateUserHints.length - 1])
+              newState.replyLetters = newReplyLetters
+              newState.replyMap = newReplyMap
             }
           }
         }
@@ -1857,13 +1820,13 @@ class Main extends React.Component {
       // FIXME:
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        if (newState.modeOpened === 'contest') {
+        if (newState.uiState === UI_STATES.inContest) {
           newState.mode = 'contest_requested'
           // We always send user in payload because server may loose initial state once (on
           // backend restart for example).
           self.sendMessage({ command: 'contest', payload: { user: newState.user } })
         } else {
-          newState.modeOpened = 'contest'
+          newState.uiState = UI_STATES.inContest
         }
         return newState
       })
@@ -1882,14 +1845,13 @@ class Main extends React.Component {
     document.getElementById('root').addEventListener(TRAIN_CLICKED, function (event) {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
-        if (newState.modeOpened === 'train') {
+        if (newState.uiState === UI_STATES.inTrain) {
           newState.mode = 'train_requested'
           newState.uiState = UI_STATES.trainRequested
           // We always send user in payload because server may loose initial state once (on
           // backend restart for example).
           self.sendMessage({ command: 'train', payload: { user: newState.user } })
         } else {
-          newState.modeOpened = 'train'
           newState.uiState = UI_STATES.inTrain
         }
         return newState
@@ -1901,7 +1863,6 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.mode = 'explore_requested'
-        newState.modeOpened = 'explore'
         newState.uiState = UI_STATES.exploreRequested
         // We always send user in payload because server may loose initial state once (on
         // backend restart for example).
@@ -2004,6 +1965,7 @@ class Main extends React.Component {
           newState.transcriptionExactMatch = ''
           newState.transcriptionNoMatch = event.detail.noMatch
         }
+        newState.recentActionTime = Date.now()
         self.processReply(prevState, newState)
         return newState
       })
@@ -2228,7 +2190,7 @@ class Main extends React.Component {
         }
 
         if (self.state.uiState === UI_STATES.inExplore) {
-          if (self.state.totalHints > 3) {
+          if (self.state.totalHints > 4) {
             finishStatus = trn(
               userLanguage,
               'Too many hints. Starting the same game in {seconds} seconds.',
@@ -2563,7 +2525,8 @@ class Main extends React.Component {
     */
 
     const startExploreGame = function () {
-      self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent(EXPLORE_START, { detail: { setName: self.state.setName } }))
       if (self.state.isSharedGame) {
         // This is for start from share page.
         setTimeout(toIndex, 500, self.state.user.language)
@@ -2621,7 +2584,6 @@ class Main extends React.Component {
     }
 
     let progressRows = ''
-    // if (self.state.modeOpened === 'explore' && self.state.progress.simple) {
     if (self.state.progress.simple) {
       progressRows = (
         <table>
@@ -2675,7 +2637,6 @@ class Main extends React.Component {
     let topicSelectBox
     let finishedRoundsTable
 
-    // if (self.state.modeOpened === 'train') {
     if (self.state.uiState === UI_STATES.inTrain || self.state.uiState === UI_STATES.training) {
       const disabled = self.state.uiState === UI_STATES.training ? 'disabled' : ''
 

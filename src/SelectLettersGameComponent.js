@@ -273,7 +273,6 @@ function SelectLettersGameComponent ({ round, isSolved, language }) {
   }
 
   const buttonDisabled = status === 'transcription-started'
-  console.log(correctImage.src, '!!!!')
 
   if (isSolved) {
     return (
