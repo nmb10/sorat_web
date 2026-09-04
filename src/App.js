@@ -826,6 +826,9 @@ class Main extends React.Component {
       slowConnection: false,
       progress: {},
       finishStatusDisplayTimeout: 0,
+      finishTickerId: 0, // Bumped whenever a finish countdown starts, so stale setTimeout ticks from a previous countdown can recognize they're obsolete and stop.
+      finishSnapshot: null, // Finished game's rounds/players/method, captured at the moment it finished so the "Next game..." message renders from this instead of live state a fast-arriving next round may have already overwritten.
+      nextRoundReady: false, // Whether the next round's data has actually arrived - the finish countdown never hides itself before both its fixed duration AND this are true.
       replyWaitingTimeout: 0,
       recentActionTime: Date.now(),
       soundVolume: parseInt(getCookies().volume || 40),
@@ -1145,38 +1148,67 @@ class Main extends React.Component {
     }
   }
 
-  runFinishStatusTicker (seconds) {
+  runFinishStatusTicker (seconds, willContinue, tickerId) {
     const self = this
-    if (seconds > 0) {
+    // The countdown itself always runs its full, fixed 1-second cadence (4, 3, 2, 1) regardless
+    // of connection speed - it's not tied to whether the next round has loaded yet, so the user
+    // always sees the same "Next game in N seconds" animation whether the game is quietly ready
+    // in the background (fast connection) or still loading (slow connection).
+    if (seconds > 1) {
       document.getElementById('root').dispatchEvent(
         new CustomEvent(FINISH_STATUS_TICK, { detail: { seconds: seconds - 1 } }))
-      setTimeout(self.runFinishStatusTicker, 1000, seconds - 1)
-    }
-    if (seconds === 1) {
-      // ticker will finish soon. Start new explore game if needed.
-      let currentRound = {}
-      if (self.state.currentRound && self.state.currentRound !== -1) {
-        currentRound = self.state.rounds[self.state.currentRound - 1]
-      }
-      const currentRoundIsEmpty = Object.keys(currentRound).length === 0
-      const secondsFromRecentInteraction = (Date.now() - self.state.recentActionTime) / 1000
-      if (self.state.uiState === UI_STATES.skipped || self.state.uiState === UI_STATES.inExplore) {
-        if (secondsFromRecentInteraction < 60 && currentRoundIsEmpty) {
-          self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
-          self.setState(prevState => {
-            const newState = _.cloneDeep(prevState)
-            newState.recentActionTime = Date.now()
-            return newState
-          })
-        } else {
-          self.setState(prevState => {
-            const newState = _.cloneDeep(prevState)
-            newState.uiState = UI_STATES.init
-            return newState
-          })
+      setTimeout(() => {
+        // Gate only the continuation, not this (already-happening) tick: the very first call
+        // runs inside the same setState updater that just assigned this tickerId, so self.state
+        // wouldn't reflect it yet if checked here synchronously. By the time this timeout fires,
+        // state has settled - if a newer countdown has since started, this chain is stale and
+        // must stop instead of resurrecting a "Next game..." message that no longer applies.
+        if (self.state.finishTickerId === tickerId) {
+          self.runFinishStatusTicker(seconds - 1, willContinue, tickerId)
         }
+      }, 1000)
+      return
+    }
+    // seconds === 1: the fixed countdown has finished playing out.
+    // Skip flow still requests the next game here (skip itself is sent immediately in GAME_SKIP,
+    // but we don't yet know it succeeded until this point). Explore-finish requests the next game
+    // immediately when the finish is detected (see STATE_UPDATE handler), so it's deliberately
+    // not repeated here to avoid a duplicate request while the first is in flight.
+    if (self.state.uiState === UI_STATES.skipped) {
+      const secondsFromRecentInteraction = (Date.now() - self.state.recentActionTime) / 1000
+      if (secondsFromRecentInteraction < 60) {
+        self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+        self.setState(prevState => {
+          const newState = _.cloneDeep(prevState)
+          newState.recentActionTime = Date.now()
+          return newState
+        })
+      } else {
+        self.setState(prevState => {
+          const newState = _.cloneDeep(prevState)
+          newState.uiState = UI_STATES.init
+          return newState
+        })
       }
     }
+    self.waitForNextRoundThenHideFinishStatus(willContinue, tickerId)
+  }
+
+  waitForNextRoundThenHideFinishStatus (willContinue, tickerId) {
+    const self = this
+    // Only actually hide the message once the countdown has both finished playing AND (for a
+    // flow that auto-continues) the next round's data has genuinely arrived - never sooner. This
+    // is what stretches the display to cover a slow round-trip instead of leaving a blank gap.
+    if (!willContinue || self.state.nextRoundReady) {
+      document.getElementById('root').dispatchEvent(
+        new CustomEvent(FINISH_STATUS_TICK, { detail: { seconds: 0 } }))
+      return
+    }
+    setTimeout(() => {
+      if (self.state.finishTickerId === tickerId) {
+        self.waitForNextRoundThenHideFinishStatus(willContinue, tickerId)
+      }
+    }, 1000)
   }
 
   componentDidMount () {
@@ -1542,6 +1574,15 @@ class Main extends React.Component {
     })
 
     document.getElementById('root').addEventListener(STATE_UPDATE, function (event) {
+      // React StrictMode (dev only) intentionally invokes setState updater functions twice, to
+      // help catch side effects hidden inside them. sendMessage/runFinishStatusTicker below are
+      // exactly such side effects - inside the updater they'd fire the "explore" request twice,
+      // and since starting a game doesn't mark it "in progress" server-side (only solving does),
+      // the second request would be served the same "next unsolved" game the first one just got.
+      // So the updater only decides *what* to do; the actual side effects run once, from the
+      // setState callback (2nd arg), which commits after the real state update and isn't
+      // double-invoked.
+      let finishAction = null
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.players = event.detail.state.players
@@ -1559,13 +1600,7 @@ class Main extends React.Component {
         newState.method = event.detail.state.method
         newState.gameLastMessageTime = event.detail.state.gameLastMessageTime
 
-        if (event.detail.eventType === 'start' && event.detail.state.mode === 'train') {
-          newState.uiState = UI_STATES.training
-        } else if (event.detail.eventType === 'start' && event.detail.state.mode === 'explore') {
-          newState.uiState = UI_STATES.exploring
-        } else if (event.detail.eventType === 'train_leave') {
-          newState.uiState = UI_STATES.inTrain
-        } else if (event.detail.eventType === 'explore_leave') {
+        const restoreDemoSnapshotOrGoToInit = () => {
           if (prevState.demoSnapshot) {
             // Game was started from a demo/shared landing page. Restore it instead of
             // dropping to the regular index page.
@@ -1588,6 +1623,22 @@ class Main extends React.Component {
             newState.mode = null
             newState.method = null
           }
+        }
+
+        if (event.detail.eventType === 'start' && event.detail.state.mode === 'train') {
+          newState.uiState = UI_STATES.training
+        } else if (event.detail.eventType === 'start' && event.detail.state.mode === 'explore') {
+          newState.uiState = UI_STATES.exploring
+          // The next round has arrived. Don't hide the "Next game..." message here directly -
+          // the running countdown (see runFinishStatusTicker/waitForNextRoundThenHideFinishStatus)
+          // is watching this flag and will hide it once its fixed display duration has also
+          // played out, so the message always shows for a consistent amount of time instead of
+          // vanishing the instant a fast connection's response lands.
+          newState.nextRoundReady = true
+        } else if (event.detail.eventType === 'train_leave') {
+          newState.uiState = UI_STATES.inTrain
+        } else if (event.detail.eventType === 'explore_leave') {
+          restoreDemoSnapshotOrGoToInit()
         } else if (event.detail.eventType === 'explore_skip') {
           newState.uiState = UI_STATES.skipped
         }
@@ -1600,12 +1651,46 @@ class Main extends React.Component {
           newState.preloadedImages = {}
           newState.gameLastMessageTime = null
           const wasActivelyPlaying = prevState.uiState === UI_STATES.exploring || prevState.uiState === UI_STATES.training
-          if (wasActivelyPlaying && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
-            // WS message just after game finish.
-            self.runFinishStatusTicker(4)
+          // Wait specifically for 'game_finished', not just any message carrying currentRound -1:
+          // the server sends 'round_changed' with currentRound already -1 a full tick (1s) before
+          // it actually scores the game and saves progress (see game.erl's tick handler - the
+          // AllRoundsSolved/save_progress/game_finished logic only runs on the *next* tick after
+          // currentRound became -1). Reacting any earlier and immediately sending 'explore' races
+          // games_manager into forcing the still-alive game process to leave() before its scoring
+          // tick ever runs - which silently drops the solve (no progress saved), so the same game
+          // comes right back as "next unsolved".
+          if (wasActivelyPlaying && event.detail.eventType === 'game_finished' && prevState.finishStatusDisplayTimeout === 0) {
+            // WS message just after game finish. Snapshot the finished game's data now, before
+            // any next-round data can overwrite rounds/players/method - the finish message
+            // renders from this snapshot rather than live state.
+            newState.finishSnapshot = {
+              kind: prevState.uiState === UI_STATES.exploring ? 'explore' : 'train',
+              rounds: newState.rounds,
+              players: newState.players,
+              method: newState.method,
+              totalHints: newState.totalHints
+            }
+            newState.nextRoundReady = false
+            let willAutoContinue = false
             if (prevState.uiState === UI_STATES.exploring) {
               newState.uiState = UI_STATES.inExplore
+              const secondsFromRecentInteraction = (Date.now() - prevState.recentActionTime) / 1000
+              if (secondsFromRecentInteraction < 60) {
+                // Request the next game right away instead of waiting for the countdown to
+                // finish, so the round-trip overlaps with the "Next game..." message instead of
+                // starting only after it's gone (that's what left a blank gap on slow connections).
+                // The actual send happens once, from the setState callback below.
+                newState.recentActionTime = Date.now()
+                willAutoContinue = true
+              } else {
+                // Gave up auto-continuing (idle too long) - same destination as an explicit
+                // Leave: back to the demo/shared landing page if that's where this game came
+                // from, otherwise the regular index page.
+                restoreDemoSnapshotOrGoToInit()
+              }
             }
+            newState.finishTickerId = prevState.finishTickerId + 1
+            finishAction = { willAutoContinue, tickerId: newState.finishTickerId }
           }
         } else if (roundOrMethodChanged) {
           // Round changed. Show ? for every letter of the question.
@@ -1707,6 +1792,13 @@ class Main extends React.Component {
           }
         }
         return newState
+      }, () => {
+        if (finishAction) {
+          if (finishAction.willAutoContinue) {
+            self.sendMessage({ command: 'explore', payload: { user: self.state.user } })
+          }
+          self.runFinishStatusTicker(4, finishAction.willAutoContinue, finishAction.tickerId)
+        }
       })
     })
 
@@ -1858,11 +1950,26 @@ class Main extends React.Component {
 
     document.getElementById('root').addEventListener(GAME_SKIP, function (event) {
       self.sendMessage({ command: 'skip', payload: {} })
+      let tickerId = null
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         newState.uiState = UI_STATES.skipRequested
-        self.runFinishStatusTicker(4)
+        newState.finishSnapshot = {
+          kind: 'skip',
+          rounds: prevState.rounds,
+          players: prevState.players,
+          method: prevState.method,
+          totalHints: prevState.totalHints
+        }
+        newState.nextRoundReady = false
+        newState.finishTickerId = prevState.finishTickerId + 1
+        // Starting the ticker dispatches events (its own side effect) - stash the id and start it
+        // from the setState callback below instead, so StrictMode's double-invocation of this
+        // updater (dev only) can't start two overlapping ticker chains.
+        tickerId = newState.finishTickerId
         return newState
+      }, () => {
+        self.runFinishStatusTicker(4, true, tickerId)
       })
     })
 
@@ -2194,13 +2301,18 @@ class Main extends React.Component {
     let finishStatusBlock
     let finishStatus
 
-    if (self.state.finishStatusDisplayTimeout > 0) {
+    // Render from the finished game's snapshot, not live state: rounds/players/method may already
+    // reflect a next round that's loaded quietly in the background while this message is still
+    // showing (see runFinishStatusTicker), so using live state here would compute scores against
+    // the wrong round or, once it's gone, throw entirely.
+    const finishSnapshot = self.state.finishSnapshot
+    if (self.state.finishStatusDisplayTimeout > 0 && finishSnapshot) {
       // FIXME: cache scores somewhere for that case. We do not need to recompute because
       // round is finished.
-      const allPlayersScores = getPlayersScores(self.state.players, finishedRounds)
-      const userScores = allPlayersScores[self.state.user.id]
+      const allPlayersScores = getPlayersScores(finishSnapshot.players, finishSnapshot.rounds || [])
+      const userScores = allPlayersScores[self.state.user.id] || { name: self.state.user.name, total: 0, all: [] }
 
-      if (self.state.uiState === UI_STATES.skipped || self.state.uiState === UI_STATES.skipRequested) {
+      if (finishSnapshot.kind === 'skip') {
         finishStatusStyle.border = '3px solid red'
         finishStatus = trn(
           userLanguage,
@@ -2209,7 +2321,7 @@ class Main extends React.Component {
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
-      } else if (self.state.method === IMAGE_SELECTION_METHOD) {
+      } else if (finishSnapshot.method === IMAGE_SELECTION_METHOD) {
         finishStatusStyle.border = '3px solid green'
         finishStatus = trn(
           userLanguage,
@@ -2218,7 +2330,7 @@ class Main extends React.Component {
         finishStatusBlock = <div style={finishStatusStyle}>
           {finishStatus}
         </div>
-      } else if (Object.keys(self.state.rounds[0].solutions).length === 1) {
+      } else if (Object.keys(finishSnapshot.rounds[0].solutions).length === 1) {
         // FIXME: Too dirty. Refactor!
         // Single player mode (train/progress)
         let scorePercent = 0
@@ -2227,8 +2339,8 @@ class Main extends React.Component {
           scorePercent = (userScores.total / totalPossible) * 100
         }
 
-        if (self.state.uiState === UI_STATES.inExplore) {
-          if (self.state.totalHints > 4) {
+        if (finishSnapshot.kind === 'explore') {
+          if (finishSnapshot.totalHints > 4) {
             finishStatus = trn(
               userLanguage,
               'Too many hints. Starting the same game in {seconds} seconds.',
@@ -2277,7 +2389,10 @@ class Main extends React.Component {
       currentRound = self.state.rounds[self.state.currentRound - 1]
       isSolved = currentRound.solutions[self.state.user.id].is_solved
     }
-    const currentRoundNotEmpty = Object.keys(currentRound).length > 0
+    // Also hide while the "Next game..." message is up: the next round can already be loaded in
+    // the background (see runFinishStatusTicker), and showing its image/question underneath the
+    // countdown would spoil/confuse rather than help.
+    const currentRoundNotEmpty = Object.keys(currentRound).length > 0 && self.state.finishStatusDisplayTimeout === 0
 
     let solvedMark
     if (isSolved) {
@@ -2533,7 +2648,7 @@ class Main extends React.Component {
     }
 
     let timeoutBlock
-    if (self.state.method === LETTERS_SELECTION_METHOD) {
+    if (self.state.method === LETTERS_SELECTION_METHOD && self.state.finishStatusDisplayTimeout === 0) {
       if (!self.state.isDemoGame) {
         timeoutBlock = <CurrentRoundTimeoutWidget
           isSolved={isSolved} currentRound={currentRound}
