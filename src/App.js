@@ -17,12 +17,18 @@ import _ from 'lodash'
 import trn from './translations'
 // import * as events from './events'
 import {
-  handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE, CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE,
-  VOICE_PLAYED, IMAGE_SELECTION_REPLY, REPLY_LETTER_REMOVE, CHALLENGE, CONTEST_ENQUEUED, GAME_ERROR, PROGRESS,
-  WS_OPENED, WS_CLOSED, WS_ERROR, TICK_CHALLENGE, LETTERS_DISPLAY_TICK, FINISH_STATUS_TICK, CONNECTION_SLOW_MESSAGE,
-  GAME_HELP, ROUND_TIMEOUT_TICK, ERROR_CLOSE, GAME_LEAVE, IMAGE_LOAD, STATE_UPDATE, METHOD_CHANGED, SHARE_CREATE,
-  LEVEL_CHANGED, LANGUAGE_CHANGED, NAME_CHANGED, AUTOPLAY_ENABLED, AUTOPLAY_DISABLED, VOLUME_CHANGED, CONTEST_CLICKED,
-  GAME_SKIP, TRAIN_CLICKED, EXPLORE_START, FORCE_IMAGE_SELECT_METHOD, CHALLENGE_ACCEPTED, CHALLENGE_DECLINED,
+  handle, dispatch, CUSTOM_SET_SHOW, CUSTOM_SET_HIDE,
+  CUSTOM_GAME_SAVE, CUSTOM_GAME_EDIT, CUSTOM_GAME_TOPIC_CHANGE, CUSTOM_GAME_WORD_CHANGE,
+  VOICE_PLAYED, IMAGE_SELECTION_REPLY, REPLY_LETTER_REMOVE,
+  CHALLENGE, CONTEST_ENQUEUED, GAME_ERROR, PROGRESS,
+  WS_OPENED, WS_CLOSED, WS_ERROR, TICK_CHALLENGE,
+  LETTERS_DISPLAY_TICK, FINISH_STATUS_TICK, CONNECTION_SLOW_MESSAGE,
+  GAME_HELP, ROUND_TIMEOUT_TICK, ERROR_CLOSE, GAME_LEAVE,
+  IMAGE_LOAD, STATE_UPDATE, METHOD_CHANGED, SHARE_CREATE,
+  LEVEL_CHANGED, LANGUAGE_CHANGED, NAME_CHANGED, AUTOPLAY_ENABLED,
+  AUTOPLAY_DISABLED, VOLUME_CHANGED, CONTEST_CLICKED,
+  GAME_SKIP, TRAIN_CLICKED, EXPLORE_START, FORCE_IMAGE_SELECT_METHOD,
+  CHALLENGE_ACCEPTED, CHALLENGE_DECLINED,
   TOPIC_CHANGED, RECORDING_START, TRANSCRIPTION_DONE, QUESTION_LETTER_CLICK
 } from './events'
 import CustomSetComponent from './CustomSetComponent'
@@ -826,6 +832,7 @@ class Main extends React.Component {
       voicePlayed: false,
       isDemoGame: false,
       isSharedGame: false,
+      demoSnapshot: null, // Snapshot of the demo/shared landing page, restored after leaving a game started from it.
       sharedGameIsChecked: false, // if current round checked on server side or not.
       ownerId: false, // owner (creator) of the game.
       url: null, // Game url (in case of shared game.)
@@ -855,7 +862,6 @@ class Main extends React.Component {
     this.onSkipClick = this.onSkipClick.bind(this)
     this.saveState = this.saveState.bind(this)
     this.onContestClick = this.onContestClick.bind(this)
-    this.onExploreClick = this.onExploreClick.bind(this)
     this.onAcceptClick = this.onAcceptClick.bind(this)
     this.onDeclineClick = this.onDeclineClick.bind(this)
     this.onImageSelectModeSwitchClick = this.onImageSelectModeSwitchClick.bind(this)
@@ -1560,9 +1566,28 @@ class Main extends React.Component {
         } else if (event.detail.eventType === 'train_leave') {
           newState.uiState = UI_STATES.inTrain
         } else if (event.detail.eventType === 'explore_leave') {
-          newState.uiState = UI_STATES.init
-          newState.mode = null
-          newState.method = null
+          if (prevState.demoSnapshot) {
+            // Game was started from a demo/shared landing page. Restore it instead of
+            // dropping to the regular index page.
+            newState.uiState = prevState.demoSnapshot.uiState
+            newState.isDemoGame = prevState.demoSnapshot.isDemoGame
+            newState.isSharedGame = prevState.demoSnapshot.isSharedGame
+            newState.sharedGameIsChecked = prevState.demoSnapshot.sharedGameIsChecked
+            newState.mode = prevState.demoSnapshot.mode
+            newState.method = prevState.demoSnapshot.method
+            newState.rounds = prevState.demoSnapshot.rounds
+            newState.currentRound = prevState.demoSnapshot.currentRound
+            newState.status = prevState.demoSnapshot.status
+            newState.players = prevState.demoSnapshot.players
+            newState.replyMap = prevState.demoSnapshot.replyMap
+            newState.replyLetters = prevState.demoSnapshot.replyLetters
+            newState.progress = {} // Progress widget doesn't belong on the demo/shared landing page.
+            newState.demoSnapshot = null
+          } else {
+            newState.uiState = UI_STATES.init
+            newState.mode = null
+            newState.method = null
+          }
         } else if (event.detail.eventType === 'explore_skip') {
           newState.uiState = UI_STATES.skipped
         }
@@ -1577,7 +1602,6 @@ class Main extends React.Component {
           const wasActivelyPlaying = prevState.uiState === UI_STATES.exploring || prevState.uiState === UI_STATES.training
           if (wasActivelyPlaying && prevState.currentRound > -1 && prevState.finishStatusDisplayTimeout === 0) {
             // WS message just after game finish.
-            // WTF? It should be much simpler!
             self.runFinishStatusTicker(4)
             if (prevState.uiState === UI_STATES.exploring) {
               newState.uiState = UI_STATES.inExplore
@@ -1862,6 +1886,25 @@ class Main extends React.Component {
       // FIXME:
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
+        if (prevState.isDemoGame || prevState.isSharedGame) {
+          // Real game state overwrites isDemoGame/isSharedGame once it starts (server has no way
+          // to report demo state on further updates). Keep a snapshot so leave() can bring the
+          // demo/shared landing page back.
+          newState.demoSnapshot = {
+            isDemoGame: prevState.isDemoGame,
+            isSharedGame: prevState.isSharedGame,
+            sharedGameIsChecked: prevState.sharedGameIsChecked,
+            uiState: prevState.uiState,
+            mode: prevState.mode,
+            method: prevState.method,
+            rounds: prevState.rounds,
+            currentRound: prevState.currentRound,
+            status: prevState.status,
+            players: prevState.players,
+            replyMap: prevState.replyMap,
+            replyLetters: prevState.replyLetters
+          }
+        }
         newState.mode = 'explore_requested'
         newState.uiState = UI_STATES.exploreRequested
         // We always send user in payload because server may loose initial state once (on
@@ -2034,11 +2077,6 @@ class Main extends React.Component {
   onContestClick (event) {
     document.getElementById('root').dispatchEvent(
       new CustomEvent(CONTEST_CLICKED, { detail: {} }))
-  }
-
-  onExploreClick (event) {
-    document.getElementById('root').dispatchEvent(
-      new CustomEvent(EXPLORE_START, { detail: { setName: this.state.setName } }))
   }
 
   onAcceptClick (event) {
@@ -2404,10 +2442,7 @@ class Main extends React.Component {
     } else if (self.state.uiState === UI_STATES.exploreRequested) {
       buttonsBlock = (
         <div className="column">
-          <button id="explore" onClick={self.leave} title={trn(userLanguage, 'Explore')} style={ buttonStyle }>
-            {trn(userLanguage, 'Explore')}
             <img src={spinner} alt="Spinner" />
-          </button>
         </div>)
     } else if (self.state.uiState === UI_STATES.skipped) {
       buttonsBlock = (
@@ -2463,15 +2498,7 @@ class Main extends React.Component {
             {imageSelectModeSwitchButton}
           </div>)
       }
-    } else if (!self.state.isSharedGame) {
-      buttonsBlock = (
-        <div className="column">
-          <button id="explore" onClick={self.onExploreClick} title={trn(userLanguage, 'Start new game in explore mode')} style={ buttonStyle }>
-            {trn(userLanguage, 'Explore')}
-          </button>
-        </div>)
     }
-
     // FIXME: Too dirty. Refactor (see the upper code.)
     if (self.state.finishStatusDisplayTimeout > 0) {
       buttonsBlock = null
