@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" translate="no">
+<html lang="{{ lang }}" translate="no" class="notranslate">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,6 +26,7 @@
       <meta property="og:locale" content="{{ og_locale }}" />
     {% endif %}
     <meta property="og:site_name" content="sorat.io" />
+    <meta name="google" content="notranslate">
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.png" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="canonical" href="{{ canonical_page }}" />
@@ -58,17 +59,18 @@
     -->
     <title>{{ title }} | Sorat App</title>
   </head>
-  <body>
+  <body translate="no" class="notranslate">
     <noscript>
         {{ noscript }} <a href="https://github.com/nmb10/sorat_web/issues">
         Report an issue</a>
     </noscript>
 
-    <section class="hero">
+    <section class="hero" translate="no">
       <h1>{{ page_h1 }}</h1>
       <p>{{ page_intro }}</p>
     </section>
-    <div id="root" style="min-height:556px">
+
+    <div id="root" translate="no" class="notranslate" style="min-height:556px">
     </div>
   </div>
   <!--
