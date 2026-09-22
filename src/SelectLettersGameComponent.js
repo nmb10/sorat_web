@@ -74,13 +74,14 @@ async function uploadAudio (language, wordLetters) {
     .then(response => response.json())
     .then(data => {
       // compare transcriptions and report most similar.
-      const wordLettersSorted = sorted(wordLetters)
+      // const wordLettersSorted = sorted(wordLetters)
+      const wordLettersSorted = sorted(wordLetters.map((word) => word.join('')).join(' '))
 
       let sortedResult
       let exactMatch
       let noMatch
       for (const result of data.results) {
-        sortedResult = sorted(result)
+        sortedResult = sorted(result.map((word) => word.join('')).join(' '))
         if (sortedResult === wordLettersSorted) {
           // Exact match. Looks like transcription was success.
           exactMatch = result
@@ -106,7 +107,7 @@ SelectLettersGameComponent.propTypes = {
 function SelectLettersGameComponent ({ round, isSolved, language }) {
   const correctChoice = round.correct_choice
   const correctImage = [null, round.img1, round.img2, round.img3, round.img4][correctChoice]
-  const wordLetters = round.question[0]
+  const wordLetters = round.question
 
   const [status, setStatus] = useState('transcription-finished')
   const isTouchHolding = useRef(false)

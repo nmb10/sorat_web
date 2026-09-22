@@ -2108,7 +2108,7 @@ class Main extends React.Component {
       self.setState(prevState => {
         const newState = _.cloneDeep(prevState)
         if (event.detail.exactMatch) {
-          newState.replyLetters[0] = event.detail.exactMatch
+          newState.replyLetters = event.detail.exactMatch
           newState.transcriptionExactMatch = event.detail.exactMatch
           newState.transcriptionNoMatch = ''
         } else {
